@@ -7,7 +7,7 @@ import type { InputIntent } from '../src/domain/shared/intent';
 import { IDLE_INTENT } from '../src/domain/shared/intent';
 import { TICKS_PER_SECOND } from '../src/domain/shared/time';
 import { RAIDER_HIT_POINTS, RAIDER_SPAWN_Y_UNITS } from '../src/domain/swarm/raider';
-import { RESURRECTION_DOWNLOAD_SECONDS } from '../src/domain/swarm/resurrection';
+import { DIRECTOR_CAP, RESURRECTION_DOWNLOAD_SECONDS } from '../src/domain/swarm/resurrection';
 
 function move(moveX: number, moveY: number): InputIntent {
   return { ...IDLE_INTENT, moveX, moveY };
@@ -76,22 +76,22 @@ describe('auto-fire', () => {
   });
 });
 
-describe('the first Raider', () => {
-  it('spawns on the first tick and flies down', () => {
+describe('the first Raiders', () => {
+  it('spawns the Director cap on the first tick and flies down', () => {
     const game = createGame({ seed: 1, raidersFire: false });
     const events = game.tick(IDLE_INTENT);
     const spawned = events.filter((event) => event.type === 'RaiderSpawned');
 
-    expect(spawned).toHaveLength(1);
-    expect(game.view.raider).not.toBeNull();
-    expect(game.view.raider!.y).toBeGreaterThan(RAIDER_SPAWN_Y_UNITS);
+    expect(spawned).toHaveLength(DIRECTOR_CAP);
+    expect(game.view.raiders).toHaveLength(DIRECTOR_CAP);
+    expect(game.view.raiders[0]!.y).toBeGreaterThan(RAIDER_SPAWN_Y_UNITS);
 
-    const yAtBirth = game.view.raider!.y;
+    const yAtBirth = game.view.raiders[0]!.y;
     game.tick(IDLE_INTENT);
-    expect(game.view.raider!.y).toBeGreaterThan(yAtBirth);
+    expect(game.view.raiders[0]!.y).toBeGreaterThan(yAtBirth);
   });
 
-  it('appears in the same column when the seed is the same, and not when it is not', () => {
+  it('appears in the same columns when the seed is the same, and not when it is not', () => {
     const first = createGame({ seed: 7 });
     const again = createGame({ seed: 7 });
     const other = createGame({ seed: 99 });
@@ -100,39 +100,33 @@ describe('the first Raider', () => {
     again.tick(IDLE_INTENT);
     other.tick(IDLE_INTENT);
 
-    expect(first.view.raider?.x).toBe(again.view.raider?.x);
-    expect(other.view.raider?.x).not.toBe(first.view.raider?.x);
+    expect(first.view.raiders.map((raider) => raider.x)).toEqual(again.view.raiders.map((raider) => raider.x));
+    expect(other.view.raiders.map((raider) => raider.x)).not.toEqual(first.view.raiders.map((raider) => raider.x));
   });
 
-  it('never has more than one Raider on screen', () => {
+  it('never has more live Raiders than the Director cap', () => {
     const game = createGame();
-    let live = false;
 
     for (let i = 0; i < ticksFor(8); i++) {
-      const events = game.tick(IDLE_INTENT);
-      for (const event of events) {
-        if (event.type === 'RaiderSpawned') {
-          expect(live).toBe(false);
-          live = true;
-        }
-        if (event.type === 'RaiderDestroyed') live = false;
-      }
+      game.tick(IDLE_INTENT);
+      expect(game.view.raiders.length).toBeLessThanOrEqual(DIRECTOR_CAP);
     }
   });
 
   it('reappears at the top of its column after flying off the bottom, without counting as a kill', () => {
     const game = createGame({ seed: 1, raidersFire: false });
     game.tick(IDLE_INTENT);
-    const id = game.view.raider!.id;
-    const x = game.view.raider!.x;
+    const tracked = game.view.raiders[0]!;
+    const id = tracked.id;
+    const x = tracked.x;
 
     eventsOf(game, ticksFor(12));
 
+    const same = game.view.raiders.find((raider) => raider.id === id);
     expect(game.view.kills).toBe(0);
-    expect(game.view.raider?.id).toBe(id);
-    expect(game.view.raider?.x).toBe(x);
-    expect(game.view.raider!.y).toBeGreaterThan(0);
-    expect(game.view.raider!.y).toBeLessThan(480);
+    expect(same?.x).toBe(x);
+    expect(same!.y).toBeGreaterThan(0);
+    expect(same!.y).toBeLessThan(480);
   });
 
   it('takes several hits to destroy, then the same soul returns after the download', () => {
@@ -140,9 +134,8 @@ describe('the first Raider', () => {
 
     let destroyed: { id: number; identityId: number } | null = null;
     for (let i = 0; i < ticksFor(8); i++) {
-      const raider = game.view.raider;
+      const raider = game.view.raiders[0];
       const delta = raider ? raider.x - game.view.viper.x : 0;
-      // Keep station under the Raider. Letting go would coast off the column (the Viper has mass).
       const events = game.tick(move(clampSteer(delta), 0));
       const kill = events.find((event) => event.type === 'RaiderDestroyed');
       if (kill && raider) {
@@ -153,18 +146,18 @@ describe('the first Raider', () => {
 
     expect(destroyed).not.toBeNull();
     expect(game.view.kills).toBe(1);
-    expect(game.view.raider).toBeNull();
+    expect(game.view.raiders.some((raider) => raider.id === destroyed!.id)).toBe(false);
     expect(game.view.ghosts).toHaveLength(1);
 
     eventsOf(game, ticksFor(RESURRECTION_DOWNLOAD_SECONDS) - 2);
-    expect(game.view.raider).toBeNull();
+    expect(game.view.raiders.some((raider) => raider.identityId === destroyed!.identityId)).toBe(false);
 
     eventsOf(game, 4);
-    expect(game.view.raider).not.toBeNull();
-    expect(game.view.raider?.id).not.toBe(destroyed!.id);
-    expect(game.view.raider?.identityId).toBe(destroyed!.identityId);
-    expect(game.view.raider?.returned).toBe(true);
-    expect(game.view.raider?.hp).toBe(RAIDER_HIT_POINTS);
+    const returned = game.view.raiders.find((raider) => raider.identityId === destroyed!.identityId);
+    expect(returned).toBeDefined();
+    expect(returned?.id).not.toBe(destroyed!.id);
+    expect(returned?.returned).toBe(true);
+    expect(returned?.hp).toBe(RAIDER_HIT_POINTS);
   });
 });
 

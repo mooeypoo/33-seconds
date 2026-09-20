@@ -48,7 +48,7 @@ describe('the 33-second cycle', () => {
 
     expect(game.view.cycle.phase).toBe('jumping');
     expect(game.view.projectiles).toHaveLength(0);
-    expect(game.view.raider).toBeNull();
+    expect(game.view.raiders).toHaveLength(0);
     expect(game.view.kills).toBe(0);
   });
 
@@ -69,7 +69,7 @@ describe('the 33-second cycle', () => {
 
     expect(events.some((event) => event.type === 'CyclePhaseChanged' && event.phase === 'arriving')).toBe(true);
     expect(game.view.cycle).toMatchObject({ phase: 'arriving', cycleIndex: 2, secondsRemaining: 33 });
-    expect(game.view.raider).not.toBeNull();
+    expect(game.view.raiders.length).toBeGreaterThan(0);
   });
 
   it('ignores Continue until the fleet is actually recovering', () => {

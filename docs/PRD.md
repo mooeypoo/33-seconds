@@ -213,7 +213,8 @@ Losing on Viper Pilot requires taking near-cap damage over and over, meaning ign
 - Free movement in world units, with a little acceleration smoothing so it feels spacey but not drifty.
 - **Auto-fire** always on. No fire button. The gun points at the swarm side (up); it does not track a target. Start at about 5 shots per second.
 - Hull is reset by Tyrol at each jump. Start at 3 hits. If destroyed mid-cycle, you eject and are picked up after about 3 seconds. That costs downtime, never the run. A short cover on pickup so a round already in the cockpit is not a second eject.
-- First play against a shooting Raider found 3 hits too thin: ejects come too fast for the joke to land. **Do not change the number yet.** A later fairness pass may raise starting hull and, if that is still stingy, add mid-cycle hull pickups ("hearts") so a good intercept is rewarded. Treat those two knobs as one pass, not a live retune.
+- **Hull is visible on the Viper** as a row of pips (count, not only a colour), the same language as Raider pips. The HUD also names `hull 2/3`. First play of enemy fire found people vanishing with no warning because the only number lived in the debug line.
+- First play against a shooting Raider found 3 hits too thin: ejects come too fast for the joke to land. **Do not change the number yet.** A later fairness pass should raise Viper hull **above a single Raider's 3 HP** so you outlast one Cylon, and may add mid-cycle hull pickups ("hearts") if that is still stingy. Retune the Raider hitbox in the same pass. Not a live retune.
 
 ### 8.2 Missiles `[Tunable]`
 - Start each cycle with 3. Tyrol refills them at each jump. Heavy Raiders sometimes drop a pickup.
@@ -242,8 +243,8 @@ MVP ships The Speech only. The loadout pick screen arrives with the second speci
 
 These rules exist so "smarter and angrier" never becomes "a big mass mess."
 
-- **Director cap** on concurrent Raiders, set per tier. Starts at **1** until a second body exists, so a refill is an empty sky and a ghost, not a bigger swarm.
-- **Attack tokens.** Only K Raiders (2 to 5 by tier) can be in their firing state at once. The rest circle or queue.
+- **Director cap** on concurrent Raiders, set per tier. Starts at **2**. A kill is a dip; a return is a refill, not a third body.
+- **Attack tokens.** Only K Raiders (2 to 5 by tier) can be in their firing state at once. The rest fly but hold fire. Starts at **1** so two bodies do not double the incoming fire before the fairness pass. The nearest Raider holds the token; a still eye means unarmed, a sweep means it may shoot.
 - **Hard caps** on enemy bullets and particles, lower on mobile.
 - Only Cylons are red. A still red eye means inert, and a sweeping eye means active. Color is never the only cue (see section 16).
 - **Adaptive quality:** if frame time stays bad for a couple of seconds, visual effects step down automatically. Simulation is never simplified.
@@ -545,3 +546,6 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-20 | Resurrection is a 6 s download that refills the Director cap (starts at 1). Pending ghosts finish in transit and arrive first after a jump. Returned have 1.5 s spawn protection; shots pass through. | So a kill is the show's joke, not a thinner swarm, and a jump cannot erase a download. |
 | 2026-09-20 | Ghost tell is a filling download bar plus a word, not a blink. First play of the diamond was unreadable. | A blink would flash and still not say "downloading." |
 | 2026-09-20 | Fairness pass recorded, not applied: 3 hull feels too thin once Raiders shoot; 6 wu Raider hitbox still feels tight. Later: raise hull and/or add mid-cycle hull pickups, and retune the hitbox in the same pass. | First shooting-back play ejected too fast. Do not chase one number live. |
+| 2026-09-20 | Director cap starts at 2. Attack tokens start at 1: nearest Raider shoots, the other flies. | So a kill refills a swarm instead of emptying the sky, without doubling fire before the fairness pass. |
+| 2026-09-20 | Viper hull is shown as pips on the ship plus `hull n/max` on the HUD. | First play of incoming fire vanished the Viper with no readable health. This is a tell, not the fairness pass. |
+| 2026-09-20 | Fairness pass target: Viper hull should be higher than one Raider's 3 HP. Still not applied. | So the player outlasts an individual Cylon. Hearts and hitbox stay in that same pass. |

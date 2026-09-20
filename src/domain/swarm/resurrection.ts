@@ -1,8 +1,14 @@
 /**
  * Resurrection refills the Director's concurrent-Raider cap. It does not add bodies (PRD 6, 9).
- * The cap starts at one so the joke is visible before there is a swarm.
+ * Two bodies so a kill is a dip, not an empty sky, and a return is visibly a refill.
  */
-export const DIRECTOR_CAP = 1;
+export const DIRECTOR_CAP = 2;
+
+/**
+ * How many live Raiders may shoot at once (PRD 9). The rest fly but hold fire. Starts at 1 so
+ * two bodies do not double the incoming fire before the fairness pass.
+ */
+export const ATTACK_TOKENS = 1;
 
 /** Base download time before a destroyed Raider returns (PRD 6). Tunable per tier later. */
 export const RESURRECTION_DOWNLOAD_SECONDS = 6;

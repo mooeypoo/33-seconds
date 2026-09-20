@@ -15,8 +15,16 @@ import { movingCircleHits } from './shared/collision';
 import type { InputIntent } from './shared/intent';
 import { createRandomStream, type RandomStream } from './shared/random';
 import { TICK_SECONDS } from './shared/time';
-import { Raider, RAIDER_HALF_HEIGHT_UNITS, RAIDER_RADIUS_UNITS, RAIDER_SPAWN_Y_UNITS, raiderSpawnMaxX, raiderSpawnMinX } from './swarm/raider';
-import { DIRECTOR_CAP, Download } from './swarm/resurrection';
+import {
+  Raider,
+  RAIDER_HALF_HEIGHT_UNITS,
+  RAIDER_HALF_WIDTH_UNITS,
+  RAIDER_RADIUS_UNITS,
+  RAIDER_SPAWN_Y_UNITS,
+  raiderSpawnMaxX,
+  raiderSpawnMinX,
+} from './swarm/raider';
+import { ATTACK_TOKENS, DIRECTOR_CAP, Download } from './swarm/resurrection';
 import type { GameView } from './views';
 
 /** Seed used when the caller does not pass one. Play uses this until a run-start seed exists. */
@@ -44,7 +52,7 @@ export class Game {
   private readonly viper = new Viper();
   private readonly shots: Projectile[] = [];
   private readonly liveShots: Projectile[] = [];
-  private raider: Raider | null = null;
+  private readonly raiders: Raider[] = [];
   private readonly downloads: Download[] = [];
   private nextId = 1;
   private nextIdentityId = 1;
@@ -83,10 +91,11 @@ export class Game {
 
     if (this.cycle.isInCombat) {
       this.fillTheSwarm(events);
+      this.assignAttackTokens();
       this.autoFire(events);
       this.raiderFire(events);
       this.advanceShots();
-      this.advanceRaider();
+      this.advanceRaiders();
       this.resolveHits(events);
       this.reclaimShotsThatLeft();
       this.advanceDownloads();
@@ -127,7 +136,7 @@ export class Game {
         ejected: viper.isEjected,
       },
       projectiles: this.liveShots.map((shot) => shot.toView()),
-      raider: this.raider?.toView() ?? null,
+      raiders: this.raiders.map((raider) => raider.toView()),
       ghosts: this.downloads.map((download) => ({
         identityId: download.identityId,
         deaths: download.deaths,
@@ -157,34 +166,51 @@ export class Game {
     events.push({ type: 'ShotFired', id: shot.id, x, y, owner: 'player' });
   }
 
+  private assignAttackTokens(): void {
+    for (const raider of this.raiders) raider.setArmed(false);
+    if (!this.raidersFire || !this.viper.canFight) return;
+
+    const viperX = this.viper.x;
+    const viperY = this.viper.y;
+    const ranked = this.raiders
+      .filter((raider) => raider.y < viperY)
+      .sort((left, right) => {
+        const leftDistance = Math.hypot(left.x - viperX, left.y - viperY);
+        const rightDistance = Math.hypot(right.x - viperX, right.y - viperY);
+        return leftDistance - rightDistance || left.id - right.id;
+      });
+
+    for (const raider of ranked.slice(0, ATTACK_TOKENS)) raider.setArmed(true);
+  }
+
   private raiderFire(events: DomainEvent[]): void {
-    const raider = this.raider;
-    if (!this.raidersFire || !raider || !raider.readyToFire || !this.viper.canFight) return;
-    // Only shoot while still above the Viper. Past that, the round would be a stray at the fleet,
-    // and fleet damage is M3.
-    if (raider.y >= this.viper.y) return;
-    if (this.liveCount('cylon') >= MAX_CYLON_SHOTS) return;
+    if (!this.raidersFire || !this.viper.canFight) return;
 
-    const shot = this.obtainShot();
-    if (!shot) return;
+    for (const raider of this.raiders) {
+      if (!raider.isArmed || !raider.readyToFire) continue;
+      if (this.liveCount('cylon') >= MAX_CYLON_SHOTS) return;
 
-    const x = raider.x;
-    const y = raider.y + RAIDER_HALF_HEIGHT_UNITS;
-    const deltaX = this.viper.x - x;
-    const deltaY = this.viper.y - y;
-    const distance = Math.hypot(deltaX, deltaY) || 1;
-    shot.revive(
-      this.nextId,
-      x,
-      y,
-      (deltaX / distance) * RAIDER_SHOT_SPEED_UNITS_PER_SECOND,
-      (deltaY / distance) * RAIDER_SHOT_SPEED_UNITS_PER_SECOND,
-      'cylon',
-    );
-    this.nextId += 1;
-    this.liveShots.push(shot);
-    raider.spentShot();
-    events.push({ type: 'ShotFired', id: shot.id, x, y, owner: 'cylon' });
+      const shot = this.obtainShot();
+      if (!shot) return;
+
+      const x = raider.x;
+      const y = raider.y + RAIDER_HALF_HEIGHT_UNITS;
+      const deltaX = this.viper.x - x;
+      const deltaY = this.viper.y - y;
+      const distance = Math.hypot(deltaX, deltaY) || 1;
+      shot.revive(
+        this.nextId,
+        x,
+        y,
+        (deltaX / distance) * RAIDER_SHOT_SPEED_UNITS_PER_SECOND,
+        (deltaY / distance) * RAIDER_SHOT_SPEED_UNITS_PER_SECOND,
+        'cylon',
+      );
+      this.nextId += 1;
+      this.liveShots.push(shot);
+      raider.spentShot();
+      events.push({ type: 'ShotFired', id: shot.id, x, y, owner: 'cylon' });
+    }
   }
 
   private obtainShot(): Projectile | null {
@@ -211,14 +237,13 @@ export class Game {
     }
   }
 
-  private advanceRaider(): void {
-    const raider = this.raider;
-    if (!raider) return;
-    raider.advance(TICK_SECONDS);
-    // ASSUMPTION: until fleet damage (M3), a Raider that leaves the bottom reappears at the top of
-    // the same column rather than hurting anyone. Previous pose is reset so interpolation does not
-    // draw a streak across the screen.
-    if (raider.hasLeftTheBottom) raider.reappearAtTop();
+  private advanceRaiders(): void {
+    for (const raider of this.raiders) {
+      raider.advance(TICK_SECONDS);
+      // ASSUMPTION: until fleet damage (M3), a Raider that leaves the bottom reappears at the top
+      // of the same column rather than hurting anyone.
+      if (raider.hasLeftTheBottom) raider.reappearAtTop();
+    }
   }
 
   private resolveHits(events: DomainEvent[]): void {
@@ -228,33 +253,35 @@ export class Game {
   }
 
   private resolvePlayerHits(events: DomainEvent[]): void {
-    const raider = this.raider;
-    if (!raider) return;
-
     for (const shot of this.liveShots) {
       if (!shot.alive || shot.owner !== 'player') continue;
-      // Spawn protection: shots pass through so a Returned is not a free kill, and ammo is not wasted.
-      if (raider.isProtected) continue;
       const view = shot.toView();
-      const hit = movingCircleHits(
-        view.previousX,
-        view.previousY,
-        view.x,
-        view.y,
-        VIPER_SHOT_RADIUS_UNITS,
-        raider.x,
-        raider.y,
-        RAIDER_RADIUS_UNITS,
-      );
-      if (!hit) continue;
 
-      shot.kill();
-      if (raider.takeHit()) {
-        events.push({ type: 'RaiderDestroyed', id: raider.id, x: raider.x, y: raider.y });
-        this.downloads.push(new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y));
-        this.raider = null;
-        this.kills += 1;
-        return;
+      for (let index = 0; index < this.raiders.length; index++) {
+        const raider = this.raiders[index];
+        if (!raider) continue;
+        // Spawn protection: shots pass through so a Returned is not a free kill.
+        if (raider.isProtected) continue;
+        const hit = movingCircleHits(
+          view.previousX,
+          view.previousY,
+          view.x,
+          view.y,
+          VIPER_SHOT_RADIUS_UNITS,
+          raider.x,
+          raider.y,
+          RAIDER_RADIUS_UNITS,
+        );
+        if (!hit) continue;
+
+        shot.kill();
+        if (raider.takeHit()) {
+          events.push({ type: 'RaiderDestroyed', id: raider.id, x: raider.x, y: raider.y });
+          this.downloads.push(new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y));
+          this.raiders.splice(index, 1);
+          this.kills += 1;
+        }
+        break;
       }
     }
   }
@@ -314,7 +341,7 @@ export class Game {
       this.dropDeadShots();
       events.push({ type: 'ShotsCleared' });
     }
-    this.raider = null;
+    this.raiders.length = 0;
     for (const download of this.downloads) download.arriveNow();
   }
 
@@ -323,41 +350,37 @@ export class Game {
   }
 
   /**
-   * Keeps live Raiders at the Director cap. Ready downloads come back first; a pending download
-   * reserves its slot so a fresh spawn cannot add pressure (PRD 6).
+   * Keeps live Raiders at the Director cap. Ready downloads come back first; each pending
+   * download reserves one slot so a refill cannot add pressure (PRD 6).
    */
   private fillTheSwarm(events: DomainEvent[]): void {
-    if (this.liveRaiderCount() >= DIRECTOR_CAP) return;
+    while (this.raiders.length < DIRECTOR_CAP) {
+      const readyIndex = this.downloads.findIndex((download) => download.isReady);
+      if (readyIndex >= 0) {
+        const ready = this.downloads[readyIndex];
+        if (!ready) return;
+        this.downloads.splice(readyIndex, 1);
+        this.spawnRaider(events, {
+          identityId: ready.identityId,
+          deaths: ready.deaths,
+          x: ready.x,
+        });
+        continue;
+      }
 
-    const readyIndex = this.downloads.findIndex((download) => download.isReady);
-    if (readyIndex >= 0) {
-      const ready = this.downloads[readyIndex];
-      if (!ready) return;
-      this.downloads.splice(readyIndex, 1);
-      this.spawnRaider(events, {
-        identityId: ready.identityId,
-        deaths: ready.deaths,
-        x: ready.x,
-      });
-      return;
+      if (this.raiders.length + this.downloads.length >= DIRECTOR_CAP) return;
+      this.spawnRaider(events);
     }
-
-    if (this.downloads.length > 0) return;
-    this.spawnRaider(events);
-  }
-
-  private liveRaiderCount(): number {
-    return this.raider ? 1 : 0;
   }
 
   private spawnRaider(
     events: DomainEvent[],
     returning?: { readonly identityId: number; readonly deaths: number; readonly x: number },
   ): void {
-    if (this.raider) return;
+    if (this.raiders.length >= DIRECTOR_CAP) return;
     const minX = raiderSpawnMinX();
     const maxX = raiderSpawnMaxX();
-    const column = returning?.x ?? this.scenario.between(minX, maxX);
+    const column = returning?.x ?? this.pickFreshColumn(minX, maxX);
     const x = Math.min(maxX, Math.max(minX, column));
     const identityId = returning?.identityId ?? this.nextIdentityId;
     if (!returning) this.nextIdentityId += 1;
@@ -367,7 +390,7 @@ export class Game {
       returned: Boolean(returning),
     });
     this.nextId += 1;
-    this.raider = raider;
+    this.raiders.push(raider);
     events.push({
       type: 'RaiderSpawned',
       id: raider.id,
@@ -377,6 +400,15 @@ export class Game {
       returned: raider.returned,
       deaths: raider.deaths,
     });
+  }
+
+  private pickFreshColumn(minX: number, maxX: number): number {
+    const gap = RAIDER_HALF_WIDTH_UNITS * 4;
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const x = this.scenario.between(minX, maxX);
+      if (this.raiders.every((raider) => Math.abs(raider.x - x) >= gap)) return x;
+    }
+    return this.scenario.between(minX, maxX);
   }
 }
 

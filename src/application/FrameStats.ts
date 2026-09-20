@@ -20,8 +20,10 @@ export interface FrameStats {
   readonly secondsRemaining: number;
   readonly spoolProgress: number;
   readonly hull: number;
+  readonly hullMax: number;
   readonly ejected: boolean;
   readonly ghosts: number;
   readonly returned: boolean;
   readonly raiderLive: boolean;
+  readonly raiders: number;
 }

@@ -17,19 +17,25 @@ const DOWNLOAD_BAR_WIDTH = 20;
 const DOWNLOAD_BAR_HEIGHT = 2;
 const DOWNLOAD_TICKS = 5;
 
+interface HullMark {
+  hull: Phaser.GameObjects.Container;
+  pips: Phaser.GameObjects.Rectangle[];
+  eye: Phaser.GameObjects.Rectangle;
+  sweep: Phaser.Tweens.Tween | null;
+  fade: Phaser.Tweens.Tween | null;
+}
+
 /**
- * Draws the Raider. Placeholder art: an arrowhead hull and a sweeping red eye. The eye is the
- * "this is a Cylon" tell; the hull is not red, because only Cylons are (PRD 9).
+ * Draws the Raiders. Placeholder art: an arrowhead hull and a sweeping red eye. A still eye means
+ * this one does not hold an attack token; a sweep means it may fire (PRD 9). The hull is not red,
+ * because only Cylons are.
  */
 export class RaiderPresenter implements Presenter {
   private readonly scene: Phaser.Scene;
   private readonly fadeMs: number;
   private readonly sweepMs: number;
 
-  private hull: Phaser.GameObjects.Container | null = null;
-  private pips: Phaser.GameObjects.Rectangle[] = [];
-  private shownId: number | null = null;
-  private fade: Phaser.Tweens.Tween | null = null;
+  private readonly hulls = new Map<number, HullMark>();
   private readonly blips = new Map<number, { root: Phaser.GameObjects.Container; pips: Phaser.GameObjects.Rectangle[] }>();
 
   constructor(scene: Phaser.Scene, prefersReducedMotion: boolean) {
@@ -40,40 +46,41 @@ export class RaiderPresenter implements Presenter {
 
   onEvent(event: DomainEvent): void {
     if (event.type === 'RaiderSpawned') {
-      this.fade?.remove();
-      this.hull?.destroy();
-      this.hull = this.build(event.x, event.y, event.returned);
-      this.shownId = event.id;
+      this.forget(event.id);
+      this.hulls.set(event.id, this.build(event.x, event.y, event.returned));
       return;
     }
 
-    if (event.type === 'RaiderDestroyed' && event.id === this.shownId) {
-      this.fadeOut();
+    if (event.type === 'RaiderDestroyed') {
+      this.fadeOut(event.id);
     }
   }
 
   sync(view: GameView, alpha: number): void {
     this.syncGhosts(view);
 
-    const raider = view.raider;
-    if (!raider) {
-      // A jump clears the Raider without a kill. A fade-out from a real destroy is left to finish.
-      if (!this.fade) {
-        this.hull?.destroy();
-        this.hull = null;
-        this.shownId = null;
-      }
-      return;
+    const live = new Set(view.raiders.map((raider) => raider.id));
+    for (const [id, mark] of this.hulls) {
+      if (live.has(id) || mark.fade) continue;
+      mark.hull.destroy();
+      this.hulls.delete(id);
     }
 
-    const hull = this.hull;
-    if (!hull || raider.id !== this.shownId) return;
+    for (const raider of view.raiders) {
+      const mark = this.hulls.get(raider.id);
+      if (!mark || mark.fade) continue;
 
-    hull.x = Phaser.Math.Linear(raider.previousX, raider.x, alpha);
-    hull.y = Phaser.Math.Linear(raider.previousY, raider.y, alpha);
-    // Shape cue (the ring) plus a fade: color is never the only tell (PRD 9, 16).
-    hull.setAlpha(raider.protected ? 0.55 : 1);
-    this.drawPips(raider);
+      mark.hull.x = Phaser.Math.Linear(raider.previousX, raider.x, alpha);
+      mark.hull.y = Phaser.Math.Linear(raider.previousY, raider.y, alpha);
+      mark.hull.setAlpha(raider.protected ? 0.55 : 1);
+      this.drawPips(mark.pips, raider);
+      this.syncEye(mark, raider.armed);
+    }
+  }
+
+  private syncEye(mark: HullMark, armed: boolean): void {
+    if (mark.sweep) mark.sweep.timeScale = armed ? 1 : 0;
+    if (!armed) mark.eye.x = 0;
   }
 
   private syncGhosts(view: GameView): void {
@@ -128,11 +135,10 @@ export class RaiderPresenter implements Presenter {
     return clamp(y, 10, WORLD_HEIGHT_UNITS - 10);
   }
 
-  private build(x: number, y: number, returned: boolean): Phaser.GameObjects.Container {
+  private build(x: number, y: number, returned: boolean): HullMark {
     const width = RAIDER_HALF_WIDTH_UNITS * 2;
     const height = RAIDER_HALF_HEIGHT_UNITS * 2;
 
-    // Pointing down: the fleet is the thing it is flying at.
     const body = this.scene.add.rectangle(0, -1, width, height - 4, PALETTE.raiderHull);
     const nose = this.scene.add.rectangle(0, height / 2 - 1, 6, 5, PALETTE.raiderHull);
     const eye = this.scene.add.rectangle(0, -2, 5, 2, PALETTE.cylonRed);
@@ -149,11 +155,11 @@ export class RaiderPresenter implements Presenter {
       const pip = this.scene.add.rectangle((i - 1) * 4, -height / 2 - 3, 3, 2, PALETTE.cylonRed);
       pips.push(pip);
     }
-    this.pips = pips;
     parts.push(...pips);
 
+    let sweep: Phaser.Tweens.Tween | null = null;
     if (this.sweepMs > 0) {
-      this.scene.tweens.add({
+      sweep = this.scene.tweens.add({
         targets: eye,
         x: { from: -4, to: 4 },
         duration: this.sweepMs,
@@ -163,38 +169,47 @@ export class RaiderPresenter implements Presenter {
       });
     }
 
-    return this.scene.add.container(x, y, parts);
+    return {
+      hull: this.scene.add.container(x, y, parts),
+      pips,
+      eye,
+      sweep,
+      fade: null,
+    };
   }
 
-  private drawPips(raider: RaiderView): void {
-    for (const [index, pip] of this.pips.entries()) {
+  private drawPips(pips: readonly Phaser.GameObjects.Rectangle[], raider: RaiderView): void {
+    for (const [index, pip] of pips.entries()) {
       pip.setVisible(index < raider.hp);
     }
   }
 
-  private fadeOut(): void {
-    const hull = this.hull;
-    if (!hull) return;
+  private fadeOut(id: number): void {
+    const mark = this.hulls.get(id);
+    if (!mark) return;
 
-    this.fade?.remove();
+    mark.fade?.remove();
     if (this.fadeMs === 0) {
-      hull.destroy();
-      this.hull = null;
-      this.shownId = null;
+      this.forget(id);
       return;
     }
 
-    this.fade = this.scene.tweens.add({
-      targets: hull,
+    mark.fade = this.scene.tweens.add({
+      targets: mark.hull,
       alpha: 0,
       duration: this.fadeMs,
       onComplete: () => {
-        hull.destroy();
-        if (this.hull === hull) {
-          this.hull = null;
-          this.shownId = null;
-        }
+        if (this.hulls.get(id) === mark) this.forget(id);
       },
     });
+  }
+
+  private forget(id: number): void {
+    const mark = this.hulls.get(id);
+    if (!mark) return;
+    mark.fade?.remove();
+    mark.sweep?.remove();
+    mark.hull.destroy();
+    this.hulls.delete(id);
   }
 }

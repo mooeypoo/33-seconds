@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { FrameStats } from '../../application/FrameStats';
 import type { GameSession } from '../../application/GameSession';
+import { VIPER_HULL_HIT_POINTS } from '../../domain/combat/viper';
 import { WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../../domain/shared/world';
 import type { Presenter } from './Presenter';
 import { ProjectilePresenter } from './contexts/combat/ProjectilePresenter';
@@ -97,7 +98,7 @@ export class GameScene extends Phaser.Scene {
       scale: Math.round((canvas.clientWidth / WORLD_WIDTH_UNITS) * 10) / 10,
       viperX: Math.round(view.viper.x),
       viperY: Math.round(view.viper.y),
-      raiderY: view.raider ? Math.round(view.raider.y) : null,
+      raiderY: view.raiders[0] ? Math.round(view.raiders[0].y) : null,
       shots: view.projectiles.length,
       kills: view.kills,
       cycleIndex: view.cycle.cycleIndex,
@@ -105,10 +106,12 @@ export class GameScene extends Phaser.Scene {
       secondsRemaining: view.cycle.secondsRemaining,
       spoolProgress: view.cycle.spoolProgress,
       hull: view.viper.hp,
+      hullMax: VIPER_HULL_HIT_POINTS,
       ejected: view.viper.ejected,
       ghosts: view.ghosts.length,
-      returned: view.raider?.returned ?? false,
-      raiderLive: view.raider !== null,
+      returned: view.raiders.some((raider) => raider.returned),
+      raiderLive: view.raiders.length > 0,
+      raiders: view.raiders.length,
     });
 
     this.secondsSinceStatsReport = 0;

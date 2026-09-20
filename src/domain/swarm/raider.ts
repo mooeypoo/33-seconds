@@ -49,6 +49,7 @@ export class Raider {
   private hitPoints: number;
   private fireCooldownSeconds: number;
   private protectionRemainingSeconds: number;
+  private armed = false;
 
   constructor(
     id: number,
@@ -84,6 +85,15 @@ export class Raider {
 
   get isProtected(): boolean {
     return this.protectionRemainingSeconds > 0;
+  }
+
+  get isArmed(): boolean {
+    return this.armed;
+  }
+
+  /** The Director hands out attack tokens. Only an armed Raider may fire (PRD 9). */
+  setArmed(armed: boolean): void {
+    this.armed = armed;
   }
 
   advance(tickSeconds: number): void {
@@ -141,6 +151,7 @@ export class Raider {
       deaths: this.deaths,
       returned: this.returned,
       protected: this.isProtected,
+      armed: this.armed,
     };
   }
 }

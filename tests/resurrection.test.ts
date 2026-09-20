@@ -5,7 +5,11 @@ import type { InputIntent } from '../src/domain/shared/intent';
 import { IDLE_INTENT } from '../src/domain/shared/intent';
 import { TICKS_PER_SECOND } from '../src/domain/shared/time';
 import { RAIDER_HIT_POINTS } from '../src/domain/swarm/raider';
-import { RESURRECTION_DOWNLOAD_SECONDS, RETURNED_SPAWN_PROTECTION_SECONDS } from '../src/domain/swarm/resurrection';
+import {
+  DIRECTOR_CAP,
+  RESURRECTION_DOWNLOAD_SECONDS,
+  RETURNED_SPAWN_PROTECTION_SECONDS,
+} from '../src/domain/swarm/resurrection';
 
 function ticksFor(seconds: number): number {
   return Math.round(seconds * TICKS_PER_SECOND);
@@ -27,16 +31,16 @@ function run(game: Game, ticks: number): void {
   for (let i = 0; i < ticks; i++) game.tick(IDLE_INTENT);
 }
 
-function holdTheColumn(game: Game): void {
-  const raider = game.view.raider;
-  const delta = raider ? raider.x - game.view.viper.x : 0;
-  game.tick(move(clampSteer(delta), 0));
+function holdUnder(game: Game, x: number): void {
+  game.tick(move(clampSteer(x - game.view.viper.x), 0));
 }
 
-function destroyTheRaider(game: Game): { identityId: number } {
+function destroyOne(game: Game): { identityId: number } {
+  const before = game.view.kills;
   for (let i = 0; i < ticksFor(10); i++) {
-    holdTheColumn(game);
-    if (game.view.kills > 0 && game.view.raider === null) {
+    const target = game.view.raiders[0];
+    holdUnder(game, target?.x ?? game.view.viper.x);
+    if (game.view.kills > before) {
       const ghost = game.view.ghosts[0];
       expect(ghost).toBeDefined();
       return { identityId: ghost!.identityId };
@@ -48,97 +52,98 @@ function destroyTheRaider(game: Game): { identityId: number } {
 describe('resurrection', () => {
   it('turns a kill into a ghost, then the same soul comes back as Returned', () => {
     const game = createGame({ seed: 1, raidersFire: false });
-    const first = destroyTheRaider(game);
+    const first = destroyOne(game);
 
-    expect(game.view.raider).toBeNull();
+    expect(game.view.raiders.some((raider) => raider.identityId === first.identityId)).toBe(false);
     expect(game.view.ghosts).toHaveLength(1);
     expect(game.view.ghosts[0]?.identityId).toBe(first.identityId);
     expect(game.view.ghosts[0]?.deaths).toBe(1);
     expect(game.view.ghosts[0]?.remainingSeconds).toBeGreaterThan(RESURRECTION_DOWNLOAD_SECONDS - 0.1);
 
     run(game, ticksFor(RESURRECTION_DOWNLOAD_SECONDS) - 2);
-    expect(game.view.raider).toBeNull();
+    expect(game.view.raiders.some((raider) => raider.identityId === first.identityId)).toBe(false);
     expect(game.view.ghosts).toHaveLength(1);
 
     run(game, 4);
+    const returned = game.view.raiders.find((raider) => raider.identityId === first.identityId);
     expect(game.view.ghosts).toHaveLength(0);
-    expect(game.view.raider).not.toBeNull();
-    expect(game.view.raider?.identityId).toBe(first.identityId);
-    expect(game.view.raider?.returned).toBe(true);
-    expect(game.view.raider?.deaths).toBe(1);
-    expect(game.view.raider?.hp).toBe(RAIDER_HIT_POINTS);
-    expect(game.view.raider?.protected).toBe(true);
+    expect(returned?.returned).toBe(true);
+    expect(returned?.deaths).toBe(1);
+    expect(returned?.hp).toBe(RAIDER_HIT_POINTS);
+    expect(returned?.protected).toBe(true);
   });
 
-  it('does not add a second Raider while a download is holding the slot', () => {
+  it('does not add a body while a download is holding its slot', () => {
     const game = createGame({ seed: 1, raidersFire: false });
-    destroyTheRaider(game);
+    destroyOne(game);
 
     run(game, ticksFor(RESURRECTION_DOWNLOAD_SECONDS / 2));
-    expect(game.view.raider).toBeNull();
+    expect(game.view.raiders.length + game.view.ghosts.length).toBe(DIRECTOR_CAP);
+    expect(game.view.raiders.length).toBe(DIRECTOR_CAP - 1);
     expect(game.view.ghosts).toHaveLength(1);
   });
 
   it('lets shots pass through a Returned for the protection window', () => {
     const game = createGame({ seed: 1, raidersFire: false });
-    destroyTheRaider(game);
+    const first = destroyOne(game);
     run(game, ticksFor(RESURRECTION_DOWNLOAD_SECONDS) + 2);
 
-    expect(game.view.raider?.returned).toBe(true);
-    expect(game.view.raider?.protected).toBe(true);
+    const returned = () => game.view.raiders.find((raider) => raider.identityId === first.identityId);
+    expect(returned()?.returned).toBe(true);
+    expect(returned()?.protected).toBe(true);
 
     for (let i = 0; i < ticksFor(RETURNED_SPAWN_PROTECTION_SECONDS) - 4; i++) {
-      holdTheColumn(game);
+      holdUnder(game, returned()?.x ?? game.view.viper.x);
     }
 
-    expect(game.view.raider?.hp).toBe(RAIDER_HIT_POINTS);
-    expect(game.view.raider?.protected).toBe(true);
+    expect(returned()?.hp).toBe(RAIDER_HIT_POINTS);
+    expect(returned()?.protected).toBe(true);
 
     for (let i = 0; i < ticksFor(1); i++) {
-      holdTheColumn(game);
-      if (game.view.raider && game.view.raider.hp < RAIDER_HIT_POINTS) break;
+      holdUnder(game, returned()?.x ?? game.view.viper.x);
+      if (returned() && returned()!.hp < RAIDER_HIT_POINTS) break;
     }
 
-    expect(game.view.raider?.protected).toBe(false);
-    expect(game.view.raider?.hp).toBeLessThan(RAIDER_HIT_POINTS);
+    expect(returned()?.protected).toBe(false);
+    expect(returned()?.hp).toBeLessThan(RAIDER_HIT_POINTS);
   });
 
   it('carries a pending download across the jump, and it arrives first as Returned', () => {
     const game = createGame({ seed: 1, raidersFire: false });
     run(game, ticksFor(28));
-    const first = destroyTheRaider(game);
+    const first = destroyOne(game);
     expect(game.view.ghosts).toHaveLength(1);
 
     run(game, ticksFor(CYCLE_COMBAT_SECONDS) - game.view.tickCount + 2);
     expect(game.view.cycle.phase).toBe('jumping');
-    expect(game.view.raider).toBeNull();
+    expect(game.view.raiders).toHaveLength(0);
     expect(game.view.ghosts).toHaveLength(1);
     expect(game.view.ghosts[0]?.remainingSeconds).toBe(0);
 
     run(game, ticksFor(JUMPING_SECONDS + 8));
     expect(game.view.cycle.phase).toBe('recovering');
-    expect(game.view.raider).toBeNull();
+    expect(game.view.raiders).toHaveLength(0);
     expect(game.view.ghosts).toHaveLength(1);
 
     const events = game.continueFromJump();
-    const returned = events.find((event) => event.type === 'RaiderSpawned');
+    const returned = events.find((event) => event.type === 'RaiderSpawned' && event.returned);
     expect(returned).toMatchObject({ returned: true, identityId: first.identityId, deaths: 1 });
-    expect(game.view.raider?.returned).toBe(true);
+    expect(game.view.raiders.some((raider) => raider.identityId === first.identityId && raider.returned)).toBe(true);
     expect(game.view.ghosts).toHaveLength(0);
   });
 
   it('does not queue a ghost for a Raider the jump wiped, and the next cycle is fresh', () => {
     const game = createGame({ seed: 1, raidersFire: false });
     game.tick(IDLE_INTENT);
-    const identityId = game.view.raider!.identityId;
+    const identities = game.view.raiders.map((raider) => raider.identityId);
 
     run(game, ticksFor(CYCLE_COMBAT_SECONDS + JUMPING_SECONDS));
     expect(game.view.kills).toBe(0);
     expect(game.view.ghosts).toHaveLength(0);
 
     game.continueFromJump();
-    expect(game.view.raider?.returned).toBe(false);
-    expect(game.view.raider?.identityId).not.toBe(identityId);
-    expect(game.view.raider?.deaths).toBe(0);
+    expect(game.view.raiders.every((raider) => !raider.returned)).toBe(true);
+    expect(game.view.raiders.every((raider) => raider.deaths === 0)).toBe(true);
+    expect(game.view.raiders.some((raider) => identities.includes(raider.identityId))).toBe(false);
   });
 });

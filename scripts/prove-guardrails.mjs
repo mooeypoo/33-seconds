@@ -134,6 +134,20 @@ const SABOTAGE = [
     mustFail: 'npm run test',
   },
   {
+    what: 'the Director cap no longer holds',
+    file: 'src/domain/swarm/resurrection.ts',
+    find: 'export const DIRECTOR_CAP = 2;',
+    replace: 'export const DIRECTOR_CAP = 8;',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'every Raider gets an attack token',
+    file: 'src/domain/swarm/resurrection.ts',
+    find: 'export const ATTACK_TOKENS = 1;',
+    replace: 'export const ATTACK_TOKENS = 8;',
+    mustFail: 'npm run test',
+  },
+  {
     what: 'the 33-second cycle never jumps',
     file: 'src/domain/cycle/jumpCycle.ts',
     find: '    if (this.combatElapsedTicks >= CYCLE_COMBAT_TICKS) {',

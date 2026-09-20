@@ -4,6 +4,7 @@ import type { GameView } from '../../../../domain/views';
 import {
   VIPER_HALF_HEIGHT_UNITS,
   VIPER_HALF_WIDTH_UNITS,
+  VIPER_HULL_HIT_POINTS,
   VIPER_MAX_SPEED_UNITS_PER_SECOND,
 } from '../../../../domain/combat/viper';
 import type { Presenter } from '../../Presenter';
@@ -17,6 +18,7 @@ export class ViperPresenter implements Presenter {
   private readonly scene: Phaser.Scene;
   private hull: Phaser.GameObjects.Container | null = null;
   private engine: Phaser.GameObjects.Rectangle | null = null;
+  private pips: Phaser.GameObjects.Rectangle[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -56,6 +58,8 @@ export class ViperPresenter implements Presenter {
       this.engine.scaleY = 1 + thrust * 0.8;
       this.engine.x = bank * 1.5;
     }
+
+    this.drawPips(viper.hp);
   }
 
   private buildViper(x: number, y: number): Phaser.GameObjects.Container {
@@ -69,6 +73,20 @@ export class ViperPresenter implements Presenter {
     engine.setOrigin(0.5, 0);
     this.engine = engine;
 
-    return this.scene.add.container(x, y, [engine, body, nose, cockpit]);
+    // Count of pips is the hull tell. Not red: only Cylons are (PRD 9). The debug line also names
+    // the number, so colour is never the only cue.
+    const pips: Phaser.GameObjects.Rectangle[] = [];
+    for (let i = 0; i < VIPER_HULL_HIT_POINTS; i++) {
+      pips.push(this.scene.add.rectangle((i - 1) * 4, -height / 2 - 6, 3, 2, PALETTE.playerShot));
+    }
+    this.pips = pips;
+
+    return this.scene.add.container(x, y, [engine, body, nose, cockpit, ...pips]);
+  }
+
+  private drawPips(hp: number): void {
+    for (const [index, pip] of this.pips.entries()) {
+      pip.setVisible(index < hp);
+    }
   }
 }

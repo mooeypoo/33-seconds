@@ -37,6 +37,8 @@ export interface RaiderView {
   readonly deaths: number;
   readonly returned: boolean;
   readonly protected: boolean;
+  /** True while this Raider holds an attack token and may fire (PRD 9). */
+  readonly armed: boolean;
 }
 
 /** A destroyed Raider still downloading. The blip sits where it died. */
@@ -61,7 +63,7 @@ export interface CycleView {
 export interface GameView {
   readonly viper: ViperView;
   readonly projectiles: readonly ProjectileView[];
-  readonly raider: RaiderView | null;
+  readonly raiders: readonly RaiderView[];
   readonly ghosts: readonly GhostView[];
   readonly cycle: CycleView;
   readonly tickCount: number;
