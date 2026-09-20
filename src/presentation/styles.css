@@ -1,0 +1,43 @@
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  background: #05070a;
+  color: #cfe8d8;
+}
+
+#game-root {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  /* The drag stick owns every gesture in the play area (ADR-0001 D6). */
+  touch-action: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
+}
+
+#game-root canvas {
+  display: block;
+  /* The canvas is a picture, not a control: input is handled on the root element. */
+  pointer-events: none;
+}
+
+/* Comfort is not optional (PRD 15). There is no motion to reduce yet, and this keeps it that way. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
