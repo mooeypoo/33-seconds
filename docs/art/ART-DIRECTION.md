@@ -1,0 +1,125 @@
+# Art direction
+
+Status: **Draft for the owner to shape.** Everything marked *starter* or *proposed* is a suggestion to react to, not a rule.
+
+Purpose: tell you exactly what to make, in which file format, and in what order, and let the implementing agent build the game with placeholders until your real art arrives.
+
+## 1. The short version
+
+- **You do not need to finish art before coding starts.** The agent generates flat colored placeholder shapes from the asset list below. You replace them file by file, and the game keeps working.
+- **Pixel art is PNG, not SVG.** Vectors do not give exact pixels, and we scale with nearest-neighbor. SVG is fine only for the favicon.
+- **Instructions alone are not enough.** The agent needs three things from you: the palette, the exported PNG files (with a small JSON atlas from your art tool), and a provenance note for each file.
+- **Order of work:** palette, then Viper, Raider, bullets, and a small explosion. Get those into the game, look at them on a phone, and only then make the rest.
+
+## 2. Two decisions to make before drawing
+
+These change how many frames you draw. The domain spec also depends on them. The defaults below cut the art workload a lot.
+
+### Decision A: Does the Viper rotate?
+
+| Option | What it means | Art cost |
+|---|---|---|
+| **A1. Fixed heading (proposed)** | The Viper always faces toward the swarm side. It banks left and right while moving. | 3 frames (neutral, bank left, bank right) plus a 2-frame engine flicker |
+| A2. Eight directions | The Viper turns to face its movement, drawn at 8 angles. | 8 to 16 frames per ship |
+| A3. Runtime rotation | The renderer rotates one sprite. | 1 frame, but rotated pixel art looks uneven ("mixels") and undermines the pixel-perfect look |
+
+**Proposed: A1.** It is the classic look, it makes the touch stick simple (dragging moves the ship, it does not turn it), and auto-fire is predictable. It also affects the domain: with a fixed heading, "forward" for missiles and auto-fire is always toward the swarm.
+
+Raiders follow the same logic. For the MVP, draw them facing the fleet, with a small sweeping-eye animation, and add other angles only when flanking traits ship.
+
+### Decision B: World orientation
+
+**Proposed: one fixed portrait world (9:16), for example 270 x 480 logical pixels.** Phones fill the screen with it. On desktop it is centered, and the side margins show the comms panel, the log, and decoration. That removes rotation of the entire scene, so all sprites keep one orientation. Phone landscape can pillarbox or ask the player to rotate.
+
+This changes what the PRD says ("landscape on desktop"), and is logged as an open question there.
+
+Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes may change with it.
+
+## 3. What to make
+
+**Priority:** P0 needed for M1, P1 by M3, P2 by M4, P3 later.
+
+| Asset id | Size (px) | Frames | Priority | Notes |
+|---|---|---|---|---|
+| `viper` | 16 x 16 | neutral x2 (engine flicker), bank_left, bank_right | P0 | Wedge silhouette, twin engine glow. Olive and gunmetal. |
+| `raider` | 12 x 12 | 4 (eye positions) | P0 | Arrowhead. The **only** thing in the game that uses hot red. |
+| `bullet_player` | 3 x 5 | 1 | P0 | Dradis green |
+| `bullet_aimed` | 3 x 5 | 1 | P0 | Red |
+| `bullet_stray` | 3 x 7 | 1 | P0 | Orange, longer trail |
+| `explosion_small` | 16 x 16 | 6 | P0 | No white flash frames. Warm colors only. |
+| `raider_heavy` | 24 x 24 | 2 | P1 | Bigger arrowhead, visible bays |
+| `missile` | 5 x 9 | 2 (flame) | P1 | |
+| `missile_pickup` | 8 x 8 | 1 | P1 | |
+| `fleet_ship_a/b/c` | 16 x 10 | 1 each | P1 | Civilian ships along the fleet edge, three silly silhouettes |
+| `fleet_pip` | 8 x 6 | 2 (ok, damaged) | P1 | HUD version of the fleet ships |
+| `galactica_silhouette` | about 200 x 60 | 1 | P1 | Dark, slow parallax in the background. Original design. |
+| `resurrection_ship` | 64 x 48 | 3 (damage states) | P1 | Chunky and ominous, clearly *not* a copy of anything |
+| `ghost_blip` | 8 x 8 | 2 | P1 | Dradis-style download marker |
+| `returned_marker` | 6 x 6 | 3 (x1, x2, x3 scratch) | P1 | Small overlay above Returned Raiders |
+| `raptor` | 14 x 12 | 2 | P2 | Escort card |
+| `imaginary_six` | 16 x 16 | 2 | P2 | A steady outline sprite. Costume and silhouette, not likeness. |
+| `explosion_large` | 32 x 32 | 8 | P2 | Same rules as small |
+| `icon_hourglass`, `icon_hold_music`, `icon_missile`, `icon_special_ready`, `icon_eye` | 8 x 8 | 1 each | P2 | HUD and status icons |
+| `portrait_adama`, `_starbuck`, `_gaeta`, `_dualla` | 32 x 32 | 4 each (closed, open, blink, signature) | P2 | Core comms cast. Costume and silhouette, not actor likeness. |
+| `portrait_tigh`, `_baltar`, `_roslin`, `_tyrol`, `_six` | 32 x 32 | 4 each | P3 | Cameos |
+| `title_logo` | about 200 x 60 | 1 | P3 | Depends on the name decision |
+
+**Drawn in code, not art:** the Dradis sweep, the FTL spool ring, HUD bars, scanlines, the touch stick ring and dot, and parallax stars. That saves you a lot of work, and it keeps them crisp at any size.
+
+**Totals:** about 25 gameplay sprites and 36 portrait frames (9 portraits x 4).
+
+## 4. Palette
+
+Your palette locks the whole look together. Every pixel in every file must use only these colors. Adjust freely, but keep the roles: it is the *roles* that make the game readable.
+
+**Starter palette (22 colors, 2 slots reserved for portrait skin and hair tones that you pick):**
+
+| Role | Colors (hex) |
+|---|---|
+| Space | `#0b0e14`, `#151b28` |
+| Stars | `#5c6b82`, `#d5dde8` |
+| Gunmetal (fleet, hulls) | `#2b323c`, `#46505e`, `#77838f`, `#b3bbc5` |
+| Olive (Viper, uniforms) | `#39442a`, `#5a6a38`, `#8a9b58` |
+| Dradis green (HUD, player shots) | `#0f3626`, `#1c8459`, `#4fe19a`, `#b8ffdc` |
+| **Cylon red (reserved for Cylons only)** | `#55101a`, `#c4161f`, `#ff4747` |
+| Stray and warning orange | `#d9731a`, `#ffc457` |
+| UI text and borders | `#a39b88`, `#f3efe3` |
+| Portrait skin and hair | *reserved: you choose (2 to 4 colors, or a separate portrait sub-palette)* |
+
+Rules:
+- **Red means Cylon.** Nothing else uses red.
+- Red and orange can look alike to some players, so **never rely on color alone**: strays also have a longer trail, and inert Raiders also have an hourglass. Test the game with a color-blindness simulator.
+- Aim for at least 4.5:1 contrast for anything the player must read.
+- Put the palette in a file the tools can read (a `.gpl` or `.hex` file from your art tool). The agent will add a script that checks every PNG against it.
+
+## 5. File rules
+
+- **Format:** PNG, 8-bit with transparency, at **1x** size. Never pre-scale.
+- **No anti-aliasing and no soft edges.** Every pixel is fully opaque or fully transparent, and uses a palette color.
+- **Tool:** Aseprite, LibreSprite, Pixelorama, or Piskel (works in the browser). Keep source files (`.aseprite`, `.pxo`, and so on) in `art-src/`. They are not shipped.
+- **Sprite sheets:** one PNG per group (for example `ships.png`) plus the JSON data file your tool exports. Aseprite's JSON export (Hash format) is commonly used with Pixi. The renderer spike will confirm it.
+- **Frames:** name animation tags in your tool (`neutral`, `bank_left`, `bank_right`, `eye`, `flicker`) and keep the same tag names as the asset list.
+- **Anchor:** the sprite center unless noted.
+- **Invulnerability and hit feedback:** a steady outline or a slow pulse (2 Hz or slower). **Never strobe.** No white full-screen or full-sprite flashes.
+- **Portraits:** 32 x 32, same four frames for every character so the animation code is shared.
+- **Fonts:** self-hosted `woff2` files under an open license (for example the SIL Open Font License). Candidates: **Silkscreen** or **Press Start 2P** for style, and **Atkinson Hyperlegible** for the readable-font toggle. Check each license at the time you add it.
+
+## 6. Provenance
+
+Keep `assets/PROVENANCE.md`, one row per file: file, creator, tool, date, license, notes.
+
+- All art is original. **Do not trace or copy show screenshots or official art.** Draw your own interpretation from silhouette, costume, and the description above.
+- If you use any AI image tool, record it in the provenance file, and **never feed it show screenshots or official art as reference.**
+
+## 7. How the agent uses this
+
+1. In M0 or M1, the agent turns the asset table into a manifest (id, file, size, frame tags, anchor, `status: placeholder | final`) and generates flat colored placeholders for everything.
+2. You drop real PNGs and atlases into the assets folder and flip `status` to `final`.
+3. An asset check script (recommended) validates each PNG: size matches the manifest, only palette colors, no partial transparency. It runs in CI as its own check (`check:assets`) or as part of `check:content`.
+
+## 8. Suggested first session
+
+1. Fix the palette in your art tool.
+2. Draw `viper`, `raider`, and the three bullets. Export.
+3. Draw `explosion_small`.
+4. Put them in the game (via a milestone M1 slice), and look at them on a phone at arm's length before drawing anything else.

@@ -1,0 +1,160 @@
+# Content schema
+
+The technical contract for comedy and banter content. Writers only touch JSON. The banter service (ADR-0001, D8) reads it. `npm run check:content` validates it at build time.
+
+This document is authoritative for line and scene fields. It replaces the shorthand example in PRD section 12.4.
+
+## 1. Files
+
+```
+src/content/
+  banter/
+    adama.json  starbuck.json  gaeta.json  dualla.json
+    tigh.json   baltar.json    roslin.json  tyrol.json   six.json
+  scenes/
+    recovering.json
+  upgrades.flair.json
+```
+
+One file per speaker keeps each voice consistent and makes pull requests easy to review.
+
+## 2. Line
+
+```json
+{
+  "id": "dualla-spool-03",
+  "speaker": "dualla",
+  "trigger": "FtlSpoolProgress",
+  "text": "Fleet FTL spooling. Jump in {seconds}.",
+  "weight": 3,
+  "cooldownSeconds": 20,
+  "priority": "critical",
+  "when": { "spoolSecondsLeft": { "max": 8 } }
+}
+```
+
+| Field | Type | Rules |
+|---|---|---|
+| `id` | string | Unique across all files. Format: `{speaker}-{trigger-kebab}-{nn}`. |
+| `speaker` | string | One of: `adama`, `starbuck`, `gaeta`, `dualla`, `tigh`, `baltar`, `roslin`, `tyrol`, `six`. |
+| `trigger` | string | One of the triggers in section 4. |
+| `text` | string | Plain text only. Up to **72 characters** (about two lines in the portrait bubble). No markup, HTML, or emoji. Placeholders allowed: `{seconds}`, `{count}`, `{total}`, `{percent}`. Each must be one the trigger provides. |
+| `weight` | number | Relative pick chance among eligible lines. Default 1. |
+| `cooldownSeconds` | number | Game seconds before *this line* can repeat. |
+| `priority` | string | `critical` (jump countdown; always shown), `normal`, or `flavor` (dropped first, suppressed in crises). |
+| `when` | object, optional | Conditions, from the small set in section 3. Omit for "always eligible". |
+
+## 3. Conditions (`when`)
+
+Keep this list small. Every addition is complexity the engine must support.
+
+| Key | Meaning |
+|---|---|
+| `tier` | List of tiers the line is eligible for |
+| `cycle` | `{ "min": n, "max": n }` cycle index range |
+| `spoolSecondsLeft` | `{ "min": n, "max": n }` seconds left before the jump |
+| `fleetPercent` | `{ "min": n, "max": n }` Fleet Integrity |
+| `damageBand` | `clean`, `rough`, or `wrecked` (used by Recovering scenes) |
+| `upgrade` | An upgrade id the player has (for example `bootleg-hooch`) |
+
+## 4. Triggers
+
+The banter service listens for these. Some come straight from domain events, and some it *derives* from events plus the read-only game view (see the open question at the end).
+
+| Trigger | Source | Speakers | Priority |
+|---|---|---|---|
+| `CycleStarted` | Domain event | Adama | normal |
+| `FtlSpoolProgress` | Derived (spool clock) | Gaeta (Galactica), Dualla (fleet readiness) | critical |
+| `BigRaiderEntered` | Domain event | Adama | normal |
+| `ResurrectionShipArrived` | Domain event | Adama | normal |
+| `ResurrectionShipMilestone` (75, 50, 25 percent) | Domain event | Adama, Gaeta | normal |
+| `ResurrectionShipDestroyed` | Domain event | Adama, Starbuck | normal |
+| `RaiderResurrected` (first time, or repeat offender) | Domain event | Starbuck | flavor |
+| `MultiKill` | Derived | Starbuck | flavor |
+| `CloseCall` | Derived | Starbuck | flavor |
+| `MissileLaunched` | Domain event | Starbuck | flavor |
+| `FleetHit` (strafe or stray) | Domain event | Gaeta | normal |
+| `HullLow` | Derived | Tigh | normal |
+| `KillDrought` (long stretch without a kill) | Derived | Tigh | flavor |
+| `UpgradeOffered` (per card) | Domain event | Baltar, Roslin | normal |
+| `SpecialUsed` | Domain event | Adama | normal |
+| `FleetLost` | Domain event | Adama | normal |
+| `RunWon` | Domain event | Adama | normal |
+| `ImaginarySixActive` | Derived | Tigh, Adama, Gaeta ("Who are you talking to?") | flavor |
+| `CycleRecovering` | Domain event | *Scenes only, see below* | normal |
+
+## 5. Scene (Recovering)
+
+Scenes fill the 8 to 12 second calm between cycles. Two portraits trade lines.
+
+```json
+{
+  "id": "scene-recover-clean-04",
+  "trigger": "CycleRecovering",
+  "when": { "damageBand": ["clean"] },
+  "weight": 1,
+  "beats": [
+    { "speaker": "tyrol",  "text": "Not a scratch on her. I'm suspicious." },
+    { "speaker": "adama",  "text": "Take the win, Chief." },
+    { "speaker": "dualla", "text": "Next jump in 33 seconds." }
+  ]
+}
+```
+
+- 2 to 4 beats. Each beat is up to 72 characters.
+- Tyrol should appear in most scenes (he anchors the recovery), and the closing beat should point at the next jump.
+- Scene duration comes from the same reading-time formula as lines, capped at 12 seconds in total. The check fails a scene that would run longer.
+
+## 6. Upgrade flair
+
+Cards show the joke in italics and the exact effect in plain text.
+
+```json
+{
+  "id": "spoilers",
+  "title": "Spoilers",
+  "joke": "It was the Raider. It's always the Raider.",
+  "plain": "Ghost blips show where they return. Shooting one delays it 3 seconds.",
+  "advice": {
+    "baltar": "Know where they come back? I love that. Very safe. Very good.",
+    "roslin": "Knowing the next move is worth more than firepower."
+  }
+}
+```
+
+- `plain` must be accurate. It is the exact effect, never a joke.
+- **Advice must be honest.** It may exaggerate personality, but never mislead about what the card does.
+- The check requires every upgrade id in the game data to have flair, and every flair id to have an upgrade.
+
+## 7. Coverage targets for the MVP
+
+Roughly 150 to 200 lines. Write in batches of about 20.
+
+| Speaker | Content | Target |
+|---|---|---|
+| Adama | Cycle start, big Raider, ship arrival, milestones, Speech, victory, defeat | about 25 |
+| Starbuck | Multi-kill, close call, resurrection, missile, hull | about 25 |
+| Gaeta | Spool progress at several thresholds, fleet-hit reports | about 17 |
+| Dualla | Readiness counts at several thresholds, status | about 13 |
+| Tigh | Low hull, kill drought, grumbles | about 8 |
+| Baltar | One line per MVP upgrade card, plus general panic | about 16 |
+| Roslin | One line per MVP upgrade card, plus general strategy | about 16 |
+| Tyrol | Hull-reset lines | about 8 |
+| Six | Whispers, and the "who are you talking to" replies from others | about 10 |
+| Scenes | 12 across the three damage bands | 12 |
+
+The number of variants per trigger matters more than the total: a trigger players hit every cycle needs at least 5 or 6 variants, or repetition shows up fast.
+
+## 8. Review checklist (every line and scene)
+
+- [ ] Original, not paraphrased from show scripts
+- [ ] Spoiler-safe up to the cutoff in the voice guide
+- [ ] No implication that a specific named character is a Cylon
+- [ ] Kind: aimed at the show's quirks, not the cast, the community, or real people
+- [ ] In voice for the speaker
+- [ ] 72 characters or fewer, plain text, valid placeholders
+- [ ] Honest, for upgrade advice
+
+## 9. Open question for the domain spec
+
+Several triggers are *derived* (`MultiKill`, `CloseCall`, `HullLow`, `KillDrought`, `FtlSpoolProgress`, `ImaginarySixActive`). Recommended: **the banter service derives them from basic domain events plus the read-only game view**, so the domain never carries joke-shaped events. The domain spec should confirm this, and confirm the domain exposes what the service needs (spool time left, hull, recent kill times).
