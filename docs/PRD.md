@@ -101,10 +101,10 @@ The cycle length is a constant. It is the identity of the game. Difficulty varie
 | **Arriving** | 0-5 s | Sector settles. Pending resurrections arrive first, marked as Returned. |
 | **Building** | 5-25 s | Swarm ramps up to the Director's cap. You kill, collect, and position. |
 | **Spooling** | 25-33 s | FTL ring fills. Gaeta and Dualla count down. The swarm presses in. Your job flips from killing to surviving. |
-| **Jumping** | about 1 s | Fade to white (a quick crossfade in reduced-effects mode). Bullets clear. |
+| **Jumping** | about 1 s | Fade, never a white flash (a still overlay in reduced-effects mode). Bullets clear. |
 | **Recovering** | 8-12 s | Invulnerable. Tyrol resets your Viper hull and missiles. The fleet gets a partial repair. You pick 1 of 3 upgrades. A short comms scene plays. |
 
-The next cycle starts when **both** the scene has ended **and** the upgrade is chosen. There is no timer on the pick. A player who wants to think can.
+The next cycle starts when **both** the scene has ended **and** the upgrade is chosen. There is no timer on the pick. A player who wants to think can. Until cards and comms exist, Continue is that pick: Recovering does not advance on its own.
 
 A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 
@@ -535,3 +535,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-20 | Expanded the drag stick's indicator in 13.2 from one clause into rules (origin ring, drag dot clamped at maximum radius, neutral inside the dead zone, kept in reduced-effects mode) and added a first-run "drag anywhere to fly" hint. | A player who cannot see the stick cannot tell that touching means flying, or which direction they are asking for. Raised during the first slice, which shipped the stick without any indicator. |
 | 2026-09-20 | Clarified auto-fire in 8.1: the gun points at the swarm side and does not track a target. Starting rate about 5 shots per second. | Fixed heading (decision 13) makes "forward" always up. Recording it keeps missile targeting (a cone, M4) from being read back into the gun. |
 | 2026-09-20 | Added 8.4: Raider hitbox starts slightly inside the hull (6 wu). First phone-view play found it tight; do not widen until there is a swarm and a real-phone check. | So a later retune is a decided revisit, not a forgotten complaint. |
+| 2026-09-20 | Jumping is a fade, never a white flash, matching section 15. Recovering does not auto-advance until cards exist: Continue is the untimed pick. | Comfort forbids a white flash. A timer on Recovering would be a timer on a menu decision. |
