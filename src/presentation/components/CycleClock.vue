@@ -5,6 +5,7 @@ import { hudStore } from '../stores/hudStore';
 /**
  * The 33. Always visible during a run, because it is the game's identity (PRD 5.1). Whole seconds
  * only: a ticking tenth would look like a bomb, and this is a clock you work around, not against.
+ * Quiet on purpose: a louder countdown waits for the M5 HUD (PRD 5.1).
  */
 const stats = hudStore.state;
 

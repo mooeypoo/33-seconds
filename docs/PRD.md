@@ -96,6 +96,8 @@ The game plays in a browser on desktop and phone, is free, and is a fan project.
 
 The cycle length is a constant. It is the identity of the game. Difficulty varies everything *around* it.
 
+The HUD clock is enough to test the rule. **Make the countdown more noticeable later** (larger type, a real FTL ring, Gaeta and Dualla) with the Dradis HUD in M5. Do not restyle it while we are still proving the phases.
+
 | Phase | Time | What happens |
 |---|---|---|
 | **Arriving** | 0-5 s | Sector settles. Pending resurrections arrive first, marked as Returned. |
@@ -536,3 +538,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-20 | Clarified auto-fire in 8.1: the gun points at the swarm side and does not track a target. Starting rate about 5 shots per second. | Fixed heading (decision 13) makes "forward" always up. Recording it keeps missile targeting (a cone, M4) from being read back into the gun. |
 | 2026-09-20 | Added 8.4: Raider hitbox starts slightly inside the hull (6 wu). First phone-view play found it tight; do not widen until there is a swarm and a real-phone check. | So a later retune is a decided revisit, not a forgotten complaint. |
 | 2026-09-20 | Jumping is a fade, never a white flash, matching section 15. Recovering does not auto-advance until cards exist: Continue is the untimed pick. | Comfort forbids a white flash. A timer on Recovering would be a timer on a menu decision. |
+| 2026-09-20 | The 33 on the HUD stays quiet for now. A louder countdown (type, ring, voices) waits for the M5 HUD. | First play of the clock was for the rule, not the look. |
