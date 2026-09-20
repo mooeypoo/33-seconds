@@ -71,6 +71,20 @@ const SABOTAGE = [
     mustFail: 'npm run test',
   },
   {
+    what: 'the drag stick loses its dead zone',
+    file: 'src/infrastructure/input/PointerStickInput.ts',
+    find: '  if (distance <= DEAD_ZONE_PX) return { x: 0, y: 0, strength: 0 };',
+    replace: '  // sabotage: every touch steers, however still the thumb is',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'dragging past the ring keeps asking for more speed',
+    file: 'src/infrastructure/input/PointerStickInput.ts',
+    find: '  const strength = Math.min((distance - DEAD_ZONE_PX) / (MAX_RADIUS_PX - DEAD_ZONE_PX), 1);',
+    replace: '  const strength = (distance - DEAD_ZONE_PX) / (MAX_RADIUS_PX - DEAD_ZONE_PX);',
+    mustFail: 'npm run test',
+  },
+  {
     what: 'the loop catches up without a limit',
     file: 'src/application/GameSession.ts',
     find: '    const ticksToRun = Math.min(dueTicks, MAX_CATCH_UP_TICKS);',
