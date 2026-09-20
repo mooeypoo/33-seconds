@@ -55,6 +55,17 @@ export interface ViperRecovered {
   readonly y: number;
 }
 
+export interface FleetHit {
+  readonly type: 'FleetHit';
+  readonly damage: number;
+  readonly integrity: number;
+}
+
+export interface FleetRepaired {
+  readonly type: 'FleetRepaired';
+  readonly integrity: number;
+}
+
 export type DomainEvent =
   | ViperSpawned
   | ShotFired
@@ -63,4 +74,6 @@ export type DomainEvent =
   | CyclePhaseChanged
   | ShotsCleared
   | ViperEjected
-  | ViperRecovered;
+  | ViperRecovered
+  | FleetHit
+  | FleetRepaired;

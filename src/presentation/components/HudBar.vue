@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CycleClock from './CycleClock.vue';
+import FleetReadout from './FleetReadout.vue';
 import type { SessionPhase } from '../../application/GameSession';
 import { hudStore } from '../stores/hudStore';
 
@@ -34,6 +35,7 @@ const stats = hudStore.state;
       }}</span>
     </p>
 
+    <FleetReadout v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" />
     <CycleClock v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" />
 
     <button

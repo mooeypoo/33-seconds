@@ -7,6 +7,7 @@ import type { Presenter } from './Presenter';
 import { ProjectilePresenter } from './contexts/combat/ProjectilePresenter';
 import { ViperPresenter } from './contexts/combat/ViperPresenter';
 import { StickPresenter, type StickSource } from './contexts/controls/StickPresenter';
+import { FleetPresenter } from './contexts/fleet/FleetPresenter';
 import { RaiderPresenter } from './contexts/swarm/RaiderPresenter';
 import { PALETTE } from './shared/palette';
 
@@ -51,6 +52,7 @@ export class GameScene extends Phaser.Scene {
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.presenters = [
+      new FleetPresenter(this),
       new ViperPresenter(this),
       new ProjectilePresenter(this),
       new RaiderPresenter(this, prefersReducedMotion),
@@ -112,6 +114,8 @@ export class GameScene extends Phaser.Scene {
       returned: view.raiders.some((raider) => raider.returned),
       raiderLive: view.raiders.length > 0,
       raiders: view.raiders.length,
+      fleet: Math.round(view.fleet.integrity),
+      fleetMax: view.fleet.integrityMax,
     });
 
     this.secondsSinceStatsReport = 0;

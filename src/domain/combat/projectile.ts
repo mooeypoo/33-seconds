@@ -93,11 +93,16 @@ export class Projectile {
   }
 
   /**
-   * A Cylon round becomes Stray once it has passed the Viper (PRD 7.1). Fleet damage from strays
-   * is M3; the marker is here so the tell exists the moment shots do.
+   * A Cylon round becomes Stray once it has passed the Viper (PRD 7.1). The tell is orange before
+   * the round reaches the fleet line.
    */
   becomeStrayIfPast(viperY: number): void {
     if (this.ownerValue === 'cylon' && this.positionY > viperY) this.stray = true;
+  }
+
+  /** True when this stray crossed the fleet line during the last advance (swept, not endpoint-only). */
+  crossedFleetLine(lineY: number): boolean {
+    return this.live && this.stray && this.previousPositionY <= lineY && this.positionY > lineY;
   }
 
   toView(): ProjectileView {

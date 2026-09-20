@@ -24,6 +24,7 @@ import {
   raiderSpawnMaxX,
   raiderSpawnMinX,
 } from './swarm/raider';
+import { Fleet, FLEET_LINE_Y_UNITS } from './fleet/integrity';
 import { ATTACK_TOKENS, DIRECTOR_CAP, Download } from './swarm/resurrection';
 import type { GameView } from './views';
 
@@ -49,6 +50,7 @@ export class Game {
   private readonly scenario: RandomStream;
   private readonly raidersFire: boolean;
   private readonly cycle = new JumpCycle();
+  private readonly fleet = new Fleet();
   private readonly viper = new Viper();
   private readonly shots: Projectile[] = [];
   private readonly liveShots: Projectile[] = [];
@@ -80,6 +82,8 @@ export class Game {
       if (phaseChange.phase === 'jumping') {
         this.clearTheSky(events);
         this.viper.resetAtJump();
+        this.fleet.repairAtJump();
+        events.push({ type: 'FleetRepaired', integrity: this.fleet.view.integrity });
       }
     }
 
@@ -144,6 +148,7 @@ export class Game {
         y: download.y,
         remainingSeconds: download.remaining,
       })),
+      fleet: this.fleet.view,
       cycle: this.cycle.view,
     };
   }
@@ -240,8 +245,8 @@ export class Game {
   private advanceRaiders(): void {
     for (const raider of this.raiders) {
       raider.advance(TICK_SECONDS);
-      // ASSUMPTION: until fleet damage (M3), a Raider that leaves the bottom reappears at the top
-      // of the same column rather than hurting anyone.
+      // ASSUMPTION: Raiders still wrap at the bottom. Fleet damage is stray rounds, not bodies.
+      // Strafing runs wait.
       if (raider.hasLeftTheBottom) raider.reappearAtTop();
     }
   }
@@ -249,6 +254,7 @@ export class Game {
   private resolveHits(events: DomainEvent[]): void {
     this.resolvePlayerHits(events);
     this.resolveCylonHits(events);
+    this.resolveFleetHits(events);
     this.dropDeadShots();
   }
 
@@ -308,6 +314,17 @@ export class Game {
       if (this.viper.takeHit()) {
         events.push({ type: 'ViperEjected', x: this.viper.x, y: this.viper.y });
         return;
+      }
+    }
+  }
+
+  private resolveFleetHits(events: DomainEvent[]): void {
+    for (const shot of this.liveShots) {
+      if (!shot.alive || !shot.crossedFleetLine(FLEET_LINE_Y_UNITS)) continue;
+      shot.kill();
+      const damage = this.fleet.takeStray();
+      if (damage > 0) {
+        events.push({ type: 'FleetHit', damage, integrity: this.fleet.view.integrity });
       }
     }
   }

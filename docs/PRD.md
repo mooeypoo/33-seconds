@@ -178,16 +178,16 @@ Two separate pools, on purpose:
 | **Fleet Integrity** | Partly | The run's real health bar. It is the only way to lose. |
 
 ### 7.1 How the fleet gets hit
-1. **Strafing runs.** Some Raiders are flagged. Dradis draws a line to the fleet and a warning arrow appears at the screen edge. You can intercept them.
-2. **Stray bullets.** A Raider bullet that misses your Viper keeps flying. If it crosses the fleet line it hits a civilian ship.
-   - Two bullet states: *Aimed* (red) and *Stray* (orange, longer trail). A bullet becomes Stray once it passes you, so the consequence is visible before it lands.
-   - Damage per hit is small (about 0.5-1.5% of max integrity).
-   - Galactica's flak destroys about 40% of strays before impact.
+1. **Strafing runs.** `[Later]` Some Raiders are flagged. Dradis draws a line to the fleet and a warning arrow appears at the screen edge. You can intercept them. Bodies that leave the bottom still wrap; they do not damage the fleet.
+2. **Stray bullets.** A Raider bullet that misses your Viper keeps flying. If it crosses the fleet line (near the bottom edge) it hits a civilian ship.
+   - Two bullet states: *Aimed* (red) and *Stray* (orange). A bullet becomes Stray once it passes you, so the consequence is visible before it lands.
+   - Damage per hit starts at **1** of **100** integrity (1%).
+   - Galactica's flak (about 40% of strays) waits. Every stray that crosses the line hits, so the first play of the pool is readable.
    - Standing between the swarm and the fleet catches strays. Your Viper hull resets each jump, so absorbing hits is cheap. That makes a bodyguard build viable.
 
 ### 7.2 Two fairness rules
-1. **Per-cycle damage cap.** No single cycle can take more than X% of the fleet.
-2. **Partial repair on jump.** The fleet regains a fraction of its *missing* integrity, so heavy damage heals faster in absolute terms.
+1. **Per-cycle damage cap.** No single cycle can take more than **35** integrity (Civilian Ship's 35% until tiers exist).
+2. **Partial repair on jump.** The fleet regains **60%** of its *missing* integrity, so heavy damage heals faster in absolute terms.
 
 ### 7.3 Tuning math `[Tunable]`
 If the fleet takes maximum damage `D` every cycle and repairs fraction `r` of what is missing at each jump, its lowest point settles at `100% x (1 - D / r)`.
@@ -203,9 +203,10 @@ If the fleet takes maximum damage `D` every cycle and repairs fraction `r` of wh
 Losing on Viper Pilot requires taking near-cap damage over and over, meaning ignoring the fleet almost entirely. A player who intercepts a few strafing runs stays comfortably alive. Both numbers live in the tier profile, so retuning is a one-line change.
 
 ### 7.4 HUD and flavor
-- Fleet shown as a row of small civilian-ship pips near the jump ring. Pips flicker when hit and heal at each jump.
-- Pips have original silly names in the pause menu (for example, "The Slightly Leaky Freighter"). No show ship names.
-- End-of-run stat: "Civilians endangered by your dodging: 47."
+- Fleet shown as **ten pips plus `n/max`** near the jump clock. Colour is never the only cue. No flicker (comfort): a hit already has the orange stray.
+- A thin olive line marks the fleet edge. Civilian-ship sprites and pause-menu silly names (for example, "The Slightly Leaky Freighter") wait. No show ship names.
+- Reaching zero does not yet end the run. The lose screen waits with the rest of M3.
+- End-of-run stat: "Civilians endangered by your dodging: 47." `[Later]`
 
 ## 8. Combat
 
@@ -549,3 +550,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-20 | Director cap starts at 2. Attack tokens start at 1: nearest Raider shoots, the other flies. | So a kill refills a swarm instead of emptying the sky, without doubling fire before the fairness pass. |
 | 2026-09-20 | Viper hull is shown as pips on the ship plus `hull n/max` on the HUD. | First play of incoming fire vanished the Viper with no readable health. This is a tell, not the fairness pass. |
 | 2026-09-20 | Fairness pass target: Viper hull should be higher than one Raider's 3 HP. Still not applied. | So the player outlasts an individual Cylon. Hearts and hitbox stay in that same pass. |
+| 2026-09-20 | Fleet Integrity starts at 100. A stray that crosses the fleet line costs 1, capped at 35 per cycle, then 60% of missing repairs at the jump. HUD is ten pips plus a number. Flak, strafing, lose screen, and civilian sprites wait. | So the run has a health bar you can dent without inventing the rest of M3. |

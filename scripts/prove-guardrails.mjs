@@ -148,6 +148,20 @@ const SABOTAGE = [
     mustFail: 'npm run test',
   },
   {
+    what: 'strays no longer dent the fleet',
+    file: 'src/domain/fleet/integrity.ts',
+    find: '    this.integrity -= room;',
+    replace: '    // sabotage: the fleet is decorative',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'the per-cycle fleet cap no longer holds',
+    file: 'src/domain/fleet/integrity.ts',
+    find: 'export const FLEET_CYCLE_DAMAGE_CAP = 35;',
+    replace: 'export const FLEET_CYCLE_DAMAGE_CAP = 1000;',
+    mustFail: 'npm run test',
+  },
+  {
     what: 'the 33-second cycle never jumps',
     file: 'src/domain/cycle/jumpCycle.ts',
     find: '    if (this.combatElapsedTicks >= CYCLE_COMBAT_TICKS) {',

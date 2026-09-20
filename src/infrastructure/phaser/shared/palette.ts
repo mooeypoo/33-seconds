@@ -15,4 +15,6 @@ export const PALETTE = {
   playerShot: 0x4fe19a,
   aimedShot: 0xff2b2b,
   strayShot: 0xf2a23a,
+  /** The civilian line. Olive, never Cylon red (PRD 9). */
+  fleetLine: 0x3d5a4c,
 } as const;

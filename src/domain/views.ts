@@ -60,11 +60,18 @@ export interface CycleView {
   readonly spoolProgress: number;
 }
 
+export interface FleetView {
+  readonly integrity: number;
+  readonly integrityMax: number;
+  readonly damageThisCycle: number;
+}
+
 export interface GameView {
   readonly viper: ViperView;
   readonly projectiles: readonly ProjectileView[];
   readonly raiders: readonly RaiderView[];
   readonly ghosts: readonly GhostView[];
+  readonly fleet: FleetView;
   readonly cycle: CycleView;
   readonly tickCount: number;
   readonly kills: number;

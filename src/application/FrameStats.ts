@@ -26,4 +26,6 @@ export interface FrameStats {
   readonly returned: boolean;
   readonly raiderLive: boolean;
   readonly raiders: number;
+  readonly fleet: number;
+  readonly fleetMax: number;
 }
