@@ -208,7 +208,7 @@ Losing on Viper Pilot requires taking near-cap damage over and over, meaning ign
 
 ### 8.1 The Viper `[Tunable]`
 - Free movement in world units, with a little acceleration smoothing so it feels spacey but not drifty.
-- **Auto-fire** always on. No fire button.
+- **Auto-fire** always on. No fire button. The gun points at the swarm side (up); it does not track a target. Start at about 5 shots per second.
 - Hull is reset by Tyrol at each jump. If destroyed mid-cycle, you eject and are picked up. That costs a few seconds of downtime, never the run.
 
 ### 8.2 Missiles `[Tunable]`
@@ -229,6 +229,10 @@ One special per run, chosen at run start. Each has an original-text comms moment
 Recharge counts are jumps, not seconds. That is easy to explain, and it fits the 33-second rhythm and pause.
 
 MVP ships The Speech only. The loadout pick screen arrives with the second special.
+
+### 8.4 Hitboxes `[Tunable]`
+- A Raider's collision circle starts slightly smaller than its drawn hull (6 world units), so a near-miss looks like a near-miss.
+- First play on a desktop phone-view found that tight. **Do not widen it yet.** Revisit once there is a swarm and more time on a real phone: until then we cannot tell a real miss from a scaling quirk.
 
 ## 9. Keeping the screen readable `[Core]`
 
@@ -529,3 +533,5 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-20 | Added section 14.1, "Sound is never a surprise": no audio before the first gesture, the title screen announces sound and offers the choice, a prominent mute in the HUD and the pause menu, and the choice remembered. Default is sound on. | Unexpected audio is annoying, and the rule needs to exist before the first sound does. |
 | 2026-09-20 | Moved player settings and storage from M6 to M5, ahead of the first audio. M6 keeps the full settings screen. | So no build can ever have sound without a mute control (section 14.1). |
 | 2026-09-20 | Expanded the drag stick's indicator in 13.2 from one clause into rules (origin ring, drag dot clamped at maximum radius, neutral inside the dead zone, kept in reduced-effects mode) and added a first-run "drag anywhere to fly" hint. | A player who cannot see the stick cannot tell that touching means flying, or which direction they are asking for. Raised during the first slice, which shipped the stick without any indicator. |
+| 2026-09-20 | Clarified auto-fire in 8.1: the gun points at the swarm side and does not track a target. Starting rate about 5 shots per second. | Fixed heading (decision 13) makes "forward" always up. Recording it keeps missile targeting (a cone, M4) from being read back into the gun. |
+| 2026-09-20 | Added 8.4: Raider hitbox starts slightly inside the hull (6 wu). First phone-view play found it tight; do not widen until there is a swarm and a real-phone check. | So a later retune is a decided revisit, not a forgotten complaint. |
