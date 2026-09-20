@@ -385,7 +385,14 @@ Lines and scenes are data, not code. The authoritative format, trigger list, len
 Shift is deliberately not used for the special. On Windows, pressing it five times opens the Sticky Keys prompt.
 
 ### 13.2 Phone
-- **Floating drag stick:** the first touch anywhere in the play area sets an origin, and dragging from it steers. Small dead zone, a maximum radius, and analog speed so a small drag is a gentle nudge. A faint pixel ring and dot show the origin.
+- **Floating drag stick:** the first touch anywhere in the play area sets an origin, and dragging from it steers. Small dead zone, a maximum radius, and analog speed so a small drag is a gentle nudge.
+- **The stick shows itself while you hold it** `[Core]`. Without this, a player cannot tell that touching means flying, or which way they are asking the Viper to go:
+  - A faint pixel **ring at the origin** marks where the touch landed, and a **dot** sits where the drag currently is, clamped to the ring's edge at maximum radius. Origin, direction, and how much of full speed you are asking for are all readable at a glance.
+  - Inside the dead zone the dot is centered and visibly neutral, so "nothing is happening" looks deliberate rather than broken.
+  - It appears on touch down and fades out when the finger lifts. Faint enough never to compete with the Raiders, drawn on the pixel grid like everything else.
+  - It is not the only cue for the player's own movement: the Viper banks and its engine glow stretches with thrust.
+  - Reduced-effects mode keeps the ring and dot. They are information, not decoration, so the fade is what shortens, never the indicator.
+- **A first-run hint tells new players to drag** `[Core]`: on a touch device, before the first drag of a player's first run, a short line near the bottom of the play area says that dragging anywhere flies the Viper. It disappears on the first touch, is remembered as seen, and reappears only if storage is unavailable. No timers on it, and it never blocks play.
 - It works **wherever the finger lands**, on any overlay layer, except on visible buttons and menus.
 - **Missile:** a tap from a second finger anywhere.
 - **Special:** one small button in the corner opposite the stick thumb.
@@ -395,7 +402,7 @@ Shift is deliberately not used for the special. On Windows, pressing it five tim
 ### 13.3 Pause
 - Triggers: pause button, Esc or P, and **auto-pause** when the tab is hidden, the window loses focus, the orientation changes, or a pointer is cancelled (a notification or an edge swipe).
 - Resume with a 3-2-1 countdown, which also clears any stuck keys or phantom stick.
-- The pause menu shows settings, the comms log, and (later) the Cylon Complaints Board.
+- The pause menu shows settings, the comms log, mute, and (later) the Cylon Complaints Board.
 - Everything time-based follows the game clock, including comms, cooldowns, the FTL ring, and audio, so nothing keeps running while paused.
 
 ## 14. Look and sound `[Tunable]`
@@ -409,6 +416,19 @@ Shift is deliberately not used for the special. On Windows, pressing it five tim
 - Optional scanline and CRT look: on by default on desktop, off by default on phones, with a toggle.
 - Fonts are self-hosted. A pixel font for style, plus a **readable-font toggle** for people who struggle with small pixel type.
 
+### 14.1 Sound is never a surprise `[Core]`
+
+Unexpected audio is the rudest thing a web page can do. These are hard rules, not tunables.
+
+- **Nothing makes a sound before the player's first deliberate gesture.** Audio initializes on the Launch button and not before, so an opened tab is silent.
+- **The title screen says the game has sound and offers the choice there**, next to Launch, in words. The player decides before anything can play.
+- **Mute is always one tap away while playing:** in the HUD beside the pause button and in the pause menu, at least 44 x 44 px, inside the safe area.
+- **The mute control says what it is in text**, not by color alone, and its state is readable at a glance (see section 15).
+- **Muting is instant and total**, music and effects together, and unmuting never dumps queued sound.
+- **The choice is remembered** in versioned local storage, and the game works when storage is unavailable by falling back to the default.
+- **Default: sound on**, because the title screen announces it before a sound is possible. Flip it with a changelog line if playtesting says otherwise.
+- Separate music and effects volumes belong in settings. Mute stays a single, always-available control that never hides in a menu.
+
 ## 15. Accessibility and comfort `[Core]`
 
 Hard rules:
@@ -416,7 +436,8 @@ Hard rules:
 - **No camera shake, wobble, double vision, or rapid flashing.** Flash rate stays far below 3 per second. Whiteouts become a quick fade in reduced-effects mode.
 - `prefers-reduced-motion` is respected by default, with an in-game toggle.
 - **Color is never the only cue.** Cylons are red *and* have a sweeping eye; inert is a still eye *and* an hourglass; strays are orange *and* have a longer trail.
-- Audio cues have visual equivalents.
+- Audio cues have visual equivalents, so the game is fully playable muted.
+- Sound never starts by itself, and mute is always one tap away (section 14.1).
 - Comms duration setting, comms log, and no timers on menu decisions.
 - One-handed play on phones.
 - Menus, settings, and comms are reachable by screen reader (comms uses a polite live region, rate-limited).
@@ -468,8 +489,8 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | M2 | **The loop** | play three minutes of the core loop | Director cap and attack tokens, Raiders that shoot, Viper hull and eject, resurrection (ghost blips, Returned marker), a 33-second cycle with spool, jump, and a short Recovering pause. **Fun check:** with placeholders, is this fun? If not, fix it before adding more. |
 | M3 | **Stakes and a win** | win or lose a full run (6 to 8 minutes) | Fleet Integrity, strafing runs, stray bullets, damage cap and partial repair, HUD (fleet pips, jump ring), the resurrection ship with persistent HP, win and lose screens, two tiers. |
 | M4 | **Build variety** | make different builds | Upgrade picks (about 6 cards, growing to 12), reroll, missiles and targeting, The Speech. |
-| M5 | **Personality** | feel the humor | Comms overlay, portraits (placeholder art), banter from JSON, Recovering scenes, Dradis-style HUD, audio, filters and effects with a reduced-effects mode. Your content and asset passes plug in here. |
-| M6 | **Polish and launch** | share it | Accessibility pass, phone QA, settings, title screen and logo, disclaimer, local best scores, deploy. |
+| M5 | **Personality** | feel the humor | Comms overlay, portraits (placeholder art), banter from JSON, Recovering scenes, Dradis-style HUD, audio, filters and effects with a reduced-effects mode. Your content and asset passes plug in here. **Player settings and storage arrive here, before the first sound**, so mute, the sound notice, and the reduced-effects toggle exist the moment there is anything to mute (section 14.1). |
+| M6 | **Polish and launch** | share it | Accessibility pass, phone QA, the full settings screen (built on the storage seam from M5), title screen and logo, disclaimer, local best scores, deploy. |
 
 **After MVP:** Vengeful, traits, Mandatory Firmware Update and loadout screen, remaining cards, more tiers, mutators, daily seed and leaderboard, gamepad, PWA install.
 
@@ -505,3 +526,6 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | Date | Change | Why |
 |---|---|---|
 | 2026-09-20 | Made the PRD a living document: status tags, "MVP at a glance," iterative milestones, and defaults for the previously open questions. Title set to 33 Seconds. Civilian "assists" dropped. | Start iterative implementation. |
+| 2026-09-20 | Added section 14.1, "Sound is never a surprise": no audio before the first gesture, the title screen announces sound and offers the choice, a prominent mute in the HUD and the pause menu, and the choice remembered. Default is sound on. | Unexpected audio is annoying, and the rule needs to exist before the first sound does. |
+| 2026-09-20 | Moved player settings and storage from M6 to M5, ahead of the first audio. M6 keeps the full settings screen. | So no build can ever have sound without a mute control (section 14.1). |
+| 2026-09-20 | Expanded the drag stick's indicator in 13.2 from one clause into rules (origin ring, drag dot clamped at maximum radius, neutral inside the dead zone, kept in reduced-effects mode) and added a first-run "drag anywhere to fly" hint. | A player who cannot see the stick cannot tell that touching means flying, or which direction they are asking for. Raised during the first slice, which shipped the stick without any indicator. |

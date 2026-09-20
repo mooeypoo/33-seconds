@@ -12,6 +12,7 @@ Read this file first, every session. It is short on purpose.
 |---|---|---|
 | `docs/PRD.md` | The game's rules and scope. **A living document**, adjusted as we play. | Read "How to use and change this document" and "MVP at a glance" every session. Read the sections your slice touches. |
 | `docs/adr/0001-architecture.md` | The architecture guidelines and the reasoning. | Read "Guidelines at a glance" every session. Read the decisions your slice touches. |
+| `docs/journal/` | One entry per slice: what we built, what we measured, what surprised us. Blog-ready. | Skim the latest entry every session. Add one at the end of each slice. |
 | `docs/art/`, `docs/content/` | Notes for the owner's own art and content passes. | Only when asked to work on assets or content. |
 
 If the documents disagree with each other or with this file, **stop and tell me** before choosing.
@@ -42,7 +43,7 @@ Keep them light, but do them early, because they are cheap now and expensive lat
 - **Basics:** committed lockfile, pinned Node version, `.gitignore` covering `.env*`, a README, and an automated dependency-update config.
 - **A platform check on a real phone** during the first two slices, against the gates in ADR-0001 D4. If Phaser 4 fails a gate badly, stop and tell me.
 
-Keep the scripts you create listed here. Expected: `dev`, `build`, `typecheck`, `lint`, `test`, `test:e2e`, `check:arch`.
+Keep the scripts you create listed here: `dev`, `build`, `preview`, `typecheck`, `lint`, `test`, `test:watch`, `test:e2e`, `check:arch`, and `check:guardrails` (breaks the code on purpose, twelve ways, and checks that a check or a test fails; run it by hand after touching the guardrails or the engine tests).
 
 ### Stop and ask when
 - The PRD, the ADR, and this file are ambiguous or disagree.
@@ -62,7 +63,7 @@ Full guidelines and reasoning are in the ADR.
 4. **Stack:** TypeScript (strict), Vue 3 for menus, HUD, comms, and pause (a DOM overlay), **Phaser 4** for the canvas, Vite, Vitest, Playwright (a few end-to-end flows), Netlify (static). This is Phaser **4**: do not write Phaser 3 code (pipelines, preFX, postFX). Check the current docs when scaffolding.
 5. **Phaser is an external system.** Import it only under `src/infrastructure/phaser/`, organized as one presenter per domain area that turns domain events and read-only state into sprites, effects, and sound. Phaser objects are never the source of truth for a rule. Cosmetic tweens and particles follow the game clock so pause freezes them.
 6. **Events flow out of the domain** (past tense, like `RaiderDestroyed`). Presentation, audio, and comms react to them. The domain never knows they exist.
-7. **Input** becomes one `InputIntent` (move, missile, special). Listeners live on the game root element, not the canvas, so touches work over any overlay. Overlays are `pointer-events: none` unless they are real controls (marked `data-ui`).
+7. **Input** becomes one `InputIntent` (move, missile, special). Pointer listeners live on the game root element, not the canvas, so touches work over any overlay; keyboard listeners live on `window`, because a div gets no key events without a tabindex and blur must clear held keys. Overlays are `pointer-events: none` unless they are real controls (marked `data-ui`).
 8. **Pause is an application concern.** Nothing gameplay-related uses `setTimeout`, `setInterval`, or Phaser timers. Auto-pause when the tab is hidden or the window loses focus.
 9. **Data, not code:** difficulty numbers live in one typed tier profile, and text (jokes, card flavor) lives in JSON.
 

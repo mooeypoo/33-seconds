@@ -1,7 +1,10 @@
 # ADR-0001: Architecture for 33 Seconds
 
-**Status:** Direction accepted. D4 (Phaser 4) is confirmed by the platform check in the first slices.
-**Date:** 2026-09-19
+**Status:** Accepted. D4 (Phaser 4) is confirmed for bundle size, CSP compatibility, and pause control
+by a measured spike on 2026-09-20 (see `docs/journal/0001-something-moves.md`). The on-device gates in
+D4 (sustained frame rate, integer scaling, iOS audio, 2D lighting cost) are still open and need a real
+phone.
+**Date:** 2026-09-19 (last revised 2026-09-20)
 **Deciders:** Moriel (owner)
 **Related:** [PRD](../PRD.md), [AGENTS.md](../../AGENTS.md)
 
@@ -79,7 +82,7 @@ tools/             # balance simulation harness, content validation
 | Fleet | Core | `domain/fleet` |
 | Progression | Core | `domain/progression` |
 | Banter (comms) | Supporting | `application/banter` + `content/` |
-| Presentation | Generic | `presentation/`, `infrastructure/render` |
+| Presentation | Generic | `presentation/`, `infrastructure/phaser` |
 
 ### Domain events (past tense, facts)
 
@@ -176,7 +179,7 @@ src/infrastructure/phaser/
 
 | Option | Notes |
 |---|---|
-| **Phaser 4 (recommended)** | Released April 2026 (4.2.0 in June 2026). New WebGL renderer, a unified filter system (Bloom, Glow, Vignette, Pixelate, ColorMatrix, Wipe, and more) on any object or camera, built-in 2D lighting, animation, tweens, particles, loader, scale manager, input, audio, and physics. Batching improvements aimed at mobile. Large community and documentation, and agents know it well. Costs: a larger bundle (v4 size not yet measured), an opinionated platform that needs the rules above, and a young v4 API. |
+| **Phaser 4 (chosen)** | 4.2.1 at the time of writing (4.0.0 April 2026, 4.2.1 July 2026). New WebGL renderer, a unified filter system on any object or camera (the actual 4.2.1 list is Glow, Blur, Bokeh, Vignette, Pixelate, ColorMatrix, Threshold, Quantize, Displacement, Shadow, Wipe, Mask, Barrel, Blend, Blocky, GradientMap, ImageLight, and a few more — **there is no Bloom filter**, so Glow or Blur-plus-Blend stands in), built-in 2D lighting, animation, tweens, particles, loader, scale manager, input, audio, and physics. Large community and documentation, and agents know it well. Costs: a larger bundle (measured below), an opinionated platform that needs the rules above, and a young v4 API. |
 | PixiJS (fallback) | Leaner and less opinionated. Fewer batteries: animation sequencing, tweening, particles, lighting, and sound are ours to assemble. |
 | Three.js, orthographic (fallback, or if we ever want 2.5D or heavy shader work) | Most shader freedom, and familiar to the owner. Least 2D plumbing. Full 3D remains a non-goal. |
 | Custom Canvas 2D | Smallest, but riskier on low-end phones and we would rebuild everything. |
@@ -187,7 +190,7 @@ src/infrastructure/phaser/
 1. 300 sprites at 60 fps with the filters we want (bloom, vignette, color matrix).
 2. Crisp nearest-neighbor scaling at a low internal resolution (for example 270 x 480), with integer scaling on desktop.
 3. Works under the strict CSP (D11).
-4. Bundle size is acceptable. Measure it, try a custom build if needed, and revisit the 300 KB gzipped budget with real numbers. For scale, Phaser 3's default import added roughly 980 KB minified, and community custom builds cut a minimal build to about 110 to 122 KB gzipped but needed bundler configuration. We have not verified Phaser 4 figures.
+4. Bundle size is acceptable. **Measured on 2026-09-20** with Phaser 4.2.1 and Vite 8.3.0, gzipped: the default `import Phaser from 'phaser'` entry costs 376 KB, a tailored build (WebGL only, no physics, tilemaps, or canvas renderer) costs 236 KB, and the Vue 3 runtime costs 38 KB. For comparison, a minimal PixiJS 8 app — one sprite and a ticker, with no filters, particles, tweens, or audio — costs 160 KB. The 300 KB budget therefore needs the tailored build, which needs three pieces of bundler configuration (alias `^phaser$` to a custom entry, stub `phaser3spectorjs`, define `global` as `globalThis`) and one non-obvious inclusion: the `Display` barrel, which attaches statics such as `Color.IntegerToColor` that the filters call at runtime. Sequencing: ship the default entry first, switch to the tailored build once an end-to-end boot test guards it, because its failures appear at runtime rather than at build time.
 5. Input: can Phaser's input listen on our root element with pointer capture and stay layer-agnostic (D6)? If not, we keep our own adapters.
 6. iOS audio unlock works, and audio suspends and resumes with the session.
 7. Game-clock integration: Phaser's animations, tweens, and particles pause with our session.
@@ -210,7 +213,7 @@ If a gate fails and cannot be fixed cheaply, build the same test scene in PixiJS
 - *All sprites:* simple, but backgrounds and effects feel flat.
 - *Fully procedural neon-vector look* (polygon outlines with glow, like Asteroids or a Dradis screen): the least art and the fastest iteration, and it suits the theme. It gives up the hand-drawn charm and the pixel palette identity, and shader-authored silhouettes are harder for a maintainer to tweak. The renderer port keeps this option open without touching the domain.
 
-**Rules:** every shader effect has a reduced-effects mode (a uniform), obeys the no-flash rule, and lives in `infrastructure/render` with comments. Keep GLSL small and readable. The platform check measures the cost of the starfield and the post pass on the reference phone.
+**Rules:** every shader effect has a reduced-effects mode (a uniform), obeys the no-flash rule, and lives in `infrastructure/phaser/shared` with comments. Keep GLSL small and readable. The platform check measures the cost of the starfield and the post pass on the reference phone.
 
 ### D5. UI layer: Vue 3 overlay on the canvas
 
@@ -240,7 +243,8 @@ DOM structure and pointer policy:
 - **Keyboard** on `window`, keyed by `event.code` (physical keys), with `preventDefault` for arrows and space, held-key state cleared on blur, and diagonals normalized.
 - **Pointer stick** on `#game-root` using Pointer Events in the **capture phase**, `setPointerCapture`, pointer-ID tracking, a dead zone, and a max radius. A touch starting on `[data-ui]` is not the stick. A second finger is a missile (edge-triggered).
 - CSS on the root: `touch-action: none`, `user-select: none`, `-webkit-touch-callout: none`, `overscroll-behavior: none`. Suppress `contextmenu`.
-- An `InputRouter` in the application layer emits a zero intent unless the session is Running.
+- No `InputRouter` for now: `GameSession` reads an intent only while it is running, so a router would hold no behaviour of its own. Add one when a second reader needs the same filtering.
+- **The stick's on-screen indicator** (PRD 13.2) reads the adapter's own state, not domain state: where the touch landed is a fact about the input device, not about the world. The adapter exposes the origin and current pointer position in CSS pixels, and the presenter converts to world units through Phaser's scale manager. It follows the game clock like every other cosmetic, so a pause freezes its fade.
 
 **Why:** the domain never learns how the player steers. Adding gamepad later is one new adapter.
 
@@ -248,7 +252,11 @@ DOM structure and pointer policy:
 
 ### D7. Session state, pause, and the game clock
 
-**Decision:** `GameSession` in the application layer is a state machine (Title, Running, Paused, GameOver). Pausing stops feeding ticks. The domain does not know pause exists.
+**Decision:** `GameSession` in the application layer is a state machine (Title, Running, Paused, Resuming, GameOver). Pausing stops feeding ticks. The domain does not know pause exists.
+
+`Resuming` is the 3-2-1 countdown: the simulation stays frozen, so it behaves like `Paused` as far as the domain is concerned, and it is the one thing that advances on real time rather than on the game clock — it is what brings the game clock back.
+
+**Freezing Phaser's cosmetics** (verified in Phaser 4.2.1 on 2026-09-20): a paused scene stops emitting its update events, which freezes tweens, particle emitters, and sprite animations together, while rendering carries on. Confirmed empirically: after 1.2 s of pause a tween's elapsed time was unchanged, and resuming continued from that point with no catch-up jump. The finer levers are `scene.tweens.timeScale`, an emitter's `timeScale`, and `anims.globalTimeScale`, which are also how the slow-motion moment on the resurrection ship's death will work. The scene shell drives all three from the session's frozen flag.
 
 - **Everything time-based follows the game clock:** comms expiry, cooldowns, the FTL ring, and effect timelines. No `setTimeout` or `setInterval` for gameplay. Portrait mouth animations pause via a `.paused` class and `animation-play-state`.
 - Auto-pause on `visibilitychange`, window blur, `pointercancel`, and orientation change.
@@ -329,9 +337,11 @@ export interface CycleProfile {
 
 **Decision:** Web Audio through an `AudioPort`. Effects synthesized with ZzFX or jsfxr. Music as small BeepBox exports. Original only.
 
-- Audio starts on the first user gesture (the title screen's Start button). This is required on iOS.
+- Audio starts on the first user gesture (the title screen's Launch button). This is required on iOS, and it is also what makes "no sound by surprise" (PRD 14.1) structurally true rather than a promise.
 - Suspend and resume with the session (D7). Separate volumes for music, effects, and comms.
 - Every audio cue has a visual equivalent (PRD section 15).
+- **Mute is a setting, not an audio-engine detail.** It lives in the application layer beside the other player settings, so the HUD, the pause menu, and the title screen all read one piece of state, and `AudioPort` is told about it rather than owning it. That keeps the control available even before an audio engine exists, and it keeps a muted game silent if the audio adapter is ever swapped.
+- Until an `AudioPort` exists, Phaser boots with `audio: { noAudio: true }`, so no audio context is created at all.
 
 ### D13. Quality strategy
 
@@ -348,7 +358,7 @@ export interface CycleProfile {
 - 60 fps on the reference phone. Simulation stays at 60 Hz.
 - Concurrent caps: Raiders by tier (about 12-30), enemy bullets about 80, player bullets about 60, particles about 150 (half on phones), total sprites about 350.
 - Adaptive quality: if frame time exceeds budget for a couple of seconds, effects step down. The simulation is never simplified.
-- Initial JavaScript bundle around 300 KB gzipped, excluding audio and art.
+- Initial JavaScript bundle around 300 KB gzipped, excluding audio and art. Measured at 373 KB with Phaser's default entry (first slice, 2026-09-20); the tailored build that brings it under budget is sequenced in D4 gate 4. CI prints the gzipped size on every build.
 - **Start with plain arrays of small records and object pooling.** Move hot paths to typed arrays only if profiling shows a need. Readability comes first.
 
 ---
@@ -390,7 +400,7 @@ export interface CycleProfile {
 | Layer rules erode under time pressure | CI boundary check (D1) |
 | Screen full of Raiders is a mess or too slow on phones | Director cap, attack tokens, hard caps, adaptive quality, budgets in the platform check |
 | Phaser 4 fails a platform-check gate (CSP, size, mobile performance, input) | Fall back to PixiJS, then Three.js. Presenters and the cue catalog bound the cost of switching |
-| Coding agents write Phaser 3-style code in a Phaser 4 project | Pin the version in AGENTS.md, link the v4 docs, and review for v3 APIs |
+| Coding agents write Phaser 3-style code in a Phaser 4 project | Pin the exact version, and rely on strict TypeScript against Phaser 4's own types, which rejects the v3 surface (`setPipeline`, `preFX`, `postFX`) outright. Review for v3 idioms that still typecheck |
 | Overlay swallows touch input | Capture-phase listeners, `pointer-events` policy, Playwright matrix |
 | Community-contributed text causes a spoiler, IP, or safety problem | Build-time validation plus a review checklist, and text rendered only as text |
 | Balance drift makes the game frustrating | Simulation harness thresholds and playtests |
@@ -400,24 +410,24 @@ export interface CycleProfile {
 
 ## Action items
 
-1. [ ] Confirm the decisions above, or record changes, and move to **Accepted**.
-2. [ ] Platform check (first two slices): validate Phaser 4 against the gates in D4 on the reference phone. Build a PixiJS comparison only if a gate fails. Confirm the engine.
-3. [ ] Scaffold the repo (Vite, Vue 3, TypeScript strict, Vitest, Playwright) and confirm current major versions.
-4. [ ] Add `dependency-cruiser` and the domain lint bans to CI.
-5. [ ] Add `netlify.toml` with the headers in D11 and check the deploy preview.
-6. [ ] Build the balance simulation harness alongside the first domain code, not after.
+1. [x] Confirm the decisions above, or record changes, and move to **Accepted**. (2026-09-20)
+2. [ ] Platform check: the desktop and bundle gates (1 for desktop, 3, 4, 5, 7) passed on 2026-09-20; gates 1 on a phone, 2, 6, and 8 still need the reference device. Build a PixiJS comparison only if a gate fails.
+3. [x] Scaffold the repo (Vite 8.3.0, Vue 3.5.43, TypeScript 6.0.3 strict, Vitest 5.0.1, Playwright 1.63.0, Phaser 4.2.1, Node 22.19.0), all pinned exactly with a committed lockfile. (2026-09-20)
+4. [x] Add `dependency-cruiser` and the domain lint bans to CI, and prove they fail on a violation (`npm run check:guardrails`). (2026-09-20)
+5. [ ] `netlify.toml` has the D11 headers, and `vite preview` mirrors them so the end-to-end tests boot under the real CSP. Still to do: check an actual deploy preview.
+6. [ ] Build the balance simulation harness in M2, when the first tunable numbers exist (this supersedes the earlier "alongside the first domain code", which contradicted D13). The seam it needs exists from the first slice: the domain is constructed headlessly and driven only by `tick(intent)`, and the harness will use the same scenario helpers the engine tests use. It lives in `tools/sim/` and may import only `domain` and `balance`, enforced by the boundary check.
 7. [ ] Write ADR-0002 (leaderboard) before building any server code.
 8. [ ] Choose a reference phone and record the performance budget against it.
 
 ## Open technical questions
 
-1. **Platform:** Phaser 4, pending the platform-check gates in D4. Fallbacks are PixiJS, then Three.js.
+1. **Platform:** ~~Phaser 4, pending the platform-check gates in D4.~~ **Settled 2026-09-20: Phaser 4.** Fallbacks remain PixiJS, then Three.js, and the presenter boundary keeps that switch cheap. The on-device gates are still outstanding (action item 2).
 2. **Swarm data layout:** plain records versus typed arrays, pending profiling (D13).
 3. **State store:** Pinia versus plain composables (D5).
 4. **Leaderboard backend:** Netlify Blobs versus Supabase, and how to rate-limit (D10).
 5. **Anti-cheat:** accept forgeable scores, or invest in replay verification? This affects how much determinism we promise (D3).
-6. **CSP and Phaser 4:** confirmed compatible? (D4, D11)
+6. **CSP and Phaser 4:** ~~confirmed compatible?~~ **Yes (2026-09-20):** the game boots and runs under the strict CSP with no `unsafe-eval` and an empty console, checked by an end-to-end test on every run. Building from Phaser's source removes even the `new Function` in its prebuilt dist's `globalThis` shim.
 7. **PWA:** how much offline and install support at launch?
 8. **Internationalization:** are we text-extraction-ready from the start, even if English only?
 9. **Reference devices:** which phone and browser combinations count as supported?
-10. **Runtime versions:** Node, TypeScript, and framework versions to pin.
+10. **Runtime versions:** ~~Node, TypeScript, and framework versions to pin.~~ Pinned in `package.json` and `.nvmrc`, and listed in action item 3. Dependabot proposes updates weekly.
