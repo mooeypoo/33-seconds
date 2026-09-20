@@ -24,7 +24,7 @@ function speedOf(game: Game): number {
 
 describe('flying the Viper', () => {
   it('reports the Viper as spawned exactly once, on the first tick', () => {
-    const game = createGame();
+    const game = createGame({ raidersFire: false });
 
     const first = game.tick(IDLE_INTENT);
     const second = game.tick(IDLE_INTENT);
@@ -36,7 +36,7 @@ describe('flying the Viper', () => {
   });
 
   it('accelerates towards the direction asked for, rather than snapping to top speed', () => {
-    const game = createGame();
+    const game = createGame({ raidersFire: false });
     game.tick(move(1, 0));
 
     const speedAfterOneTick = speedOf(game);
@@ -46,7 +46,7 @@ describe('flying the Viper', () => {
   });
 
   it('never exceeds top speed, however hard the input pushes', () => {
-    const game = createGame();
+    const game = createGame({ raidersFire: false });
 
     // An adapter would normalise this; the domain does not trust it to.
     for (let i = 0; i < TICKS_PER_SECOND; i++) game.tick(move(50, -50));
@@ -55,8 +55,8 @@ describe('flying the Viper', () => {
   });
 
   it('flies a diagonal no faster than a straight line', () => {
-    const straight = createGame();
-    const diagonal = createGame();
+    const straight = createGame({ raidersFire: false });
+    const diagonal = createGame({ raidersFire: false });
 
     for (let i = 0; i < TICKS_PER_SECOND; i++) {
       straight.tick(move(1, 0));
@@ -67,7 +67,7 @@ describe('flying the Viper', () => {
   });
 
   it('coasts to a stop when the player lets go, instead of stopping dead', () => {
-    const game = createGame();
+    const game = createGame({ raidersFire: false });
     for (let i = 0; i < TICKS_PER_SECOND; i++) game.tick(move(1, 0));
 
     game.tick(IDLE_INTENT);
@@ -90,7 +90,7 @@ describe('flying the Viper', () => {
     ];
 
     for (const corner of corners) {
-      const game = createGame();
+      const game = createGame({ raidersFire: false });
       // Ten seconds of holding into the corner is far longer than crossing the world takes.
       for (let i = 0; i < TICKS_PER_SECOND * 10; i++) game.tick(corner.intent);
 
@@ -100,7 +100,7 @@ describe('flying the Viper', () => {
   });
 
   it('leaves an edge the moment the player steers away, instead of feeling stuck to it', () => {
-    const game = createGame();
+    const game = createGame({ raidersFire: false });
     for (let i = 0; i < TICKS_PER_SECOND * 3; i++) game.tick(move(-1, 0));
 
     // Pinned against the wall with no stored-up momentum: otherwise turning around would first
@@ -115,7 +115,7 @@ describe('flying the Viper', () => {
   });
 
   it('ignores nonsense input instead of flying off to NaN', () => {
-    const game = createGame();
+    const game = createGame({ raidersFire: false });
     const startX = game.view.viper.x;
 
     game.tick(move(Number.NaN, Number.POSITIVE_INFINITY));
@@ -125,7 +125,7 @@ describe('flying the Viper', () => {
   });
 
   it('gives the renderer the previous tick to interpolate from', () => {
-    const game = createGame();
+    const game = createGame({ raidersFire: false });
     for (let i = 0; i < 10; i++) game.tick(move(0, -1));
 
     const { previousY, y, velocityY } = game.view.viper;
@@ -137,8 +137,8 @@ describe('flying the Viper', () => {
 
   it('replays identically from the same sequence of intents', () => {
     const intents = [move(1, 0), move(1, -1), IDLE_INTENT, move(-1, 0), move(0, 1)];
-    const first = createGame();
-    const second = createGame();
+    const first = createGame({ raidersFire: false });
+    const second = createGame({ raidersFire: false });
 
     for (let i = 0; i < 300; i++) {
       const intent = intents[i % intents.length]!;

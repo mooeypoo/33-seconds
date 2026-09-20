@@ -11,4 +11,6 @@ export const PALETTE = {
   cylonRed: 0xff2b2b,
   raiderHull: 0x3a4248,
   playerShot: 0x4fe19a,
+  aimedShot: 0xff2b2b,
+  strayShot: 0xf2a23a,
 } as const;

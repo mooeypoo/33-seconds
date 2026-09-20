@@ -1,4 +1,5 @@
-import type { ProjectileView } from '../views';
+import type { ProjectileOwner, ProjectileView } from '../views';
+import { WORLD_HEIGHT_UNITS } from '../shared/world';
 
 /**
  * Auto-fire is always on and never tracks a target (PRD 8.1, decision 13): shots travel toward the
@@ -20,6 +21,12 @@ export const VIPER_SHOT_HEIGHT_UNITS = 5;
  * speed, only a handful are live; the rest of the array is recycled.
  */
 export const MAX_PLAYER_SHOTS = 12;
+export const MAX_CYLON_SHOTS = 16;
+
+/** Slower than the Viper's gun, so a shot can be seen and slipped. */
+export const RAIDER_FIRE_INTERVAL_SECONDS = 0.7;
+export const RAIDER_SHOT_SPEED_UNITS_PER_SECOND = 200;
+export const RAIDER_SHOT_RADIUS_UNITS = 2;
 
 /**
  * A player round. Recycled in place: `revive` hands it a new id and pose, `kill` takes it out of
@@ -33,6 +40,8 @@ export class Projectile {
   private previousPositionY = 0;
   private velocityX = 0;
   private velocityY = 0;
+  private ownerValue: ProjectileOwner = 'player';
+  private stray = false;
   private live = false;
 
   get id(): number {
@@ -43,7 +52,18 @@ export class Projectile {
     return this.live;
   }
 
-  revive(id: number, x: number, y: number, velocityX: number, velocityY: number): void {
+  get owner(): ProjectileOwner {
+    return this.ownerValue;
+  }
+
+  revive(
+    id: number,
+    x: number,
+    y: number,
+    velocityX: number,
+    velocityY: number,
+    owner: ProjectileOwner = 'player',
+  ): void {
     this.idValue = id;
     this.positionX = x;
     this.positionY = y;
@@ -51,6 +71,8 @@ export class Projectile {
     this.previousPositionY = y;
     this.velocityX = velocityX;
     this.velocityY = velocityY;
+    this.ownerValue = owner;
+    this.stray = false;
     this.live = true;
   }
 
@@ -65,9 +87,17 @@ export class Projectile {
     this.positionY += this.velocityY * tickSeconds;
   }
 
-  /** Off the top of the world, with a little slack so the sprite is gone before we recycle it. */
+  /** Off the top or bottom of the world, with a little slack so the sprite is gone first. */
   get hasLeftTheWorld(): boolean {
-    return this.positionY < -VIPER_SHOT_HEIGHT_UNITS;
+    return this.positionY < -VIPER_SHOT_HEIGHT_UNITS || this.positionY > WORLD_HEIGHT_UNITS + VIPER_SHOT_HEIGHT_UNITS;
+  }
+
+  /**
+   * A Cylon round becomes Stray once it has passed the Viper (PRD 7.1). Fleet damage from strays
+   * is M3; the marker is here so the tell exists the moment shots do.
+   */
+  becomeStrayIfPast(viperY: number): void {
+    if (this.ownerValue === 'cylon' && this.positionY > viperY) this.stray = true;
   }
 
   toView(): ProjectileView {
@@ -77,6 +107,8 @@ export class Projectile {
       y: this.positionY,
       previousX: this.previousPositionX,
       previousY: this.previousPositionY,
+      owner: this.ownerValue,
+      stray: this.stray,
     };
   }
 }

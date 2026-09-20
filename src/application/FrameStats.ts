@@ -19,4 +19,6 @@ export interface FrameStats {
   readonly cyclePhase: string;
   readonly secondsRemaining: number;
   readonly spoolProgress: number;
+  readonly hull: number;
+  readonly ejected: boolean;
 }

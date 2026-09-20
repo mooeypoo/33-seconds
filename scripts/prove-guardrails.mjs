@@ -17,8 +17,8 @@ const SABOTAGE = [
   {
     what: 'domain imports Phaser',
     file: 'src/domain/game.ts',
-    find: "import { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';",
-    replace: "import Phaser from 'phaser';\nimport { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';",
+    find: "import { Viper, VIPER_HALF_HEIGHT_UNITS, VIPER_RADIUS_UNITS } from './combat/viper';",
+    replace: "import Phaser from 'phaser';\nimport { Viper, VIPER_HALF_HEIGHT_UNITS, VIPER_RADIUS_UNITS } from './combat/viper';",
     mustFail: 'npm run check:arch',
   },
   {
@@ -103,6 +103,20 @@ const SABOTAGE = [
     file: 'src/domain/swarm/raider.ts',
     find: '    this.hitPoints -= 1;',
     replace: '    // sabotage: the Raider is immortal',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'Cylon hits no longer dent the hull',
+    file: 'src/domain/combat/viper.ts',
+    find: '    this.hull -= 1;',
+    replace: '    // sabotage: the hull is decorative',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'an ejected Viper keeps shooting',
+    file: 'src/domain/game.ts',
+    find: '  private autoFire(events: DomainEvent[]): void {\n    if (!this.viper.canFight) return;',
+    replace: '  private autoFire(events: DomainEvent[]): void {\n    // sabotage: the gun works from the Raptor',
     mustFail: 'npm run test',
   },
   {

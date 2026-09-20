@@ -19,6 +19,21 @@ export const VIPER_HALF_HEIGHT_UNITS = 7;
 export const VIPER_SPAWN_X_UNITS = WORLD_WIDTH_UNITS / 2;
 export const VIPER_SPAWN_Y_UNITS = WORLD_HEIGHT_UNITS * 0.78;
 
+/** Three hits is a pass you can survive if you dodge, not a sponge. Reset at each jump (PRD 8.1). */
+export const VIPER_HULL_HIT_POINTS = 3;
+
+/** Collision radius. Close to the drawn hull, a little generous so a grazing Cylon round counts. */
+export const VIPER_RADIUS_UNITS = 6;
+
+/** Downtime after a destroy. Costs time, never the run (PRD 8.1). */
+export const VIPER_EJECT_SECONDS = 3;
+
+/**
+ * Brief cover after pickup so a round that was already in the cockpit is not an instant second
+ * eject. Not the *Anyone Could Be a Cylon* card; that one is longer and cosmetic.
+ */
+export const VIPER_PICKUP_INVULN_SECONDS = 0.6;
+
 /**
  * The player's Viper: position and velocity in world units, mutated only through `steer`.
  * Movement lives in the domain because rules read it (ADR-0001 D4).
@@ -32,6 +47,10 @@ export class Viper {
   /** Position at the end of the previous tick, so the renderer can interpolate (ADR-0001 D2). */
   private previousPositionX = VIPER_SPAWN_X_UNITS;
   private previousPositionY = VIPER_SPAWN_Y_UNITS;
+  private hull = VIPER_HULL_HIT_POINTS;
+  private ejected = false;
+  private ejectRemainingSeconds = 0;
+  private invulnerableRemainingSeconds = 0;
 
   get x(): number {
     return this.positionX;
@@ -57,6 +76,22 @@ export class Viper {
     return this.previousPositionY;
   }
 
+  get hp(): number {
+    return this.hull;
+  }
+
+  get isEjected(): boolean {
+    return this.ejected;
+  }
+
+  get canFight(): boolean {
+    return !this.ejected;
+  }
+
+  get isVulnerable(): boolean {
+    return !this.ejected && this.invulnerableRemainingSeconds <= 0;
+  }
+
   /**
    * Advances one tick towards the requested direction.
    *
@@ -65,6 +100,17 @@ export class Viper {
    * @param tickSeconds length of one tick
    */
   steer(moveX: number, moveY: number, tickSeconds: number): void {
+    if (this.invulnerableRemainingSeconds > 0) {
+      this.invulnerableRemainingSeconds = Math.max(0, this.invulnerableRemainingSeconds - tickSeconds);
+    }
+
+    if (this.ejected) {
+      this.previousPositionX = this.positionX;
+      this.previousPositionY = this.positionY;
+      this.ejectRemainingSeconds -= tickSeconds;
+      return;
+    }
+
     this.previousPositionX = this.positionX;
     this.previousPositionY = this.positionY;
 
@@ -80,6 +126,47 @@ export class Viper {
     this.positionY += this.velocityY * tickSeconds;
 
     this.clampIntoWorld();
+  }
+
+  /** Removes one hull point. Returns true when this hit ejected the pilot. */
+  takeHit(): boolean {
+    if (!this.isVulnerable) return false;
+    this.hull -= 1;
+    if (this.hull > 0) return false;
+    this.ejected = true;
+    this.ejectRemainingSeconds = VIPER_EJECT_SECONDS;
+    this.velocityX = 0;
+    this.velocityY = 0;
+    return true;
+  }
+
+  /** True when downtime is over and the pickup should put a Viper back in the fight. */
+  get isReadyForPickup(): boolean {
+    return this.ejected && this.ejectRemainingSeconds <= 0;
+  }
+
+  /** Puts a fresh Viper at the spawn, with a short cover so the next shot is not free. */
+  recoverFromEject(): void {
+    this.ejected = false;
+    this.ejectRemainingSeconds = 0;
+    this.hull = VIPER_HULL_HIT_POINTS;
+    this.invulnerableRemainingSeconds = VIPER_PICKUP_INVULN_SECONDS;
+    this.positionX = VIPER_SPAWN_X_UNITS;
+    this.positionY = VIPER_SPAWN_Y_UNITS;
+    this.previousPositionX = VIPER_SPAWN_X_UNITS;
+    this.previousPositionY = VIPER_SPAWN_Y_UNITS;
+    this.velocityX = 0;
+    this.velocityY = 0;
+  }
+
+  /** Tyrol at the jump: full hull, and a pilot who was still in a Raptor is back in the seat. */
+  resetAtJump(): void {
+    this.ejected = false;
+    this.ejectRemainingSeconds = 0;
+    this.hull = VIPER_HULL_HIT_POINTS;
+    this.invulnerableRemainingSeconds = 0;
+    this.velocityX = 0;
+    this.velocityY = 0;
   }
 
   /**

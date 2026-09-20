@@ -35,7 +35,7 @@ describe('auto-fire', () => {
   it('fires without a fire button, toward the swarm, on the first tick', () => {
     const game = createGame();
     const events = game.tick(IDLE_INTENT);
-    const shots = events.filter((event) => event.type === 'ShotFired');
+    const shots = events.filter((event) => event.type === 'ShotFired' && event.owner === 'player');
 
     expect(shots).toHaveLength(1);
     expect(game.view.projectiles).toHaveLength(1);
@@ -44,7 +44,7 @@ describe('auto-fire', () => {
 
   it('respects the fire interval instead of shooting every tick', () => {
     const game = createGame();
-    const fired = eventsOf(game, ticksFor(1)).filter((event) => event.type === 'ShotFired');
+    const fired = eventsOf(game, ticksFor(1)).filter((event) => event.type === 'ShotFired' && event.owner === 'player');
 
     const expected = Math.floor(1 / VIPER_FIRE_INTERVAL_SECONDS);
     expect(fired).toHaveLength(expected);
@@ -77,7 +77,7 @@ describe('auto-fire', () => {
 
 describe('the first Raider', () => {
   it('spawns on the first tick and flies down', () => {
-    const game = createGame({ seed: 1 });
+    const game = createGame({ seed: 1, raidersFire: false });
     const events = game.tick(IDLE_INTENT);
     const spawned = events.filter((event) => event.type === 'RaiderSpawned');
 
@@ -120,7 +120,7 @@ describe('the first Raider', () => {
   });
 
   it('reappears at the top of its column after flying off the bottom, without counting as a kill', () => {
-    const game = createGame({ seed: 1 });
+    const game = createGame({ seed: 1, raidersFire: false });
     game.tick(IDLE_INTENT);
     const id = game.view.raider!.id;
     const x = game.view.raider!.x;
@@ -135,7 +135,7 @@ describe('the first Raider', () => {
   });
 
   it('takes several hits to destroy, then a new one appears after a short wait', () => {
-    const game = createGame({ seed: 1 });
+    const game = createGame({ seed: 1, raidersFire: false });
 
     let destroyed: { id: number } | null = null;
     for (let i = 0; i < ticksFor(8); i++) {

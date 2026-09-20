@@ -211,7 +211,7 @@ Losing on Viper Pilot requires taking near-cap damage over and over, meaning ign
 ### 8.1 The Viper `[Tunable]`
 - Free movement in world units, with a little acceleration smoothing so it feels spacey but not drifty.
 - **Auto-fire** always on. No fire button. The gun points at the swarm side (up); it does not track a target. Start at about 5 shots per second.
-- Hull is reset by Tyrol at each jump. If destroyed mid-cycle, you eject and are picked up. That costs a few seconds of downtime, never the run.
+- Hull is reset by Tyrol at each jump. Start at 3 hits. If destroyed mid-cycle, you eject and are picked up after about 3 seconds. That costs downtime, never the run. A short cover on pickup so a round already in the cockpit is not a second eject.
 
 ### 8.2 Missiles `[Tunable]`
 - Start each cycle with 3. Tyrol refills them at each jump. Heavy Raiders sometimes drop a pickup.
@@ -539,3 +539,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-20 | Added 8.4: Raider hitbox starts slightly inside the hull (6 wu). First phone-view play found it tight; do not widen until there is a swarm and a real-phone check. | So a later retune is a decided revisit, not a forgotten complaint. |
 | 2026-09-20 | Jumping is a fade, never a white flash, matching section 15. Recovering does not auto-advance until cards exist: Continue is the untimed pick. | Comfort forbids a white flash. A timer on Recovering would be a timer on a menu decision. |
 | 2026-09-20 | The 33 on the HUD stays quiet for now. A louder countdown (type, ring, voices) waits for the M5 HUD. | First play of the clock was for the rule, not the look. |
+| 2026-09-20 | Viper hull starts at 3 hits; eject downtime about 3 s; short cover on pickup. | So the first time something shoots back, the cost is time, not the run. |

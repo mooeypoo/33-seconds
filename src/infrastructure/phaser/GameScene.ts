@@ -104,6 +104,8 @@ export class GameScene extends Phaser.Scene {
       cyclePhase: view.cycle.phase,
       secondsRemaining: view.cycle.secondsRemaining,
       spoolProgress: view.cycle.spoolProgress,
+      hull: view.viper.hp,
+      ejected: view.viper.ejected,
     });
 
     this.secondsSinceStatsReport = 0;

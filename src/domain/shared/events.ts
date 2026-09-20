@@ -13,6 +13,7 @@ export interface ShotFired {
   readonly id: number;
   readonly x: number;
   readonly y: number;
+  readonly owner: 'player' | 'cylon';
 }
 
 export interface RaiderSpawned {
@@ -39,4 +40,24 @@ export interface ShotsCleared {
   readonly type: 'ShotsCleared';
 }
 
-export type DomainEvent = ViperSpawned | ShotFired | RaiderSpawned | RaiderDestroyed | CyclePhaseChanged | ShotsCleared;
+export interface ViperEjected {
+  readonly type: 'ViperEjected';
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface ViperRecovered {
+  readonly type: 'ViperRecovered';
+  readonly x: number;
+  readonly y: number;
+}
+
+export type DomainEvent =
+  | ViperSpawned
+  | ShotFired
+  | RaiderSpawned
+  | RaiderDestroyed
+  | CyclePhaseChanged
+  | ShotsCleared
+  | ViperEjected
+  | ViperRecovered;

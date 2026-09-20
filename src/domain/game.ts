@@ -1,8 +1,11 @@
 import { JumpCycle } from './cycle/jumpCycle';
-import { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';
+import { Viper, VIPER_HALF_HEIGHT_UNITS, VIPER_RADIUS_UNITS } from './combat/viper';
 import {
+  MAX_CYLON_SHOTS,
   MAX_PLAYER_SHOTS,
   Projectile,
+  RAIDER_SHOT_RADIUS_UNITS,
+  RAIDER_SHOT_SPEED_UNITS_PER_SECOND,
   VIPER_FIRE_INTERVAL_SECONDS,
   VIPER_SHOT_RADIUS_UNITS,
   VIPER_SHOT_SPEED_UNITS_PER_SECOND,
@@ -12,7 +15,7 @@ import { movingCircleHits } from './shared/collision';
 import type { InputIntent } from './shared/intent';
 import { createRandomStream, type RandomStream } from './shared/random';
 import { TICK_SECONDS } from './shared/time';
-import { Raider, RAIDER_RADIUS_UNITS, RAIDER_RESPAWN_SECONDS, RAIDER_SPAWN_Y_UNITS, raiderSpawnMaxX, raiderSpawnMinX } from './swarm/raider';
+import { Raider, RAIDER_HALF_HEIGHT_UNITS, RAIDER_RADIUS_UNITS, RAIDER_RESPAWN_SECONDS, RAIDER_SPAWN_Y_UNITS, raiderSpawnMaxX, raiderSpawnMinX } from './swarm/raider';
 import type { GameView } from './views';
 
 /** Seed used when the caller does not pass one. Play uses this until a run-start seed exists. */
@@ -21,6 +24,11 @@ export const DEFAULT_RUN_SEED = 1;
 export interface GameOptions {
   /** Scenario stream seed (ADR-0001 D3). Same seed, same spawn column. */
   readonly seed?: number;
+  /**
+   * When false, Raiders fly but hold fire. Movement tests and the future harness use this so they
+   * can drive the Viper without a dogfight. Play always leaves it on.
+   */
+  readonly raidersFire?: boolean;
 }
 
 /**
@@ -30,6 +38,7 @@ export interface GameOptions {
  */
 export class Game {
   private readonly scenario: RandomStream;
+  private readonly raidersFire: boolean;
   private readonly cycle = new JumpCycle();
   private readonly viper = new Viper();
   private readonly shots: Projectile[] = [];
@@ -43,6 +52,7 @@ export class Game {
 
   constructor(options: GameOptions = {}) {
     this.scenario = createRandomStream(options.seed ?? DEFAULT_RUN_SEED);
+    this.raidersFire = options.raidersFire ?? true;
   }
 
   /** Advances the simulation by exactly one tick. The only way to change domain state. */
@@ -58,13 +68,21 @@ export class Game {
     const phaseChange = this.cycle.advance(TICK_SECONDS);
     if (phaseChange) {
       events.push(phaseChange);
-      if (phaseChange.phase === 'jumping') this.clearTheSky(events);
+      if (phaseChange.phase === 'jumping') {
+        this.clearTheSky(events);
+        this.viper.resetAtJump();
+      }
     }
 
     this.viper.steer(intent.moveX, intent.moveY, TICK_SECONDS);
+    if (this.viper.isReadyForPickup) {
+      this.viper.recoverFromEject();
+      events.push({ type: 'ViperRecovered', x: this.viper.x, y: this.viper.y });
+    }
 
     if (this.cycle.isInCombat) {
       this.autoFire(events);
+      this.raiderFire(events);
       this.advanceShots();
       this.advanceRaider();
       this.resolveHits(events);
@@ -84,6 +102,7 @@ export class Game {
     const change = this.cycle.continueFromJump();
     if (!change) return [];
     const events: DomainEvent[] = [change];
+    this.viper.resetAtJump();
     this.spawnRaider(events);
     return events;
   }
@@ -101,6 +120,8 @@ export class Game {
         previousY: viper.previousY,
         velocityX: viper.velocityXUnitsPerSecond,
         velocityY: viper.velocityYUnitsPerSecond,
+        hp: viper.hp,
+        ejected: viper.isEjected,
       },
       projectiles: this.liveShots.map((shot) => shot.toView()),
       raider: this.raider?.toView() ?? null,
@@ -109,33 +130,75 @@ export class Game {
   }
 
   private autoFire(events: DomainEvent[]): void {
+    if (!this.viper.canFight) return;
     this.fireCooldownSeconds -= TICK_SECONDS;
     if (this.fireCooldownSeconds > 0) return;
-    if (this.liveShots.length >= MAX_PLAYER_SHOTS) return;
+    if (this.liveCount('player') >= MAX_PLAYER_SHOTS) return;
 
     const shot = this.obtainShot();
     if (!shot) return;
 
     const x = this.viper.x;
     const y = this.viper.y - VIPER_HALF_HEIGHT_UNITS;
-    shot.revive(this.nextId, x, y, 0, -VIPER_SHOT_SPEED_UNITS_PER_SECOND);
+    shot.revive(this.nextId, x, y, 0, -VIPER_SHOT_SPEED_UNITS_PER_SECOND, 'player');
     this.nextId += 1;
     this.liveShots.push(shot);
     this.fireCooldownSeconds = VIPER_FIRE_INTERVAL_SECONDS;
-    events.push({ type: 'ShotFired', id: shot.id, x, y });
+    events.push({ type: 'ShotFired', id: shot.id, x, y, owner: 'player' });
+  }
+
+  private raiderFire(events: DomainEvent[]): void {
+    const raider = this.raider;
+    if (!this.raidersFire || !raider || !raider.readyToFire || !this.viper.canFight) return;
+    // Only shoot while still above the Viper. Past that, the round would be a stray at the fleet,
+    // and fleet damage is M3.
+    if (raider.y >= this.viper.y) return;
+    if (this.liveCount('cylon') >= MAX_CYLON_SHOTS) return;
+
+    const shot = this.obtainShot();
+    if (!shot) return;
+
+    const x = raider.x;
+    const y = raider.y + RAIDER_HALF_HEIGHT_UNITS;
+    const deltaX = this.viper.x - x;
+    const deltaY = this.viper.y - y;
+    const distance = Math.hypot(deltaX, deltaY) || 1;
+    shot.revive(
+      this.nextId,
+      x,
+      y,
+      (deltaX / distance) * RAIDER_SHOT_SPEED_UNITS_PER_SECOND,
+      (deltaY / distance) * RAIDER_SHOT_SPEED_UNITS_PER_SECOND,
+      'cylon',
+    );
+    this.nextId += 1;
+    this.liveShots.push(shot);
+    raider.spentShot();
+    events.push({ type: 'ShotFired', id: shot.id, x, y, owner: 'cylon' });
   }
 
   private obtainShot(): Projectile | null {
     const recycled = this.shots.find((shot) => !shot.alive);
     if (recycled) return recycled;
-    if (this.shots.length >= MAX_PLAYER_SHOTS) return null;
+    if (this.shots.length >= MAX_PLAYER_SHOTS + MAX_CYLON_SHOTS) return null;
     const created = new Projectile();
     this.shots.push(created);
     return created;
   }
 
+  private liveCount(owner: 'player' | 'cylon'): number {
+    let count = 0;
+    for (const shot of this.liveShots) {
+      if (shot.owner === owner) count += 1;
+    }
+    return count;
+  }
+
   private advanceShots(): void {
-    for (const shot of this.liveShots) shot.advance(TICK_SECONDS);
+    for (const shot of this.liveShots) {
+      shot.advance(TICK_SECONDS);
+      shot.becomeStrayIfPast(this.viper.y);
+    }
   }
 
   private advanceRaider(): void {
@@ -149,11 +212,17 @@ export class Game {
   }
 
   private resolveHits(events: DomainEvent[]): void {
+    this.resolvePlayerHits(events);
+    this.resolveCylonHits(events);
+    this.dropDeadShots();
+  }
+
+  private resolvePlayerHits(events: DomainEvent[]): void {
     const raider = this.raider;
     if (!raider) return;
 
     for (const shot of this.liveShots) {
-      if (!shot.alive) continue;
+      if (!shot.alive || shot.owner !== 'player') continue;
       const view = shot.toView();
       const hit = movingCircleHits(
         view.previousX,
@@ -173,11 +242,35 @@ export class Game {
         this.raider = null;
         this.kills += 1;
         this.raiderRespawnSeconds = RAIDER_RESPAWN_SECONDS;
-        break;
+        return;
       }
     }
+  }
 
-    this.dropDeadShots();
+  private resolveCylonHits(events: DomainEvent[]): void {
+    if (!this.viper.isVulnerable) return;
+
+    for (const shot of this.liveShots) {
+      if (!shot.alive || shot.owner !== 'cylon') continue;
+      const view = shot.toView();
+      const hit = movingCircleHits(
+        view.previousX,
+        view.previousY,
+        view.x,
+        view.y,
+        RAIDER_SHOT_RADIUS_UNITS,
+        this.viper.x,
+        this.viper.y,
+        VIPER_RADIUS_UNITS,
+      );
+      if (!hit) continue;
+
+      shot.kill();
+      if (this.viper.takeHit()) {
+        events.push({ type: 'ViperEjected', x: this.viper.x, y: this.viper.y });
+        return;
+      }
+    }
   }
 
   private reclaimShotsThatLeft(): void {

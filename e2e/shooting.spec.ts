@@ -12,5 +12,7 @@ test.describe('auto-fire', () => {
         timeout: 10_000,
       })
       .toBeGreaterThan(0);
+
+    await expect(page.getByTestId('hull')).toBeVisible();
   });
 });

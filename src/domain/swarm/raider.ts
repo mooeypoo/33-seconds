@@ -1,5 +1,9 @@
+import { RAIDER_FIRE_INTERVAL_SECONDS } from '../combat/projectile';
 import { WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../shared/world';
 import type { RaiderView } from '../views';
+
+/** First shot waits a beat so a spawn is not an instant beam in your face. */
+const RAIDER_FIRST_SHOT_DELAY_SECONDS = 0.45;
 
 /** Start HP. Three hits is long enough to read as a ship, short enough that a pass feels decisive. */
 export const RAIDER_HIT_POINTS = 3;
@@ -45,6 +49,7 @@ export class Raider {
   private previousPositionX: number;
   private previousPositionY: number;
   private hitPoints: number;
+  private fireCooldownSeconds: number;
 
   constructor(id: number, x: number, y: number) {
     this.id = id;
@@ -53,6 +58,7 @@ export class Raider {
     this.previousPositionX = x;
     this.previousPositionY = y;
     this.hitPoints = RAIDER_HIT_POINTS;
+    this.fireCooldownSeconds = RAIDER_FIRST_SHOT_DELAY_SECONDS;
   }
 
   get x(): number {
@@ -71,6 +77,15 @@ export class Raider {
     this.previousPositionX = this.positionX;
     this.previousPositionY = this.positionY;
     this.positionY += RAIDER_SPEED_UNITS_PER_SECOND * tickSeconds;
+    this.fireCooldownSeconds -= tickSeconds;
+  }
+
+  get readyToFire(): boolean {
+    return this.fireCooldownSeconds <= 0;
+  }
+
+  spentShot(): void {
+    this.fireCooldownSeconds = RAIDER_FIRE_INTERVAL_SECONDS;
   }
 
   /**

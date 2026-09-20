@@ -23,9 +23,14 @@ export class ViperPresenter implements Presenter {
   }
 
   onEvent(event: DomainEvent): void {
-    if (event.type !== 'ViperSpawned') return;
-    this.hull?.destroy();
-    this.hull = this.buildViper(event.x, event.y);
+    if (event.type === 'ViperSpawned' || event.type === 'ViperRecovered') {
+      this.hull?.destroy();
+      this.hull = this.buildViper(event.x, event.y);
+      return;
+    }
+    if (event.type === 'ViperEjected') {
+      this.hull?.setVisible(false);
+    }
   }
 
   sync(view: GameView, alpha: number): void {
@@ -33,6 +38,8 @@ export class ViperPresenter implements Presenter {
     if (!hull) return;
 
     const { viper } = view;
+    hull.setVisible(!viper.ejected);
+    if (viper.ejected) return;
     // Interpolate between the last two ticks, so a 120 Hz screen shows smooth motion (ADR-0001 D2).
     hull.x = Phaser.Math.Linear(viper.previousX, viper.x, alpha);
     hull.y = Phaser.Math.Linear(viper.previousY, viper.y, alpha);

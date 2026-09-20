@@ -23,7 +23,8 @@ const stats = hudStore.state;
       viper <span data-testid="viper-x">{{ stats.stats.viperX }}</span
       >, <span data-testid="viper-y">{{ stats.stats.viperY }}</span> · shots
       <span data-testid="shots">{{ stats.stats.shots }}</span> · kills
-      <span data-testid="kills">{{ stats.stats.kills }}</span>
+      <span data-testid="kills">{{ stats.stats.kills }}</span> · hull
+      <span data-testid="hull">{{ stats.stats.ejected ? 'ejected' : stats.stats.hull }}</span>
     </p>
 
     <CycleClock v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" />

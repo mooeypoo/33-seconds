@@ -10,7 +10,11 @@ export interface ViperView {
   readonly previousY: number;
   readonly velocityX: number;
   readonly velocityY: number;
+  readonly hp: number;
+  readonly ejected: boolean;
 }
+
+export type ProjectileOwner = 'player' | 'cylon';
 
 export interface ProjectileView {
   readonly id: number;
@@ -18,6 +22,8 @@ export interface ProjectileView {
   readonly y: number;
   readonly previousX: number;
   readonly previousY: number;
+  readonly owner: ProjectileOwner;
+  readonly stray: boolean;
 }
 
 export interface RaiderView {
