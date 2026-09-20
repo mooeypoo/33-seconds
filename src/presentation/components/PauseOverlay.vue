@@ -22,7 +22,7 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
   <div data-ui class="overlay">
     <template v-if="isCountingDown">
       <!-- Announced politely, and the number is large enough to read at a glance. -->
-      <p class="countdown" role="status" aria-live="polite">{{ status.countdownSeconds }}</p>
+      <p class="countdown" data-testid="countdown" role="status" aria-live="polite">{{ status.countdownSeconds }}</p>
       <p class="note">Resuming. Let go of everything.</p>
     </template>
 

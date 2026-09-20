@@ -3,6 +3,7 @@ import type { FrameStats } from '../../application/FrameStats';
 import type { GameSession } from '../../application/GameSession';
 import { WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../../domain/shared/world';
 import { GameScene } from './GameScene';
+import type { StickSource } from './contexts/controls/StickPresenter';
 import { PALETTE } from './shared/palette';
 
 /**
@@ -14,6 +15,7 @@ import { PALETTE } from './shared/palette';
 export function bootPhaser(
   parent: HTMLElement,
   session: GameSession,
+  stick: StickSource,
   reportStats: (stats: FrameStats) => void,
 ): () => void {
   const game = new Phaser.Game({
@@ -40,7 +42,7 @@ export function bootPhaser(
     },
     // No audio yet; the first user gesture will unlock it when audio arrives (ADR-0001 D12).
     audio: { noAudio: true },
-    scene: [new GameScene(session, reportStats)],
+    scene: [new GameScene(session, stick, reportStats)],
   });
 
   return () => {

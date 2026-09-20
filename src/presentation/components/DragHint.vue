@@ -1,0 +1,36 @@
+<script setup lang="ts">
+import { computed } from 'vue';
+import { hudStore } from '../stores/hudStore';
+
+/**
+ * Tells a new player on a touch device that dragging flies the Viper (PRD 13.2). The stick's ring
+ * only appears once a finger is already down, so without this nobody knows to put one down.
+ *
+ * It is text, not a modal: no timer, no button, nothing to dismiss. The first drag removes it.
+ */
+const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
+
+const visible = computed(() => isTouchDevice && !hudStore.state.dragHintDismissed);
+</script>
+
+<template>
+  <!-- Not data-ui: a touch that lands here must still steer, which is the whole point. -->
+  <p v-if="visible" class="hint" role="status">Drag anywhere to fly</p>
+</template>
+
+<style scoped>
+.hint {
+  position: absolute;
+  right: 0;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  left: 0;
+  margin: 0;
+  /* Transparent to pointer input, like the rest of the HUD layer. */
+  pointer-events: none;
+  font-family: ui-monospace, monospace;
+  font-size: 15px;
+  color: #cfe8d8;
+  text-align: center;
+  text-shadow: 0 1px 2px #000;
+}
+</style>

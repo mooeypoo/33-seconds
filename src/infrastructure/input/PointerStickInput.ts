@@ -11,17 +11,52 @@ import type { InputIntent } from '../../domain/shared/intent';
  */
 
 /** Movement below this many CSS pixels is treated as a hold, not a nudge. */
-const DEAD_ZONE_PX = 5;
+export const DEAD_ZONE_PX = 5;
 
 /** Drag distance that means full speed. Small enough for one thumb (PRD 13.2). */
-const MAX_RADIUS_PX = 46;
+export const MAX_RADIUS_PX = 46;
 
+/** Where the stick is and how hard it is being pulled. Read by the on-screen indicator. */
 export interface StickState {
   readonly active: boolean;
   readonly originX: number;
   readonly originY: number;
   readonly pointerX: number;
   readonly pointerY: number;
+  /** 0..1 of full speed. Zero inside the dead zone. */
+  readonly strength: number;
+}
+
+const IDLE_STICK: StickState = {
+  active: false,
+  originX: 0,
+  originY: 0,
+  pointerX: 0,
+  pointerY: 0,
+  strength: 0,
+};
+
+/**
+ * Turns a drag in CSS pixels into a direction and a strength: nothing inside the dead zone, then
+ * analog up to the maximum radius, and full speed beyond it. Pure, so it is tested directly.
+ */
+export function stickVector(dragX: number, dragY: number): { x: number; y: number; strength: number } {
+  const distance = Math.hypot(dragX, dragY);
+  if (distance <= DEAD_ZONE_PX) return { x: 0, y: 0, strength: 0 };
+
+  const strength = Math.min((distance - DEAD_ZONE_PX) / (MAX_RADIUS_PX - DEAD_ZONE_PX), 1);
+  return { x: (dragX / distance) * strength, y: (dragY / distance) * strength, strength };
+}
+
+export interface PointerStickOptions {
+  /**
+   * Fired when the browser takes the pointer away (a notification, an edge swipe), which
+   * auto-pauses the game (PRD 13.3).
+   */
+  readonly onPointerCancelled: () => void;
+
+  /** Fired on the first drag, which is what dismisses the "drag anywhere to fly" hint. */
+  readonly onStickEngaged: () => void;
 }
 
 export class PointerStickInput implements InputPort {
@@ -35,18 +70,14 @@ export class PointerStickInput implements InputPort {
   private missileLatched = false;
 
   private disposers: (() => void)[] = [];
-  private onPointerCancelled: (() => void) | null = null;
+  private options: PointerStickOptions | null = null;
 
   constructor(root: HTMLElement) {
     this.root = root;
   }
 
-  /**
-   * @param onPointerCancelled fired when the browser takes the pointer away (a notification, an
-   * edge swipe), which auto-pauses the game (PRD 13.3).
-   */
-  attach(onPointerCancelled: () => void): void {
-    this.onPointerCancelled = onPointerCancelled;
+  attach(options: PointerStickOptions): void {
+    this.options = options;
 
     const onPointerDown = (event: PointerEvent): void => {
       if (isRealControl(event.target)) return;
@@ -59,6 +90,7 @@ export class PointerStickInput implements InputPort {
         this.currentY = event.clientY;
         // Keeps the drag ours even if the finger slides over an overlay or off the element.
         this.root.setPointerCapture(event.pointerId);
+        this.options?.onStickEngaged();
       } else {
         this.missileLatched = true;
       }
@@ -79,7 +111,7 @@ export class PointerStickInput implements InputPort {
     const onPointerCancel = (event: PointerEvent): void => {
       if (event.pointerId !== this.stickPointerId) return;
       this.releaseStick();
-      this.onPointerCancelled?.();
+      this.options?.onPointerCancelled();
     };
 
     // Capture phase, so nothing above the root can stop these from arriving.
@@ -108,7 +140,7 @@ export class PointerStickInput implements InputPort {
   detach(): void {
     for (const dispose of this.disposers) dispose();
     this.disposers = [];
-    this.onPointerCancelled = null;
+    this.options = null;
     this.clear();
   }
 
@@ -120,31 +152,20 @@ export class PointerStickInput implements InputPort {
       return { moveX: 0, moveY: 0, missile, special: false };
     }
 
-    const dragX = this.currentX - this.originX;
-    const dragY = this.currentY - this.originY;
-    const distance = Math.hypot(dragX, dragY);
-
-    if (distance <= DEAD_ZONE_PX) {
-      return { moveX: 0, moveY: 0, missile, special: false };
-    }
-
-    // Analog between the dead zone and the max radius, so a small drag is a gentle nudge.
-    const strength = Math.min((distance - DEAD_ZONE_PX) / (MAX_RADIUS_PX - DEAD_ZONE_PX), 1);
-    return {
-      moveX: (dragX / distance) * strength,
-      moveY: (dragY / distance) * strength,
-      missile,
-      special: false,
-    };
+    const drag = stickVector(this.currentX - this.originX, this.currentY - this.originY);
+    return { moveX: drag.x, moveY: drag.y, missile, special: false };
   }
 
   get state(): StickState {
+    if (this.stickPointerId === null) return IDLE_STICK;
+
     return {
-      active: this.stickPointerId !== null,
+      active: true,
       originX: this.originX,
       originY: this.originY,
       pointerX: this.currentX,
       pointerY: this.currentY,
+      strength: stickVector(this.currentX - this.originX, this.currentY - this.originY).strength,
     };
   }
 

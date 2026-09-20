@@ -29,8 +29,13 @@ const keyboard = new KeyboardInput({
 const session = new GameSession(new CombinedInput(stick, keyboard));
 
 keyboard.attach();
-stick.attach(() => {
-  session.pause('pointer-cancelled');
+stick.attach({
+  onPointerCancelled: () => {
+    session.pause('pointer-cancelled');
+  },
+  onStickEngaged: () => {
+    hudStore.dismissDragHint();
+  },
 });
 const detachAutoPause = attachAutoPause((reason) => {
   session.pause(reason);
@@ -39,7 +44,7 @@ const detachAutoPause = attachAutoPause((reason) => {
 const app = createApp(App);
 app.provide(SESSION_KEY, session);
 app.provide(CANVAS_HOST_KEY, (host: HTMLElement) => {
-  bootPhaser(host, session, (stats) => {
+  bootPhaser(host, session, stick, (stats) => {
     hudStore.setStats(stats);
   });
 });

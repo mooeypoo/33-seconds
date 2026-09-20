@@ -2,6 +2,7 @@
 import { inject, onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 import type { SessionStatus } from '../application/GameSession';
 import { CANVAS_HOST_KEY, SESSION_KEY } from './injection';
+import DragHint from './components/DragHint.vue';
 import HudBar from './components/HudBar.vue';
 import PauseOverlay from './components/PauseOverlay.vue';
 import TitleOverlay from './components/TitleOverlay.vue';
@@ -31,6 +32,8 @@ onUnmounted(() => {
   <div ref="canvasHost" class="canvas-host" aria-hidden="true" />
 
   <HudBar :phase="status.phase" @pause="session.pause('player')" />
+
+  <DragHint v-if="status.phase === 'running'" />
 
   <TitleOverlay v-if="status.phase === 'title'" @start="session.start()" />
 
