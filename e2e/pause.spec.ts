@@ -1,5 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
-import { nextReadout, startRun } from './helpers';
+import { expect, test } from '@playwright/test';
+import { expectTicksToGrow, readTicks, startRun } from './helpers';
 
 /** Pause is a hard requirement: it has to work anywhere, and it has to actually freeze things. */
 test.describe('pause', () => {
@@ -14,37 +14,36 @@ test.describe('pause', () => {
     expect(response?.headers()['content-security-policy']).toContain("default-src 'self'");
 
     await page.getByRole('button', { name: 'Launch' }).click();
-    await nextReadout(page);
 
     // The canvas exists, the loop is ticking, and the strict CSP did not break Phaser.
     await expect(page.locator('canvas')).toBeAttached();
-    await expect(page.getByTestId('debug')).toContainText('ticks');
+    await expectTicksToGrow(page, 0);
     expect(consoleErrors).toEqual([]);
   });
 
   test('Esc pauses, and the countdown brings the game back', async ({ page }) => {
     await startRun(page);
-    await nextReadout(page);
+    await expectTicksToGrow(page, 0);
 
     await page.keyboard.press('Escape');
     await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
 
-    // The readout refreshes a few times a second, so let it catch up to the frozen tick count
-    // before using it as the baseline.
-    await nextReadout(page);
+    // The readout refreshes a few times a second, so let it settle on the frozen tick count before
+    // using it as a baseline.
+    await page.waitForTimeout(400);
     const ticksWhenPaused = await readTicks(page);
 
     // Nothing advances while paused.
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(700);
     expect(await readTicks(page)).toBe(ticksWhenPaused);
 
     await page.getByRole('button', { name: 'Resume' }).click();
-    await expect(page.getByRole('status')).toBeVisible();
+    await expect(page.getByTestId('countdown')).toBeVisible();
 
-    // The countdown finishes on its own, and then the loop runs again.
-    await expect(page.getByRole('status')).toBeHidden({ timeout: 6000 });
-    await nextReadout(page);
-    expect(await readTicks(page)).toBeGreaterThan(ticksWhenPaused);
+    // The countdown finishes on its own, and then the loop runs again. Both assertions matter: the
+    // second one is also what proves the readout was live during the freeze above.
+    await expect(page.getByTestId('countdown')).toBeHidden({ timeout: 10_000 });
+    await expectTicksToGrow(page, ticksWhenPaused);
   });
 
   test('losing window focus pauses the game by itself', async ({ page }) => {
@@ -66,9 +65,3 @@ test.describe('pause', () => {
     expect(box.height).toBeGreaterThanOrEqual(44);
   });
 });
-
-async function readTicks(page: Page): Promise<number> {
-  const text = (await page.getByTestId('debug').textContent()) ?? '';
-  const match = /(\d+) ticks/.exec(text);
-  return match ? Number(match[1]) : -1;
-}

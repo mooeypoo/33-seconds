@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { dragFrom, nextReadout, releaseDrag, startRun, viperPosition } from './helpers';
+import { dragFrom, expectViperToMove, releaseDrag, startRun, viperPosition } from './helpers';
 
 /**
  * The input matrix from ADR-0001 D6. This is the test that protects against a future overlay
@@ -14,12 +14,8 @@ test.describe('steering works wherever the finger lands', () => {
     // Start well away from the HUD corners, in the middle of the play area.
     const viewport = page.viewportSize()!;
     await dragFrom(page, { x: viewport.width / 2, y: viewport.height / 2 }, -60, -60);
-    await nextReadout(page);
-    const after = await viperPosition(page);
+    await expectViperToMove(page, 'fly up and to the left', (now) => now.x < before.x && now.y < before.y);
     await releaseDrag(page);
-
-    expect(after.x).toBeLessThan(before.x);
-    expect(after.y).toBeLessThan(before.y);
   });
 
   test('a drag that starts on the debug readout still steers', async ({ page }) => {
@@ -27,24 +23,20 @@ test.describe('steering works wherever the finger lands', () => {
     const before = await viperPosition(page);
 
     // The readout is part of the HUD layer, which must be transparent to pointer input.
-    const readout = await page.getByTestId('debug').boundingBox();
-    await dragFrom(page, { x: readout!.x + readout!.width / 2, y: readout!.y + readout!.height / 2 }, 70, 90);
-    await nextReadout(page);
-    const after = await viperPosition(page);
+    const readout = (await page.getByTestId('debug').boundingBox())!;
+    await dragFrom(page, { x: readout.x + readout.width / 2, y: readout.y + readout.height / 2 }, 70, 90);
+    await expectViperToMove(page, 'fly down and to the right', (now) => now.x > before.x && now.y > before.y);
     await releaseDrag(page);
-
-    expect(after.x).toBeGreaterThan(before.x);
-    expect(after.y).toBeGreaterThan(before.y);
   });
 
   test('a drag that starts on the pause button does not steer', async ({ page }) => {
     await startRun(page);
-    await nextReadout(page);
     const before = await viperPosition(page);
 
     const box = (await page.getByRole('button', { name: 'Pause' }).boundingBox())!;
     await dragFrom(page, { x: box.x + box.width / 2, y: box.y + box.height / 2 }, -80, 80);
-    await nextReadout(page);
+    // Long enough that a stick which had engaged would have moved the Viper a long way.
+    await page.waitForTimeout(700);
     const after = await viperPosition(page);
     await releaseDrag(page);
 
@@ -60,21 +52,32 @@ test.describe('steering works wherever the finger lands', () => {
     await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
   });
 
+  test('a touch device is told to drag, until it does', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'The hint is for touch devices; desktop players get the key list.');
+    await startRun(page);
+
+    const hint = page.getByText('Drag anywhere to fly');
+    await expect(hint).toBeVisible();
+
+    const viewport = page.viewportSize()!;
+    await dragFrom(page, { x: viewport.width / 2, y: viewport.height / 2 }, 0, -40);
+    await releaseDrag(page);
+
+    // It has served its purpose and does not come back in this run.
+    await expect(hint).toBeHidden();
+  });
+
   test('the keyboard steers too, by physical key position', async ({ page }) => {
     await startRun(page);
     const before = await viperPosition(page);
 
     await page.keyboard.down('KeyD');
-    await nextReadout(page);
+    await expectViperToMove(page, 'fly right on D', (now) => now.x > before.x);
     await page.keyboard.up('KeyD');
     const afterRight = await viperPosition(page);
 
-    expect(afterRight.x).toBeGreaterThan(before.x);
-
     await page.keyboard.down('ArrowUp');
-    await nextReadout(page);
+    await expectViperToMove(page, 'fly up on the up arrow', (now) => now.y < afterRight.y);
     await page.keyboard.up('ArrowUp');
-
-    expect((await viperPosition(page)).y).toBeLessThan(afterRight.y);
   });
 });
