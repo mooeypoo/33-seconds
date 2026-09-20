@@ -9,4 +9,6 @@ export const PALETTE = {
   viperCockpit: 0x6fa8d0,
   engineGlow: 0xffb454,
   cylonRed: 0xff2b2b,
+  raiderHull: 0x3a4248,
+  playerShot: 0x4fe19a,
 } as const;

@@ -23,15 +23,9 @@ export class ViperPresenter implements Presenter {
   }
 
   onEvent(event: DomainEvent): void {
-    switch (event.type) {
-      // The event union has one member today, so the linter calls this dispatch redundant. It stops
-      // being redundant with the second event, and every presenter dispatches on `type` this way.
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-      case 'ViperSpawned':
-        this.hull?.destroy();
-        this.hull = this.buildViper(event.x, event.y);
-        break;
-    }
+    if (event.type !== 'ViperSpawned') return;
+    this.hull?.destroy();
+    this.hull = this.buildViper(event.x, event.y);
   }
 
   sync(view: GameView, alpha: number): void {

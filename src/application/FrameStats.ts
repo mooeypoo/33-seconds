@@ -11,4 +11,8 @@ export interface FrameStats {
   /** Viper position in world units, rounded. Also what the end-to-end tests read. */
   readonly viperX: number;
   readonly viperY: number;
+  /** Null while no Raider is on screen (the short gap after a kill). */
+  readonly raiderY: number | null;
+  readonly shots: number;
+  readonly kills: number;
 }

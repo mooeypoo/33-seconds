@@ -29,10 +29,10 @@ describe('flying the Viper', () => {
     const first = game.tick(IDLE_INTENT);
     const second = game.tick(IDLE_INTENT);
 
-    expect(first).toEqual([
+    expect(first.filter((event) => event.type === 'ViperSpawned')).toEqual([
       { type: 'ViperSpawned', x: VIPER_SPAWN_X_UNITS, y: VIPER_SPAWN_Y_UNITS },
     ]);
-    expect(second).toEqual([]);
+    expect(second.filter((event) => event.type === 'ViperSpawned')).toEqual([]);
   });
 
   it('accelerates towards the direction asked for, rather than snapping to top speed', () => {

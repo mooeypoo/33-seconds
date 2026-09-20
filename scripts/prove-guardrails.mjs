@@ -17,8 +17,8 @@ const SABOTAGE = [
   {
     what: 'domain imports Phaser',
     file: 'src/domain/game.ts',
-    find: "import { Viper } from './combat/viper';",
-    replace: "import Phaser from 'phaser';\nimport { Viper } from './combat/viper';",
+    find: "import { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';",
+    replace: "import Phaser from 'phaser';\nimport { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';",
     mustFail: 'npm run check:arch',
   },
   {
@@ -82,6 +82,27 @@ const SABOTAGE = [
     file: 'src/infrastructure/input/PointerStickInput.ts',
     find: '  const strength = Math.min((distance - DEAD_ZONE_PX) / (MAX_RADIUS_PX - DEAD_ZONE_PX), 1);',
     replace: '  const strength = (distance - DEAD_ZONE_PX) / (MAX_RADIUS_PX - DEAD_ZONE_PX);',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'auto-fire ignores its cooldown',
+    file: 'src/domain/game.ts',
+    find: '    if (this.fireCooldownSeconds > 0) return;',
+    replace: '    // sabotage: shoot every tick',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'a shot that leaps a Raider misses it',
+    file: 'src/domain/shared/collision.ts',
+    find: '  return segmentHitsCircle(startX, startY, endX, endY, stillX, stillY, movingRadius + stillRadius);',
+    replace: '  return circlesOverlap(endX, endY, movingRadius, stillX, stillY, stillRadius);',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'hits no longer destroy a Raider',
+    file: 'src/domain/swarm/raider.ts',
+    find: '    this.hitPoints -= 1;',
+    replace: '    // sabotage: the Raider is immortal',
     mustFail: 'npm run test',
   },
   {

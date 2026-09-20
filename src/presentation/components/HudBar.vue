@@ -20,7 +20,9 @@ const stats = hudStore.state;
       }}
       @ {{ stats.stats.scale }}× · {{ phase }}<br />
       viper <span data-testid="viper-x">{{ stats.stats.viperX }}</span
-      >, <span data-testid="viper-y">{{ stats.stats.viperY }}</span>
+      >, <span data-testid="viper-y">{{ stats.stats.viperY }}</span> · shots
+      <span data-testid="shots">{{ stats.stats.shots }}</span> · kills
+      <span data-testid="kills">{{ stats.stats.kills }}</span>
     </p>
 
     <button

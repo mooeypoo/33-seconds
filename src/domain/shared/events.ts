@@ -8,4 +8,25 @@ export interface ViperSpawned {
   readonly y: number;
 }
 
-export type DomainEvent = ViperSpawned;
+export interface ShotFired {
+  readonly type: 'ShotFired';
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface RaiderSpawned {
+  readonly type: 'RaiderSpawned';
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface RaiderDestroyed {
+  readonly type: 'RaiderDestroyed';
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+}
+
+export type DomainEvent = ViperSpawned | ShotFired | RaiderSpawned | RaiderDestroyed;

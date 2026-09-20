@@ -3,8 +3,10 @@ import type { FrameStats } from '../../application/FrameStats';
 import type { GameSession } from '../../application/GameSession';
 import { WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../../domain/shared/world';
 import type { Presenter } from './Presenter';
+import { ProjectilePresenter } from './contexts/combat/ProjectilePresenter';
 import { ViperPresenter } from './contexts/combat/ViperPresenter';
 import { StickPresenter, type StickSource } from './contexts/controls/StickPresenter';
+import { RaiderPresenter } from './contexts/swarm/RaiderPresenter';
 import { PALETTE } from './shared/palette';
 
 /** How often the debug readout updates. Often enough to be useful, rarely enough to stay readable. */
@@ -47,7 +49,12 @@ export class GameScene extends Phaser.Scene {
       .setStrokeStyle(1, PALETTE.viperCockpit, 0.25);
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    this.presenters = [new ViperPresenter(this), new StickPresenter(this, this.stick, prefersReducedMotion)];
+    this.presenters = [
+      new ViperPresenter(this),
+      new ProjectilePresenter(this),
+      new RaiderPresenter(this, prefersReducedMotion),
+      new StickPresenter(this, this.stick, prefersReducedMotion),
+    ];
   }
 
   override update(_time: number, deltaMilliseconds: number): void {
@@ -87,6 +94,9 @@ export class GameScene extends Phaser.Scene {
       scale: Math.round((canvas.clientWidth / WORLD_WIDTH_UNITS) * 10) / 10,
       viperX: Math.round(view.viper.x),
       viperY: Math.round(view.viper.y),
+      raiderY: view.raider ? Math.round(view.raider.y) : null,
+      shots: view.projectiles.length,
+      kills: view.kills,
     });
 
     this.secondsSinceStatsReport = 0;
