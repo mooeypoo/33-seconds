@@ -1,0 +1,20 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    # Dependencies are few and pinned exactly, so grouping keeps the noise down.
+    groups:
+      dev-tooling:
+        patterns: ['*']
+        dependency-type: development
+      runtime:
+        patterns: ['*']
+        dependency-type: production
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

@@ -1,0 +1,31 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22.19.0"
+
+# Security headers from ADR-0001 D11. Every relaxation needs a comment saying why.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # No third-party scripts, styles, fonts, or embeds, and nothing is fetched at runtime.
+    # 'unsafe-inline' is absent on purpose: Vite extracts all CSS to files, and the game
+    # never injects markup. Note that Phaser sizing the canvas via element.style is CSSOM,
+    # which CSP does not govern.
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; media-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'; upgrade-insecure-requests"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Permissions-Policy = "accelerometer=(), camera=(), display-capture=(), geolocation=(), gyroscope=(), microphone=(), midi=(), payment=(), usb=()"
+
+# Hashed assets are immutable, so they can be cached hard.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"

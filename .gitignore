@@ -1,0 +1,19 @@
+node_modules/
+dist/
+coverage/
+
+# Secrets never belong in the repo, and this project has none to begin with.
+.env
+.env.*
+!.env.example
+
+# Tooling output
+.vite/
+.netlify/
+playwright-report/
+test-results/
+*.tsbuildinfo
+
+# Editor and OS noise
+.DS_Store
+*.swp
