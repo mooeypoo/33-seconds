@@ -9,7 +9,7 @@ import {
 import type { InputPort } from '../src/application/ports/InputPort';
 import type { InputIntent } from '../src/domain/shared/intent';
 import { IDLE_INTENT } from '../src/domain/shared/intent';
-import { TICK_SECONDS } from '../src/domain/shared/time';
+import { TICK_SECONDS, TICKS_PER_SECOND } from '../src/domain/shared/time';
 
 /** A stand-in for the keyboard and stick adapters, so we can watch what the session asks of them. */
 class FakeInput implements InputPort {
@@ -259,5 +259,31 @@ describe('pause', () => {
     session.requestResume();
 
     expect(phases).toEqual(['title', 'running', 'paused', 'resuming']);
+  });
+
+  it('freezes the jump clock while paused, including mid-spool', () => {
+    session.start();
+    runFrames(TICKS_PER_SECOND * 26);
+
+    expect(session.view.cycle.phase).toBe('spooling');
+    const remaining = session.view.cycle.secondsRemaining;
+
+    session.pause('player');
+    runFrames(TICKS_PER_SECOND * 2);
+
+    expect(session.view.cycle.phase).toBe('spooling');
+    expect(session.view.cycle.secondsRemaining).toBe(remaining);
+  });
+
+  it('does not let Continue skip Recovering while the session is paused', () => {
+    session.start();
+    runFrames(TICKS_PER_SECOND * 35);
+    expect(session.view.cycle.phase).toBe('recovering');
+
+    session.pause('player');
+    session.continueFromJump();
+    session.advance(ONE_FRAME_AT_60HZ);
+
+    expect(session.view.cycle.phase).toBe('recovering');
   });
 });

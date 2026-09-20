@@ -15,4 +15,8 @@ export interface FrameStats {
   readonly raiderY: number | null;
   readonly shots: number;
   readonly kills: number;
+  readonly cycleIndex: number;
+  readonly cyclePhase: string;
+  readonly secondsRemaining: number;
+  readonly spoolProgress: number;
 }

@@ -43,7 +43,7 @@ Keep them light, but do them early, because they are cheap now and expensive lat
 - **Basics:** committed lockfile, pinned Node version, `.gitignore` covering `.env*`, a README, and an automated dependency-update config.
 - **A platform check on a real phone** during the first two slices, against the gates in ADR-0001 D4. If Phaser 4 fails a gate badly, stop and tell me.
 
-Keep the scripts you create listed here: `dev`, `build`, `preview`, `typecheck`, `lint`, `test`, `test:watch`, `test:e2e`, `check:arch`, and `check:guardrails` (breaks the code on purpose, seventeen ways, and checks that a check or a test fails; run it by hand after touching the guardrails or the engine tests).
+Keep the scripts you create listed here: `dev`, `build`, `preview`, `typecheck`, `lint`, `test`, `test:watch`, `test:e2e`, `check:arch`, and `check:guardrails` (breaks the code on purpose, nineteen ways, and checks that a check or a test fails; run it by hand after touching the guardrails or the engine tests).
 
 ### Stop and ask when
 - The PRD, the ADR, and this file are ambiguous or disagree.

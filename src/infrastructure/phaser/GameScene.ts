@@ -77,12 +77,15 @@ export class GameScene extends Phaser.Scene {
     const alpha = frozen ? 1 : frame.interpolationAlpha;
     for (const presenter of this.presenters) presenter.sync(this.session.view, alpha);
 
-    this.publishStats(deltaSeconds);
+    this.publishStats(
+      deltaSeconds,
+      this.session.view.cycle.phase === 'jumping' || this.session.view.cycle.phase === 'recovering',
+    );
   }
 
-  private publishStats(deltaSeconds: number): void {
+  private publishStats(deltaSeconds: number, immediate = false): void {
     this.secondsSinceStatsReport += deltaSeconds;
-    if (this.secondsSinceStatsReport < STATS_INTERVAL_SECONDS) return;
+    if (!immediate && this.secondsSinceStatsReport < STATS_INTERVAL_SECONDS) return;
 
     const canvas = this.game.canvas;
     const view = this.session.view;
@@ -97,6 +100,10 @@ export class GameScene extends Phaser.Scene {
       raiderY: view.raider ? Math.round(view.raider.y) : null,
       shots: view.projectiles.length,
       kills: view.kills,
+      cycleIndex: view.cycle.cycleIndex,
+      cyclePhase: view.cycle.phase,
+      secondsRemaining: view.cycle.secondsRemaining,
+      spoolProgress: view.cycle.spoolProgress,
     });
 
     this.secondsSinceStatsReport = 0;

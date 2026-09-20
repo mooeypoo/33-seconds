@@ -106,6 +106,20 @@ const SABOTAGE = [
     mustFail: 'npm run test',
   },
   {
+    what: 'the 33-second cycle never jumps',
+    file: 'src/domain/cycle/jumpCycle.ts',
+    find: '    if (this.combatElapsedTicks >= CYCLE_COMBAT_TICKS) {',
+    replace: '    if (this.combatElapsedTicks >= CYCLE_COMBAT_TICKS * 10) {',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'Recovering advances without Continue',
+    file: 'src/domain/cycle/jumpCycle.ts',
+    find: '    if (this.phase === \'recovering\') return null;',
+    replace: '    if (this.phase === \'recovering\') return this.continueFromJump();',
+    mustFail: 'npm run test',
+  },
+  {
     what: 'the loop catches up without a limit',
     file: 'src/application/GameSession.ts',
     find: '    const ticksToRun = Math.min(dueTicks, MAX_CATCH_UP_TICKS);',

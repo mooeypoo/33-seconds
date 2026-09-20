@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
+import { computed, inject, onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 import type { SessionStatus } from '../application/GameSession';
 import { CANVAS_HOST_KEY, SESSION_KEY } from './injection';
 import DragHint from './components/DragHint.vue';
 import HudBar from './components/HudBar.vue';
+import JumpFade from './components/JumpFade.vue';
 import PauseOverlay from './components/PauseOverlay.vue';
+import RecoveringOverlay from './components/RecoveringOverlay.vue';
 import TitleOverlay from './components/TitleOverlay.vue';
+import { hudStore } from './stores/hudStore';
 
 const session = inject(SESSION_KEY);
 const mountCanvas = inject(CANVAS_HOST_KEY);
@@ -13,6 +16,7 @@ if (!session || !mountCanvas) throw new Error('App.vue needs a session and a can
 
 const canvasHost = useTemplateRef<HTMLElement>('canvasHost');
 const status = ref<SessionStatus>(session.status);
+const cyclePhase = computed(() => hudStore.state.stats?.cyclePhase ?? null);
 let unsubscribe: (() => void) | null = null;
 
 onMounted(() => {
@@ -33,9 +37,16 @@ onUnmounted(() => {
 
   <HudBar :phase="status.phase" @pause="session.pause('player')" />
 
-  <DragHint v-if="status.phase === 'running'" />
+  <DragHint v-if="status.phase === 'running' && cyclePhase !== 'recovering' && cyclePhase !== 'jumping'" />
 
   <TitleOverlay v-if="status.phase === 'title'" @start="session.start()" />
+
+  <JumpFade v-else-if="status.phase === 'running' && cyclePhase === 'jumping'" />
+
+  <RecoveringOverlay
+    v-else-if="status.phase === 'running' && cyclePhase === 'recovering'"
+    @continue="session.continueFromJump()"
+  />
 
   <PauseOverlay
     v-else-if="status.phase === 'paused' || status.phase === 'resuming'"

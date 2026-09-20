@@ -52,6 +52,7 @@ export class GameSession {
   private reason: PauseReason | null = null;
   private accumulatorSeconds = 0;
   private countdownRemainingSeconds = 0;
+  private pendingEvents: DomainEvent[] = [];
 
   constructor(input: InputPort) {
     this.input = input;
@@ -106,6 +107,15 @@ export class GameSession {
     this.publish();
   }
 
+  /**
+   * Leaves Recovering. There is no timer on this (PRD 5.1). Ignored unless a run is going and
+   * the domain is actually recovering, so Pause cannot skip a cycle.
+   */
+  continueFromJump(): void {
+    if (this.phase !== 'running') return;
+    this.pendingEvents.push(...this.game.continueFromJump());
+  }
+
   /** True while the domain is not being ticked. */
   get isFrozen(): boolean {
     return this.phase !== 'running';
@@ -135,11 +145,13 @@ export class GameSession {
 
     if (this.phase !== 'running') return NO_FRAME;
 
+    const events: DomainEvent[] = this.pendingEvents;
+    this.pendingEvents = [];
+
     this.accumulatorSeconds += delta;
 
     const dueTicks = Math.floor(this.accumulatorSeconds / TICK_SECONDS);
     const ticksToRun = Math.min(dueTicks, MAX_CATCH_UP_TICKS);
-    const events: DomainEvent[] = [];
 
     for (let i = 0; i < ticksToRun; i++) {
       events.push(...this.game.tick(this.input.readIntent()));

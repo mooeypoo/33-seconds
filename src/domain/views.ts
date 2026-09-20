@@ -29,10 +29,21 @@ export interface RaiderView {
   readonly hp: number;
 }
 
+export interface CycleView {
+  readonly phase: 'arriving' | 'building' | 'spooling' | 'jumping' | 'recovering';
+  readonly cycleIndex: number;
+  readonly combatElapsedSeconds: number;
+  /** Whole seconds still on the 33, or 0 once the fleet is jumping or recovering. */
+  readonly secondsRemaining: number;
+  /** 0..1 of the FTL spool. Zero before spooling, one from the jump onward. */
+  readonly spoolProgress: number;
+}
+
 export interface GameView {
   readonly viper: ViperView;
   readonly projectiles: readonly ProjectileView[];
   readonly raider: RaiderView | null;
+  readonly cycle: CycleView;
   readonly tickCount: number;
   readonly kills: number;
 }

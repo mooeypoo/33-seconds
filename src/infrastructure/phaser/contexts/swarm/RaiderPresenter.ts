@@ -46,8 +46,18 @@ export class RaiderPresenter implements Presenter {
 
   sync(view: GameView, alpha: number): void {
     const raider = view.raider;
+    if (!raider) {
+      // A jump clears the Raider without a kill. A fade-out from a real destroy is left to finish.
+      if (!this.fade) {
+        this.hull?.destroy();
+        this.hull = null;
+        this.shownId = null;
+      }
+      return;
+    }
+
     const hull = this.hull;
-    if (!raider || !hull || raider.id !== this.shownId) return;
+    if (!hull || raider.id !== this.shownId) return;
 
     hull.x = Phaser.Math.Linear(raider.previousX, raider.x, alpha);
     hull.y = Phaser.Math.Linear(raider.previousY, raider.y, alpha);

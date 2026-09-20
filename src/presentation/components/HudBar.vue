@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CycleClock from './CycleClock.vue';
 import type { SessionPhase } from '../../application/GameSession';
 import { hudStore } from '../stores/hudStore';
 
@@ -25,6 +26,8 @@ const stats = hudStore.state;
       <span data-testid="kills">{{ stats.stats.kills }}</span>
     </p>
 
+    <CycleClock v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" />
+
     <button
       v-if="phase === 'running'"
       data-ui
@@ -47,6 +50,7 @@ const stats = hudStore.state;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  gap: 8px;
   /* Keep out of the notch and the home bar. */
   padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0
     max(8px, env(safe-area-inset-left));
@@ -56,6 +60,7 @@ const stats = hudStore.state;
 
 .debug {
   margin: 0;
+  flex: 1;
   font-size: 12px;
   line-height: 1.4;
   text-shadow: 0 1px 0 #000;

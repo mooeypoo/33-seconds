@@ -29,4 +29,14 @@ export interface RaiderDestroyed {
   readonly y: number;
 }
 
-export type DomainEvent = ViperSpawned | ShotFired | RaiderSpawned | RaiderDestroyed;
+export interface CyclePhaseChanged {
+  readonly type: 'CyclePhaseChanged';
+  readonly phase: 'arriving' | 'building' | 'spooling' | 'jumping' | 'recovering';
+  readonly cycleIndex: number;
+}
+
+export interface ShotsCleared {
+  readonly type: 'ShotsCleared';
+}
+
+export type DomainEvent = ViperSpawned | ShotFired | RaiderSpawned | RaiderDestroyed | CyclePhaseChanged | ShotsCleared;

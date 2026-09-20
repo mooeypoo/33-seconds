@@ -1,3 +1,4 @@
+import { JumpCycle } from './cycle/jumpCycle';
 import { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';
 import {
   MAX_PLAYER_SHOTS,
@@ -29,6 +30,7 @@ export interface GameOptions {
  */
 export class Game {
   private readonly scenario: RandomStream;
+  private readonly cycle = new JumpCycle();
   private readonly viper = new Viper();
   private readonly shots: Projectile[] = [];
   private readonly liveShots: Projectile[] = [];
@@ -48,19 +50,41 @@ export class Game {
     const events: DomainEvent[] = [];
 
     if (this.ticks === 0) {
+      events.push(this.cycle.begin());
       events.push({ type: 'ViperSpawned', x: this.viper.x, y: this.viper.y });
       this.spawnRaider(events);
     }
 
+    const phaseChange = this.cycle.advance(TICK_SECONDS);
+    if (phaseChange) {
+      events.push(phaseChange);
+      if (phaseChange.phase === 'jumping') this.clearTheSky(events);
+    }
+
     this.viper.steer(intent.moveX, intent.moveY, TICK_SECONDS);
-    this.autoFire(events);
-    this.advanceShots();
-    this.advanceRaider();
-    this.resolveHits(events);
-    this.reclaimShotsThatLeft();
-    this.maybeRespawnRaider(events);
+
+    if (this.cycle.isInCombat) {
+      this.autoFire(events);
+      this.advanceShots();
+      this.advanceRaider();
+      this.resolveHits(events);
+      this.reclaimShotsThatLeft();
+      this.maybeRespawnRaider(events);
+    }
 
     this.ticks += 1;
+    return events;
+  }
+
+  /**
+   * Leaves Recovering for the next cycle. The only way Recovering ends: there is no timer on this
+   * decision (PRD 5.1).
+   */
+  continueFromJump(): readonly DomainEvent[] {
+    const change = this.cycle.continueFromJump();
+    if (!change) return [];
+    const events: DomainEvent[] = [change];
+    this.spawnRaider(events);
     return events;
   }
 
@@ -80,6 +104,7 @@ export class Game {
       },
       projectiles: this.liveShots.map((shot) => shot.toView()),
       raider: this.raider?.toView() ?? null,
+      cycle: this.cycle.view,
     };
   }
 
@@ -181,7 +206,24 @@ export class Game {
     this.spawnRaider(events);
   }
 
+  /**
+   * Jumping clears live fire and the Raider that was in this sector. Not a kill: resurrection
+   * will carry pending downloads across a jump, and that is a later slice.
+   */
+  private clearTheSky(events: DomainEvent[]): void {
+    if (this.liveShots.length > 0) {
+      for (const shot of this.liveShots) shot.kill();
+      this.dropDeadShots();
+      events.push({ type: 'ShotsCleared' });
+    }
+    if (this.raider) {
+      this.raider = null;
+      this.raiderRespawnSeconds = 0;
+    }
+  }
+
   private spawnRaider(events: DomainEvent[]): void {
+    if (this.raider) return;
     const x = this.scenario.between(raiderSpawnMinX(), raiderSpawnMaxX());
     const raider = new Raider(this.nextId, x, RAIDER_SPAWN_Y_UNITS);
     this.nextId += 1;
