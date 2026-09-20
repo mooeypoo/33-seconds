@@ -106,6 +106,9 @@ export class GameScene extends Phaser.Scene {
       spoolProgress: view.cycle.spoolProgress,
       hull: view.viper.hp,
       ejected: view.viper.ejected,
+      ghosts: view.ghosts.length,
+      returned: view.raider?.returned ?? false,
+      raiderLive: view.raider !== null,
     });
 
     this.secondsSinceStatsReport = 0;

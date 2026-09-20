@@ -10,6 +10,8 @@ export const PALETTE = {
   engineGlow: 0xffb454,
   cylonRed: 0xff2b2b,
   raiderHull: 0x3a4248,
+  /** Ghost blip and Returned ring. Grey on purpose: only live Cylons are red (PRD 9). */
+  ghostBlip: 0x9aa8b4,
   playerShot: 0x4fe19a,
   aimedShot: 0xff2b2b,
   strayShot: 0xf2a23a,

@@ -21,4 +21,7 @@ export interface FrameStats {
   readonly spoolProgress: number;
   readonly hull: number;
   readonly ejected: boolean;
+  readonly ghosts: number;
+  readonly returned: boolean;
+  readonly raiderLive: boolean;
 }

@@ -19,8 +19,11 @@ export interface ShotFired {
 export interface RaiderSpawned {
   readonly type: 'RaiderSpawned';
   readonly id: number;
+  readonly identityId: number;
   readonly x: number;
   readonly y: number;
+  readonly returned: boolean;
+  readonly deaths: number;
 }
 
 export interface RaiderDestroyed {

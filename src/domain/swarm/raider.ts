@@ -1,6 +1,7 @@
 import { RAIDER_FIRE_INTERVAL_SECONDS } from '../combat/projectile';
 import { WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../shared/world';
 import type { RaiderView } from '../views';
+import { RETURNED_SPAWN_PROTECTION_SECONDS } from './resurrection';
 
 /** First shot waits a beat so a spawn is not an instant beam in your face. */
 const RAIDER_FIRST_SHOT_DELAY_SECONDS = 0.45;
@@ -23,13 +24,6 @@ export const RAIDER_RADIUS_UNITS = 6;
 
 export const RAIDER_SPAWN_Y_UNITS = RAIDER_HALF_HEIGHT_UNITS + 8;
 
-/**
- * After a kill, wait this long before the next one appears. This is not resurrection: there is no
- * ghost, no download, and no Returned marker. Those arrive in M2. The delay is only so a kill is
- * visible before the next flyby starts.
- */
-export const RAIDER_RESPAWN_SECONDS = 1.2;
-
 export function raiderSpawnMinX(): number {
   return RAIDER_HALF_WIDTH_UNITS;
 }
@@ -44,21 +38,36 @@ export function raiderSpawnMaxX(): number {
  */
 export class Raider {
   readonly id: number;
+  /** Survives a destroy so the same soul can come back (PRD 6). */
+  readonly identityId: number;
+  readonly deaths: number;
+  readonly returned: boolean;
   private positionX: number;
   private positionY: number;
   private previousPositionX: number;
   private previousPositionY: number;
   private hitPoints: number;
   private fireCooldownSeconds: number;
+  private protectionRemainingSeconds: number;
 
-  constructor(id: number, x: number, y: number) {
+  constructor(
+    id: number,
+    identityId: number,
+    x: number,
+    y: number,
+    options: { readonly deaths?: number; readonly returned?: boolean } = {},
+  ) {
     this.id = id;
+    this.identityId = identityId;
+    this.deaths = options.deaths ?? 0;
+    this.returned = options.returned ?? false;
     this.positionX = x;
     this.positionY = y;
     this.previousPositionX = x;
     this.previousPositionY = y;
     this.hitPoints = RAIDER_HIT_POINTS;
     this.fireCooldownSeconds = RAIDER_FIRST_SHOT_DELAY_SECONDS;
+    this.protectionRemainingSeconds = this.returned ? RETURNED_SPAWN_PROTECTION_SECONDS : 0;
   }
 
   get x(): number {
@@ -73,11 +82,18 @@ export class Raider {
     return this.hitPoints;
   }
 
+  get isProtected(): boolean {
+    return this.protectionRemainingSeconds > 0;
+  }
+
   advance(tickSeconds: number): void {
     this.previousPositionX = this.positionX;
     this.previousPositionY = this.positionY;
     this.positionY += RAIDER_SPEED_UNITS_PER_SECOND * tickSeconds;
     this.fireCooldownSeconds -= tickSeconds;
+    if (this.protectionRemainingSeconds > 0) {
+      this.protectionRemainingSeconds = Math.max(0, this.protectionRemainingSeconds - tickSeconds);
+    }
   }
 
   get readyToFire(): boolean {
@@ -116,11 +132,15 @@ export class Raider {
   toView(): RaiderView {
     return {
       id: this.id,
+      identityId: this.identityId,
       x: this.positionX,
       y: this.positionY,
       previousX: this.previousPositionX,
       previousY: this.previousPositionY,
       hp: this.hitPoints,
+      deaths: this.deaths,
+      returned: this.returned,
+      protected: this.isProtected,
     };
   }
 }

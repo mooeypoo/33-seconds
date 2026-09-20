@@ -25,6 +25,10 @@ const stats = hudStore.state;
       <span data-testid="shots">{{ stats.stats.shots }}</span> · kills
       <span data-testid="kills">{{ stats.stats.kills }}</span> · hull
       <span data-testid="hull">{{ stats.stats.ejected ? 'ejected' : stats.stats.hull }}</span>
+      · ghost <span data-testid="ghosts">{{ stats.stats.ghosts }}</span> ·
+      <span data-testid="returned">{{
+        stats.stats.returned ? 'returned' : stats.stats.ghosts ? 'downloading' : stats.stats.raiderLive ? 'fresh' : '—'
+      }}</span>
     </p>
 
     <CycleClock v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" />

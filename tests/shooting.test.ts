@@ -6,7 +6,8 @@ import type { DomainEvent } from '../src/domain/shared/events';
 import type { InputIntent } from '../src/domain/shared/intent';
 import { IDLE_INTENT } from '../src/domain/shared/intent';
 import { TICKS_PER_SECOND } from '../src/domain/shared/time';
-import { RAIDER_HIT_POINTS, RAIDER_RESPAWN_SECONDS, RAIDER_SPAWN_Y_UNITS } from '../src/domain/swarm/raider';
+import { RAIDER_HIT_POINTS, RAIDER_SPAWN_Y_UNITS } from '../src/domain/swarm/raider';
+import { RESURRECTION_DOWNLOAD_SECONDS } from '../src/domain/swarm/resurrection';
 
 function move(moveX: number, moveY: number): InputIntent {
   return { ...IDLE_INTENT, moveX, moveY };
@@ -134,18 +135,18 @@ describe('the first Raider', () => {
     expect(game.view.raider!.y).toBeLessThan(480);
   });
 
-  it('takes several hits to destroy, then a new one appears after a short wait', () => {
+  it('takes several hits to destroy, then the same soul returns after the download', () => {
     const game = createGame({ seed: 1, raidersFire: false });
 
-    let destroyed: { id: number } | null = null;
+    let destroyed: { id: number; identityId: number } | null = null;
     for (let i = 0; i < ticksFor(8); i++) {
       const raider = game.view.raider;
       const delta = raider ? raider.x - game.view.viper.x : 0;
       // Keep station under the Raider. Letting go would coast off the column (the Viper has mass).
       const events = game.tick(move(clampSteer(delta), 0));
       const kill = events.find((event) => event.type === 'RaiderDestroyed');
-      if (kill) {
-        destroyed = { id: kill.id };
+      if (kill && raider) {
+        destroyed = { id: kill.id, identityId: raider.identityId };
         break;
       }
     }
@@ -153,13 +154,16 @@ describe('the first Raider', () => {
     expect(destroyed).not.toBeNull();
     expect(game.view.kills).toBe(1);
     expect(game.view.raider).toBeNull();
+    expect(game.view.ghosts).toHaveLength(1);
 
-    eventsOf(game, ticksFor(RAIDER_RESPAWN_SECONDS) - 2);
+    eventsOf(game, ticksFor(RESURRECTION_DOWNLOAD_SECONDS) - 2);
     expect(game.view.raider).toBeNull();
 
     eventsOf(game, 4);
     expect(game.view.raider).not.toBeNull();
     expect(game.view.raider?.id).not.toBe(destroyed!.id);
+    expect(game.view.raider?.identityId).toBe(destroyed!.identityId);
+    expect(game.view.raider?.returned).toBe(true);
     expect(game.view.raider?.hp).toBe(RAIDER_HIT_POINTS);
   });
 });

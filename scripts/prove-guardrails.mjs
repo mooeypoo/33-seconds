@@ -120,6 +120,20 @@ const SABOTAGE = [
     mustFail: 'npm run test',
   },
   {
+    what: 'a destroyed Raider comes back without downloading',
+    file: 'src/domain/swarm/resurrection.ts',
+    find: '    this.remainingSeconds -= tickSeconds;',
+    replace: '    this.remainingSeconds -= tickSeconds * 100;',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'Returned spawn protection does not apply',
+    file: 'src/domain/swarm/raider.ts',
+    find: '    return this.protectionRemainingSeconds > 0;',
+    replace: '    return false;',
+    mustFail: 'npm run test',
+  },
+  {
     what: 'the 33-second cycle never jumps',
     file: 'src/domain/cycle/jumpCycle.ts',
     find: '    if (this.combatElapsedTicks >= CYCLE_COMBAT_TICKS) {',

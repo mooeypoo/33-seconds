@@ -130,6 +130,7 @@ A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 ## 6. Resurrection `[Core]`
 
 - A destroyed Raider becomes a **ghost blip** on Dradis, labelled as downloading, and returns after a delay (**base 6 s, tunable per tier**).
+- First play of the placeholder diamond found it unreadable: a grey square is not "downloading." **Do not blink it.** Comfort forbids rapid flashing, and a blink still does not say what the wait is for. The tell is a still **download bar** that fills over the 6 s, plus the word (or a `[-----]` stand-in) so the bar is never the only cue. The placeholder is a quiet five-notch bar under the diamond; the HUD also says downloading. The real Dradis treatment waits for M5.
 - Returned Raiders come out of the **Director's concurrency cap**. Resurrection does not add pressure, it *refills* the swarm. That is how waves stay endless without any single moment getting harder.
 - Pending resurrections carry across a jump and arrive first in the next cycle.
 - Each Raider carries a private death counter. That drives cosmetic escalation and an end-of-run stat ("Most-killed Raider: 14 times. Still not over it.").
@@ -212,6 +213,7 @@ Losing on Viper Pilot requires taking near-cap damage over and over, meaning ign
 - Free movement in world units, with a little acceleration smoothing so it feels spacey but not drifty.
 - **Auto-fire** always on. No fire button. The gun points at the swarm side (up); it does not track a target. Start at about 5 shots per second.
 - Hull is reset by Tyrol at each jump. Start at 3 hits. If destroyed mid-cycle, you eject and are picked up after about 3 seconds. That costs downtime, never the run. A short cover on pickup so a round already in the cockpit is not a second eject.
+- First play against a shooting Raider found 3 hits too thin: ejects come too fast for the joke to land. **Do not change the number yet.** A later fairness pass may raise starting hull and, if that is still stingy, add mid-cycle hull pickups ("hearts") so a good intercept is rewarded. Treat those two knobs as one pass, not a live retune.
 
 ### 8.2 Missiles `[Tunable]`
 - Start each cycle with 3. Tyrol refills them at each jump. Heavy Raiders sometimes drop a pickup.
@@ -234,13 +236,13 @@ MVP ships The Speech only. The loadout pick screen arrives with the second speci
 
 ### 8.4 Hitboxes `[Tunable]`
 - A Raider's collision circle starts slightly smaller than its drawn hull (6 world units), so a near-miss looks like a near-miss.
-- First play on a desktop phone-view found that tight. **Do not widen it yet.** Revisit once there is a swarm and more time on a real phone: until then we cannot tell a real miss from a scaling quirk.
+- Play has called this tight twice: first on a desktop phone-view, then again once the Raider shot back (Cylons too hard to kill, Viper too easy to lose). **Do not widen it in isolation.** The fairness pass in 8.1 (hull, maybe pickups) and this radius land together, after there is a swarm or a real-phone check, so we are not chasing two knobs that hide each other.
 
 ## 9. Keeping the screen readable `[Core]`
 
 These rules exist so "smarter and angrier" never becomes "a big mass mess."
 
-- **Director cap** on concurrent Raiders, set per tier.
+- **Director cap** on concurrent Raiders, set per tier. Starts at **1** until a second body exists, so a refill is an empty sky and a ghost, not a bigger swarm.
 - **Attack tokens.** Only K Raiders (2 to 5 by tier) can be in their firing state at once. The rest circle or queue.
 - **Hard caps** on enemy bullets and particles, lower on mobile.
 - Only Cylons are red. A still red eye means inert, and a sweeping eye means active. Color is never the only cue (see section 16).
@@ -540,3 +542,6 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-20 | Jumping is a fade, never a white flash, matching section 15. Recovering does not auto-advance until cards exist: Continue is the untimed pick. | Comfort forbids a white flash. A timer on Recovering would be a timer on a menu decision. |
 | 2026-09-20 | The 33 on the HUD stays quiet for now. A louder countdown (type, ring, voices) waits for the M5 HUD. | First play of the clock was for the rule, not the look. |
 | 2026-09-20 | Viper hull starts at 3 hits; eject downtime about 3 s; short cover on pickup. | So the first time something shoots back, the cost is time, not the run. |
+| 2026-09-20 | Resurrection is a 6 s download that refills the Director cap (starts at 1). Pending ghosts finish in transit and arrive first after a jump. Returned have 1.5 s spawn protection; shots pass through. | So a kill is the show's joke, not a thinner swarm, and a jump cannot erase a download. |
+| 2026-09-20 | Ghost tell is a filling download bar plus a word, not a blink. First play of the diamond was unreadable. | A blink would flash and still not say "downloading." |
+| 2026-09-20 | Fairness pass recorded, not applied: 3 hull feels too thin once Raiders shoot; 6 wu Raider hitbox still feels tight. Later: raise hull and/or add mid-cycle hull pickups, and retune the hitbox in the same pass. | First shooting-back play ejected too fast. Do not chase one number live. |
