@@ -169,6 +169,13 @@ const SABOTAGE = [
     mustFail: 'npm run test',
   },
   {
+    what: 'the civilian line is no longer ten hulls',
+    file: 'src/domain/fleet/integrity.ts',
+    find: 'export const CIVILIAN_SHIP_COUNT = 10;',
+    replace: 'export const CIVILIAN_SHIP_COUNT = 2;',
+    mustFail: 'npm run test',
+  },
+  {
     what: 'the 33-second cycle never jumps',
     file: 'src/domain/cycle/jumpCycle.ts',
     find: '    if (this.combatElapsedTicks >= CYCLE_COMBAT_TICKS) {',

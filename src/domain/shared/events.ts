@@ -59,6 +59,8 @@ export interface FleetHit {
   readonly type: 'FleetHit';
   readonly damage: number;
   readonly integrity: number;
+  readonly x: number;
+  readonly shipId: number;
 }
 
 export interface FleetRepaired {

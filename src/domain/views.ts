@@ -60,10 +60,21 @@ export interface CycleView {
   readonly spoolProgress: number;
 }
 
+export interface CivilianShipView {
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+  readonly galactica: boolean;
+  readonly healthy: boolean;
+  readonly justHit: boolean;
+}
+
 export interface FleetView {
   readonly integrity: number;
   readonly integrityMax: number;
   readonly damageThisCycle: number;
+  readonly lastHitShipId: number | null;
+  readonly ships: readonly CivilianShipView[];
 }
 
 export interface GameView {

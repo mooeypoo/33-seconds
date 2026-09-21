@@ -3,12 +3,14 @@ import { createGame, type Game } from '../src/domain/game';
 import { Projectile } from '../src/domain/combat/projectile';
 import { CYCLE_COMBAT_SECONDS, JUMPING_SECONDS } from '../src/domain/cycle/jumpCycle';
 import {
+  CIVILIAN_SHIP_COUNT,
   FLEET_CYCLE_DAMAGE_CAP,
   FLEET_DAMAGE_PER_STRAY,
   FLEET_INTEGRITY_MAX,
   FLEET_LINE_Y_UNITS,
   FLEET_REPAIR_OF_MISSING,
   Fleet,
+  civilianShipX,
 } from '../src/domain/fleet/integrity';
 import { IDLE_INTENT } from '../src/domain/shared/intent';
 import { TICKS_PER_SECOND } from '../src/domain/shared/time';
@@ -57,6 +59,32 @@ describe('Fleet Integrity', () => {
     full.repairAtJump();
     expect(full.view.integrity).toBe(FLEET_INTEGRITY_MAX);
   });
+
+  it('puts ten hulls on the line, and a stray marks the nearest one', () => {
+    const fleet = new Fleet();
+    expect(fleet.view.ships).toHaveLength(CIVILIAN_SHIP_COUNT);
+    expect(fleet.view.ships.every((ship) => ship.healthy && !ship.justHit)).toBe(true);
+
+    expect(fleet.takeStray(civilianShipX(0))).toBe(FLEET_DAMAGE_PER_STRAY);
+    expect(fleet.view.lastHitShipId).toBe(0);
+    expect(fleet.view.ships[0]?.justHit).toBe(true);
+    expect(fleet.view.ships[9]?.justHit).toBe(false);
+
+    fleet.takeStray(civilianShipX(9));
+    expect(fleet.view.lastHitShipId).toBe(9);
+    expect(fleet.view.ships[9]?.justHit).toBe(true);
+    expect(fleet.view.ships[0]?.justHit).toBe(false);
+  });
+
+  it('dings a hull once enough integrity is gone, and the jump clears the hit mark', () => {
+    const fleet = new Fleet();
+    for (let i = 0; i < 6; i++) fleet.takeStray(civilianShipX(0));
+    expect(fleet.view.ships.filter((ship) => ship.healthy)).toHaveLength(9);
+    expect(fleet.view.lastHitShipId).toBe(0);
+    fleet.repairAtJump();
+    expect(fleet.view.lastHitShipId).toBeNull();
+    expect(fleet.view.ships.every((ship) => !ship.justHit)).toBe(true);
+  });
 });
 
 describe('a stray crossing the fleet line', () => {
@@ -90,10 +118,14 @@ describe('strays in a run', () => {
     for (let i = 0; i < ticksFor(12); i++) {
       // Hold the left edge so some aimed shots miss and become strays.
       const events = game.tick({ ...IDLE_INTENT, moveX: -1, moveY: 0 });
-      if (events.some((event) => event.type === 'FleetHit')) {
+      for (const event of events) {
+        if (event.type !== 'FleetHit') continue;
         hit = true;
+        expect(event.shipId).toBeGreaterThanOrEqual(0);
+        expect(event.shipId).toBeLessThan(CIVILIAN_SHIP_COUNT);
         break;
       }
+      if (hit) break;
     }
     expect(hit).toBe(true);
     expect(game.view.fleet.integrity).toBeLessThan(FLEET_INTEGRITY_MAX);

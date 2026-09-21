@@ -321,10 +321,18 @@ export class Game {
   private resolveFleetHits(events: DomainEvent[]): void {
     for (const shot of this.liveShots) {
       if (!shot.alive || !shot.crossedFleetLine(FLEET_LINE_Y_UNITS)) continue;
+      const x = shot.toView().x;
       shot.kill();
-      const damage = this.fleet.takeStray();
+      const damage = this.fleet.takeStray(x);
       if (damage > 0) {
-        events.push({ type: 'FleetHit', damage, integrity: this.fleet.view.integrity });
+        const fleet = this.fleet.view;
+        events.push({
+          type: 'FleetHit',
+          damage,
+          integrity: fleet.integrity,
+          x,
+          shipId: fleet.lastHitShipId ?? 0,
+        });
       }
     }
   }

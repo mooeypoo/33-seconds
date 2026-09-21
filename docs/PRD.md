@@ -205,8 +205,9 @@ If the fleet takes maximum damage `D` every cycle and repairs fraction `r` of wh
 Losing on Viper Pilot requires taking near-cap damage over and over, meaning ignoring the fleet almost entirely. A player who intercepts a few strafing runs stays comfortably alive. Both numbers live in the tier profile, so retuning is a one-line change.
 
 ### 7.4 HUD and flavor
-- Fleet shown as **ten pips plus `n/max`** near the jump clock. Colour is never the only cue. No flicker (comfort): a hit already has the orange stray.
-- A thin olive line marks the fleet edge. Civilian-ship sprites, a per-ship hit tell (stray or strafe), and pause-menu silly names (for example, "The Slightly Leaky Freighter") wait until those ships exist. First play of the number-only bar was easy to miss. No show ship names.
+- Fleet shown as **ten pips plus `n/max`** near the jump clock, and as **ten placeholder hulls** on the olive line. Colour is never the only cue.
+- A stray marks the nearest hull with an orange notch (not a flash). Hulls ding to match the pips as integrity drops. Pause-menu silly names (for example, "The Slightly Leaky Freighter") wait. No show ship names.
+- The slightly larger hull in the middle is Galactica visually only. Flak waits.
 - Reaching zero does not yet end the run. The lose screen waits with the rest of M3.
 - End-of-run stat: "Civilians endangered by your dodging: 47." `[Later]`
 
@@ -557,3 +558,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | Per-ship fleet hit tells wait until civilian ships exist. Number-only HUD stays until then. | First play of stray damage was hard to notice. Do not add a second tell on an empty line. |
 | 2026-09-21 | Viper hull is 5. Raider hitbox is 8 wu. Aimed fire stays. Mid-cycle life pickups wait for the Recovering bonus design (rare, needs a joke). | First shooting-back play ejected faster than a Raider dies. |
 | 2026-09-21 | Late-cycle border tell waits: at about 10 or 5 seconds left, quietly paint the play-area edge in FTL red or blue. Not a flash. | The quiet 33 is easy to miss; do not restyle the clock while proving the fight. |
+| 2026-09-21 | Ten placeholder civilian hulls sit on the fleet line. A stray notches the nearest one; dinged hulls match the pips. Galactica is the larger middle hull, visually only. | Number-only fleet damage was easy to miss. |
