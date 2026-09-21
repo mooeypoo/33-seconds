@@ -1,12 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { createGame, type Game } from '../src/domain/game';
-import { VIPER_FIRE_INTERVAL_SECONDS, VIPER_SHOT_SPEED_UNITS_PER_SECOND } from '../src/domain/combat/projectile';
+import {
+  VIPER_FIRE_INTERVAL_SECONDS,
+  VIPER_SHOT_RADIUS_UNITS,
+  VIPER_SHOT_SPEED_UNITS_PER_SECOND,
+} from '../src/domain/combat/projectile';
 import { movingCircleHits } from '../src/domain/shared/collision';
 import type { DomainEvent } from '../src/domain/shared/events';
 import type { InputIntent } from '../src/domain/shared/intent';
 import { IDLE_INTENT } from '../src/domain/shared/intent';
 import { TICKS_PER_SECOND } from '../src/domain/shared/time';
-import { RAIDER_HIT_POINTS, RAIDER_SPAWN_Y_UNITS } from '../src/domain/swarm/raider';
+import { RAIDER_HIT_POINTS, RAIDER_RADIUS_UNITS, RAIDER_SPAWN_Y_UNITS } from '../src/domain/swarm/raider';
 import { DIRECTOR_CAP, RESURRECTION_DOWNLOAD_SECONDS } from '../src/domain/swarm/resurrection';
 
 function move(moveX: number, moveY: number): InputIntent {
@@ -166,5 +170,12 @@ describe('a shot hitting a Raider', () => {
     // Endpoint-only overlap would miss: the shot starts below the Raider and ends above it.
     expect(movingCircleHits(0, 20, 0, -20, 2, 0, 0, 6)).toBe(true);
     expect(movingCircleHits(0, 20, 0, -20, 2, 40, 0, 6)).toBe(false);
+  });
+
+  it('counts a graze that the old 6-unit box treated as a miss', () => {
+    const offsetX = 7;
+    expect(
+      movingCircleHits(offsetX, 20, offsetX, -20, VIPER_SHOT_RADIUS_UNITS, 0, 0, RAIDER_RADIUS_UNITS),
+    ).toBe(true);
   });
 });

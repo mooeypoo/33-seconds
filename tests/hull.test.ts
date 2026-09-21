@@ -32,7 +32,7 @@ describe('the Viper hull', () => {
   it('ejects after the last hull point, then a pickup puts a fresh Viper at the spawn', () => {
     const game = createGame();
     let ejected = false;
-    for (let i = 0; i < ticksFor(12); i++) {
+    for (let i = 0; i < ticksFor(20); i++) {
       const events = game.tick(IDLE_INTENT);
       if (events.some((event) => event.type === 'ViperEjected')) {
         ejected = true;

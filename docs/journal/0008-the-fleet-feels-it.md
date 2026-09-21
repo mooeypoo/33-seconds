@@ -37,6 +37,6 @@ jump heals some of it. Two sabotages: a decorative pool, and a cap that does not
 
 ## What is still open
 
-1. A fairness pass: raise Viper hull above a Raider's 3 HP, maybe hearts, Raider hitbox.
+1. A fairness pass: raise Viper hull above a Raider's 3 HP, maybe hearts, Raider hitbox, and maybe straight-down fire instead of aimed-at-Viper.
 2. Flak at 40%, strafing runs, a lose screen when the pool hits zero.
 3. The quieter 33, still waiting on the M5 HUD.

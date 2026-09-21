@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Status** | Living document (see below) |
-| **Last changed** | 2026-09-20 (see the changelog at the end) |
+| **Last changed** | 2026-09-21 (see the changelog at the end) |
 | **Owner** | Moriel |
 | **Related** | [Architecture guidelines (ADR-0001)](adr/0001-architecture.md), [AGENTS.md](../AGENTS.md) |
 
@@ -97,6 +97,8 @@ The game plays in a browser on desktop and phone, is free, and is a fan project.
 The cycle length is a constant. It is the identity of the game. Difficulty varies everything *around* it.
 
 The HUD clock is enough to test the rule. **Make the countdown more noticeable later** (larger type, a real FTL ring, Gaeta and Dualla) with the Dradis HUD in M5. Do not restyle it while we are still proving the phases.
+
+**Late-cycle border tell `[Later]`.** When about 10 or 5 seconds remain, paint the play-area border in a stronger FTL colour (red or blue), quietly, not a flash and not a full-screen wash. First play of the quiet 33 was easy to miss; this is the "spool is real" cue without shouting. Comfort still forbids rapid flashing.
 
 | Phase | Time | What happens |
 |---|---|---|
@@ -204,7 +206,7 @@ Losing on Viper Pilot requires taking near-cap damage over and over, meaning ign
 
 ### 7.4 HUD and flavor
 - Fleet shown as **ten pips plus `n/max`** near the jump clock. Colour is never the only cue. No flicker (comfort): a hit already has the orange stray.
-- A thin olive line marks the fleet edge. Civilian-ship sprites and pause-menu silly names (for example, "The Slightly Leaky Freighter") wait. No show ship names.
+- A thin olive line marks the fleet edge. Civilian-ship sprites, a per-ship hit tell (stray or strafe), and pause-menu silly names (for example, "The Slightly Leaky Freighter") wait until those ships exist. First play of the number-only bar was easy to miss. No show ship names.
 - Reaching zero does not yet end the run. The lose screen waits with the rest of M3.
 - End-of-run stat: "Civilians endangered by your dodging: 47." `[Later]`
 
@@ -213,9 +215,10 @@ Losing on Viper Pilot requires taking near-cap damage over and over, meaning ign
 ### 8.1 The Viper `[Tunable]`
 - Free movement in world units, with a little acceleration smoothing so it feels spacey but not drifty.
 - **Auto-fire** always on. No fire button. The gun points at the swarm side (up); it does not track a target. Start at about 5 shots per second.
-- Hull is reset by Tyrol at each jump. Start at 3 hits. If destroyed mid-cycle, you eject and are picked up after about 3 seconds. That costs downtime, never the run. A short cover on pickup so a round already in the cockpit is not a second eject.
-- **Hull is visible on the Viper** as a row of pips (count, not only a colour), the same language as Raider pips. The HUD also names `hull 2/3`. First play of enemy fire found people vanishing with no warning because the only number lived in the debug line.
-- First play against a shooting Raider found 3 hits too thin: ejects come too fast for the joke to land. **Do not change the number yet.** A later fairness pass should raise Viper hull **above a single Raider's 3 HP** so you outlast one Cylon, and may add mid-cycle hull pickups ("hearts") if that is still stingy. Retune the Raider hitbox in the same pass. Not a live retune.
+- Hull is reset by Tyrol at each jump. Start at **5** hits, so you outlast one Raider's 3 HP. If destroyed mid-cycle, you eject and are picked up after about 3 seconds. That costs downtime, never the run. A short cover on pickup so a round already in the cockpit is not an instant second eject.
+- **Hull is visible on the Viper** as a row of pips (count, not only a colour), the same language as Raider pips. The HUD also names `hull n/max`.
+- **Mid-cycle hull pickups** ("life") wait. They should be rare and need a funny reason. Design them with the Recovering bonus cards, not as a combat drop in this pass.
+- Raider guns **aim at the Viper** (perfect lead, no spread). A later look may switch them to **straight down** (a column you bodyguard while you hunt). Not this pass.
 
 ### 8.2 Missiles `[Tunable]`
 - Start each cycle with 3. Tyrol refills them at each jump. Heavy Raiders sometimes drop a pickup.
@@ -237,8 +240,7 @@ Recharge counts are jumps, not seconds. That is easy to explain, and it fits the
 MVP ships The Speech only. The loadout pick screen arrives with the second special.
 
 ### 8.4 Hitboxes `[Tunable]`
-- A Raider's collision circle starts slightly smaller than its drawn hull (6 world units), so a near-miss looks like a near-miss.
-- Play has called this tight twice: first on a desktop phone-view, then again once the Raider shot back (Cylons too hard to kill, Viper too easy to lose). **Do not widen it in isolation.** The fairness pass in 8.1 (hull, maybe pickups) and this radius land together, after there is a swarm or a real-phone check, so we are not chasing two knobs that hide each other.
+- A Raider's collision circle is **8 world units**, near the drawn box (half-width 7), a little generous so a graze counts. It started at 6; two plays called that tight. Widened with the Viper hull in the same fairness pass.
 
 ## 9. Keeping the screen readable `[Core]`
 
@@ -551,3 +553,7 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-20 | Viper hull is shown as pips on the ship plus `hull n/max` on the HUD. | First play of incoming fire vanished the Viper with no readable health. This is a tell, not the fairness pass. |
 | 2026-09-20 | Fairness pass target: Viper hull should be higher than one Raider's 3 HP. Still not applied. | So the player outlasts an individual Cylon. Hearts and hitbox stay in that same pass. |
 | 2026-09-20 | Fleet Integrity starts at 100. A stray that crosses the fleet line costs 1, capped at 35 per cycle, then 60% of missing repairs at the jump. HUD is ten pips plus a number. Flak, strafing, lose screen, and civilian sprites wait. | So the run has a health bar you can dent without inventing the rest of M3. |
+| 2026-09-21 | Fairness pass may switch Raider fire from aimed-at-Viper to straight down (a column you intercept). Not applied. | First fleet play: aimed shots punish standing still, and leaving a lane does not obviously cost the civilians. |
+| 2026-09-21 | Per-ship fleet hit tells wait until civilian ships exist. Number-only HUD stays until then. | First play of stray damage was hard to notice. Do not add a second tell on an empty line. |
+| 2026-09-21 | Viper hull is 5. Raider hitbox is 8 wu. Aimed fire stays. Mid-cycle life pickups wait for the Recovering bonus design (rare, needs a joke). | First shooting-back play ejected faster than a Raider dies. |
+| 2026-09-21 | Late-cycle border tell waits: at about 10 or 5 seconds left, quietly paint the play-area edge in FTL red or blue. Not a flash. | The quiet 33 is easy to miss; do not restyle the clock while proving the fight. |

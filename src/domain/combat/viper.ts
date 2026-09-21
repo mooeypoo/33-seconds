@@ -19,8 +19,8 @@ export const VIPER_HALF_HEIGHT_UNITS = 7;
 export const VIPER_SPAWN_X_UNITS = WORLD_WIDTH_UNITS / 2;
 export const VIPER_SPAWN_Y_UNITS = WORLD_HEIGHT_UNITS * 0.78;
 
-/** Three hits is a pass you can survive if you dodge, not a sponge. Reset at each jump (PRD 8.1). */
-export const VIPER_HULL_HIT_POINTS = 3;
+/** Five hits outlasts one Raider's 3 HP (PRD 8.1). Reset at each jump. */
+export const VIPER_HULL_HIT_POINTS = 5;
 
 /** Collision radius. Close to the drawn hull, a little generous so a grazing Cylon round counts. */
 export const VIPER_RADIUS_UNITS = 6;

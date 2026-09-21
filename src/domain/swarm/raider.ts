@@ -16,11 +16,10 @@ export const RAIDER_HALF_WIDTH_UNITS = 7;
 export const RAIDER_HALF_HEIGHT_UNITS = 6;
 
 /**
- * Collision radius. Slightly smaller than the drawn box, so a near-miss looks like a near-miss.
- * First play on a desktop phone-view found this tight. Leave it: we cannot tell a real miss from a
- * phone-view scaling quirk until there are more things to shoot at (PRD 8.4).
+ * Collision radius. Near the drawn box (half-width 7), a little generous so a grazing pass counts.
+ * Two plays called 6 tight; this fairness pass widens it with the Viper hull, not alone (PRD 8.4).
  */
-export const RAIDER_RADIUS_UNITS = 6;
+export const RAIDER_RADIUS_UNITS = 8;
 
 export const RAIDER_SPAWN_Y_UNITS = RAIDER_HALF_HEIGHT_UNITS + 8;
 

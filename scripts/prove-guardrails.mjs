@@ -106,6 +106,13 @@ const SABOTAGE = [
     mustFail: 'npm run test',
   },
   {
+    what: 'the Raider hitbox shrinks back to a near-miss',
+    file: 'src/domain/swarm/raider.ts',
+    find: 'export const RAIDER_RADIUS_UNITS = 8;',
+    replace: 'export const RAIDER_RADIUS_UNITS = 4;',
+    mustFail: 'npm run test',
+  },
+  {
     what: 'Cylon hits no longer dent the hull',
     file: 'src/domain/combat/viper.ts',
     find: '    this.hull -= 1;',

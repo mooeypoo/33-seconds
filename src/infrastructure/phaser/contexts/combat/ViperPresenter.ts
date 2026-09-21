@@ -76,8 +76,10 @@ export class ViperPresenter implements Presenter {
     // Count of pips is the hull tell. Not red: only Cylons are (PRD 9). The debug line also names
     // the number, so colour is never the only cue.
     const pips: Phaser.GameObjects.Rectangle[] = [];
+    const pipSpacing = 3;
+    const pipOrigin = ((VIPER_HULL_HIT_POINTS - 1) * pipSpacing) / 2;
     for (let i = 0; i < VIPER_HULL_HIT_POINTS; i++) {
-      pips.push(this.scene.add.rectangle((i - 1) * 4, -height / 2 - 6, 3, 2, PALETTE.playerShot));
+      pips.push(this.scene.add.rectangle(i * pipSpacing - pipOrigin, -height / 2 - 6, 2, 2, PALETTE.playerShot));
     }
     this.pips = pips;
 
