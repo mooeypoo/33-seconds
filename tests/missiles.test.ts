@@ -78,8 +78,12 @@ describe('the missile rack', () => {
     game.tick(missilePress());
     expect(game.view.missileAmmo).toBe(0);
 
-    const dry = game.tick(IDLE_INTENT);
-    expect(dry.some((event) => event.type === 'MissileFired')).toBe(false);
+    // The pool is also size 3. Wait until the live ones despawn, or a fourth press is blocked by
+    // slots, not by ammo, and a sabotage of trySpendMissile would still look like a pass.
+    const travel = (480 + 20) / MISSILE_SPEED_UNITS_PER_SECOND;
+    eventsOf(game, ticksFor(travel + 0.2));
+    expect(game.view.missiles).toHaveLength(0);
+
     const empty = game.tick(missilePress());
     expect(empty.some((event) => event.type === 'MissileFired')).toBe(false);
     expect(game.view.missileAmmo).toBe(0);

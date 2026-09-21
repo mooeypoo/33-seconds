@@ -122,6 +122,10 @@ export interface GameView {
    * wave is finite. Presenters and the HUD use this as the loop-on / loop-off tell (PRD 6).
    */
   readonly resurrectionsActive: boolean;
+  readonly speechActive: boolean;
+  readonly speechReady: boolean;
+  readonly speechRemainingSeconds: number;
+  readonly speechJumpsUntilReady: number;
   readonly cycle: CycleView;
   readonly tickCount: number;
   readonly kills: number;

@@ -18,6 +18,7 @@ export class ViperPresenter implements Presenter {
   private readonly scene: Phaser.Scene;
   private hull: Phaser.GameObjects.Container | null = null;
   private engine: Phaser.GameObjects.Rectangle | null = null;
+  private cover: Phaser.GameObjects.Arc | null = null;
   private pips: Phaser.GameObjects.Rectangle[] = [];
 
   constructor(scene: Phaser.Scene) {
@@ -60,6 +61,7 @@ export class ViperPresenter implements Presenter {
     }
 
     this.drawPips(viper.hp);
+    this.cover?.setVisible(view.speechActive);
   }
 
   private buildViper(x: number, y: number): Phaser.GameObjects.Container {
@@ -83,7 +85,12 @@ export class ViperPresenter implements Presenter {
     }
     this.pips = pips;
 
-    return this.scene.add.container(x, y, [engine, body, nose, cockpit, ...pips]);
+    const cover = this.scene.add.circle(0, 0, Math.max(width, height) / 2 + 3, PALETTE.viperCockpit, 0);
+    cover.setStrokeStyle(1, PALETTE.viperCockpit, 0.9);
+    cover.setVisible(false);
+    this.cover = cover;
+
+    return this.scene.add.container(x, y, [engine, body, nose, cockpit, cover, ...pips]);
   }
 
   private drawPips(hp: number): void {

@@ -11,6 +11,8 @@ import TitleOverlay from './components/TitleOverlay.vue';
 import WinOverlay from './components/WinOverlay.vue';
 import LoseOverlay from './components/LoseOverlay.vue';
 import MissileButton from './components/MissileButton.vue';
+import SpecialButton from './components/SpecialButton.vue';
+import SpeechBanner from './components/SpeechBanner.vue';
 import { hudStore } from './stores/hudStore';
 
 const session = inject(SESSION_KEY);
@@ -43,6 +45,12 @@ onUnmounted(() => {
   <MissileButton
     v-if="status.phase === 'running' && cyclePhase !== 'recovering' && cyclePhase !== 'jumping'"
   />
+
+  <SpecialButton
+    v-if="status.phase === 'running' && cyclePhase !== 'recovering' && cyclePhase !== 'jumping'"
+  />
+
+  <SpeechBanner v-if="status.phase === 'running' && hudStore.state.stats?.speechActive" />
 
   <DragHint v-if="status.phase === 'running' && cyclePhase !== 'recovering' && cyclePhase !== 'jumping'" />
 

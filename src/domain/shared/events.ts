@@ -98,6 +98,14 @@ export interface MissileFired {
   readonly y: number;
 }
 
+export interface SpeechStarted {
+  readonly type: 'SpeechStarted';
+}
+
+export interface SpeechEnded {
+  readonly type: 'SpeechEnded';
+}
+
 export interface RunLost {
   readonly type: 'RunLost';
 }
@@ -117,5 +125,7 @@ export type DomainEvent =
   | ResurrectionShipExposed
   | ResurrectionShipDestroyed
   | MissileFired
+  | SpeechStarted
+  | SpeechEnded
   | RunWon
   | RunLost;

@@ -94,14 +94,14 @@ const SABOTAGE = [
   {
     what: 'a shot that leaps a Raider misses it',
     file: 'src/domain/shared/collision.ts',
-    find: '  return segmentHitsCircle(startX, startY, endX, endY, stillX, stillY, movingRadius + stillRadius);',
+    find: '  return movingCircleHitAlong(startX, startY, endX, endY, movingRadius, stillX, stillY, stillRadius) !== null;',
     replace: '  return circlesOverlap(endX, endY, movingRadius, stillX, stillY, stillRadius);',
     mustFail: 'npm run test',
   },
   {
     what: 'hits no longer destroy a Raider',
     file: 'src/domain/swarm/raider.ts',
-    find: '    this.hitPoints -= 1;',
+    find: '    this.hitPoints = Math.max(0, this.hitPoints - damage);',
     replace: '    // sabotage: the Raider is immortal',
     mustFail: 'npm run test',
   },
@@ -122,8 +122,8 @@ const SABOTAGE = [
   {
     what: 'an ejected Viper keeps shooting',
     file: 'src/domain/game.ts',
-    find: '  private autoFire(events: DomainEvent[]): void {\n    if (!this.viper.canFight) return;',
-    replace: '  private autoFire(events: DomainEvent[]): void {\n    // sabotage: the gun works from the Raptor',
+    find: '    if (!this.viperFires || !this.viper.canFight) return;',
+    replace: '    if (!this.viperFires) return;',
     mustFail: 'npm run test',
   },
   {
@@ -233,8 +233,8 @@ const SABOTAGE = [
     },
     {
       what: 'an empty missile rack still fires',
-      file: 'src/domain/game.ts',
-      find: '    if (this.viper.missileAmmo <= 0) return;',
+      file: 'src/domain/combat/viper.ts',
+      find: '    if (this.missiles <= 0) return false;',
       replace: '    // sabotage: the rack is a decoration',
       mustFail: 'npm run test',
     },
@@ -243,6 +243,20 @@ const SABOTAGE = [
       file: 'src/domain/combat/targeting.ts',
       find: '    if (distance < bestDistance || (distance === bestDistance && candidate.id < (best?.id ?? Infinity))) {',
       replace: '    if (distance > bestDistance || (distance === bestDistance && candidate.id < (best?.id ?? Infinity))) {',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'raiders keep flying during The Speech',
+      file: 'src/domain/game.ts',
+      find: '    if (this.speech.isActive) {\n      for (const raider of this.raiders) raider.holdStation();\n      return;\n    }',
+      replace: '    // sabotage: the speech is only a caption',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'The Speech never starts',
+      file: 'src/domain/combat/speech.ts',
+      find: '    this.remainingSeconds = SPEECH_DURATION_SECONDS;',
+      replace: '    // sabotage: tryStart lies',
       mustFail: 'npm run test',
     },
     {

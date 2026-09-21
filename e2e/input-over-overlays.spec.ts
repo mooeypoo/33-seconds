@@ -99,4 +99,16 @@ test.describe('steering works wherever the finger lands', () => {
     await releaseDrag(page);
     expect(after).toEqual(before);
   });
+
+  test('the speech button starts The Speech', async ({ page }) => {
+    await startRun(page);
+    await expect(page.getByTestId('speech')).toHaveText('ready');
+
+    await page.getByTestId('fire-special').click();
+    await expect.poll(async () => page.getByTestId('speech').textContent(), {
+      message: 'speech should be talking after one press',
+      timeout: 10_000,
+    }).toBe('talking');
+    await expect(page.getByTestId('speech-banner')).toBeVisible();
+  });
 });

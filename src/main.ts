@@ -7,7 +7,7 @@ import { PointerStickInput } from './infrastructure/input/PointerStickInput';
 import { ButtonLatchInput } from './infrastructure/input/ButtonLatchInput';
 import { bootPhaser } from './infrastructure/phaser/PhaserGame';
 import App from './presentation/App.vue';
-import { CANVAS_HOST_KEY, MISSILE_PRESS_KEY, SESSION_KEY } from './presentation/injection';
+import { CANVAS_HOST_KEY, MISSILE_PRESS_KEY, SPECIAL_PRESS_KEY, SESSION_KEY } from './presentation/injection';
 import { hudStore } from './presentation/stores/hudStore';
 import './presentation/styles.css';
 
@@ -47,6 +47,9 @@ const app = createApp(App);
 app.provide(SESSION_KEY, session);
 app.provide(MISSILE_PRESS_KEY, () => {
   buttons.pressMissile();
+});
+app.provide(SPECIAL_PRESS_KEY, () => {
+  buttons.pressSpecial();
 });
 app.provide(CANVAS_HOST_KEY, (host: HTMLElement) => {
   bootPhaser(host, session, stick, (stats) => {

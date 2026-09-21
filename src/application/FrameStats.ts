@@ -35,4 +35,8 @@ export interface FrameStats {
   readonly resurrectionsActive: boolean;
   readonly missiles: number;
   readonly missilesMax: number;
+  readonly speechActive: boolean;
+  readonly speechReady: boolean;
+  readonly speechRemainingSeconds: number;
+  readonly speechJumpsUntilReady: number;
 }

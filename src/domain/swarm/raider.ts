@@ -105,6 +105,15 @@ export class Raider {
     this.strafing = strafing;
   }
 
+  /**
+   * Holds station: previous pose matches current, so the renderer does not interpolate a streak
+   * while The Speech freezes the swarm (PRD 8.3).
+   */
+  holdStation(): void {
+    this.previousPositionX = this.positionX;
+    this.previousPositionY = this.positionY;
+  }
+
   advance(tickSeconds: number): void {
     this.previousPositionX = this.positionX;
     this.previousPositionY = this.positionY;

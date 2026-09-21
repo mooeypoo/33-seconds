@@ -127,6 +127,10 @@ export class GameScene extends Phaser.Scene {
       resurrectionsActive: view.resurrectionsActive,
       missiles: view.missileAmmo,
       missilesMax: view.missileAmmoMax,
+      speechActive: view.speechActive,
+      speechReady: view.speechReady,
+      speechRemainingSeconds: view.speechRemainingSeconds,
+      speechJumpsUntilReady: view.speechJumpsUntilReady,
     });
 
     this.secondsSinceStatsReport = 0;

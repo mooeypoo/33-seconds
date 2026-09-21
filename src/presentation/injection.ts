@@ -12,3 +12,6 @@ export const CANVAS_HOST_KEY: InjectionKey<(host: HTMLElement) => void> = Symbol
 
 /** Overlay missile button. The latch itself lives in infrastructure; this is only the press. */
 export const MISSILE_PRESS_KEY: InjectionKey<() => void> = Symbol('missile-press');
+
+/** Overlay special button (The Speech). */
+export const SPECIAL_PRESS_KEY: InjectionKey<() => void> = Symbol('special-press');

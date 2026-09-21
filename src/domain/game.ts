@@ -21,6 +21,7 @@ import {
   RESURRECTION_SHIP_LOCK_ID,
 } from './combat/missile';
 import { pickMissileLock, type LockCandidate } from './combat/targeting';
+import { Speech } from './combat/speech';
 import type { DomainEvent } from './shared/events';
 import { movingCircleHitAlong, movingCircleHits } from './shared/collision';
 import type { InputIntent } from './shared/intent';
@@ -115,6 +116,8 @@ export class Game {
   private fireCooldownSeconds = 0;
   private kills = 0;
   private missileHeld = false;
+  private specialHeld = false;
+  private readonly speech = new Speech();
 
   constructor(options: GameOptions = {}) {
     const seed = options.seed ?? DEFAULT_RUN_SEED;
@@ -145,6 +148,7 @@ export class Game {
         this.clearTheSky(events);
         this.viper.resetAtJump();
         this.fleet.repairAtJump();
+        this.speech.onJump();
         events.push({ type: 'FleetRepaired', integrity: this.fleet.view.integrity });
       }
     }
@@ -160,6 +164,10 @@ export class Game {
     }
 
     const missileRising = this.noteMissilePress(intent);
+    const specialRising = this.noteSpecialPress(intent);
+    if (this.speech.advance(TICK_SECONDS)) {
+      events.push({ type: 'SpeechEnded' });
+    }
 
     if (this.cycle.isInCombat) {
       this.fillTheSwarm(events);
@@ -167,6 +175,7 @@ export class Game {
       this.assignStrafeTokens();
       this.autoFire(events);
       this.maybeFireMissile(missileRising, events);
+      this.maybeStartSpeech(specialRising, events);
       this.raiderFire(events);
       this.advanceShots();
       this.advanceMissiles();
@@ -231,6 +240,10 @@ export class Game {
       fleet: this.fleet.view,
       resurrectionShip: this.resurrectionShip?.toView() ?? null,
       resurrectionsActive: this.resurrectionShip?.isDestroyed !== true,
+      speechActive: this.speech.isActive,
+      speechReady: this.speech.isReady,
+      speechRemainingSeconds: this.speech.remaining,
+      speechJumpsUntilReady: this.speech.jumpsUntilReadyCount,
       cycle: this.cycle.view,
     };
   }
@@ -264,9 +277,20 @@ export class Game {
     return rising;
   }
 
+  private noteSpecialPress(intent: InputIntent): boolean {
+    const rising = intent.special && !this.specialHeld;
+    this.specialHeld = intent.special;
+    return rising;
+  }
+
+  private maybeStartSpeech(rising: boolean, events: DomainEvent[]): void {
+    if (!rising || !this.viper.canFight) return;
+    if (!this.speech.tryStart()) return;
+    events.push({ type: 'SpeechStarted' });
+  }
+
   private maybeFireMissile(rising: boolean, events: DomainEvent[]): void {
     if (!rising || !this.viper.canFight) return;
-    if (this.viper.missileAmmo <= 0) return;
 
     const missile = this.obtainMissile();
     if (!missile) return;
@@ -352,7 +376,7 @@ export class Game {
 
   private assignAttackTokens(): void {
     for (const raider of this.raiders) raider.setArmed(false);
-    if (!this.raidersFire || !this.viper.canFight) return;
+    if (this.speech.isActive || !this.raidersFire || !this.viper.canFight) return;
 
     const viperX = this.viper.x;
     const viperY = this.viper.y;
@@ -380,7 +404,7 @@ export class Game {
   }
 
   private raiderFire(events: DomainEvent[]): void {
-    if (!this.raidersFire || !this.viper.canFight) return;
+    if (this.speech.isActive || !this.raidersFire || !this.viper.canFight) return;
 
     for (const raider of this.raiders) {
       if (!raider.isArmed || !raider.readyToFire) continue;
@@ -442,6 +466,10 @@ export class Game {
   }
 
   private advanceRaiders(events: DomainEvent[]): void {
+    if (this.speech.isActive) {
+      for (const raider of this.raiders) raider.holdStation();
+      return;
+    }
     for (const raider of this.raiders) {
       raider.advance(TICK_SECONDS);
       if (raider.isStrafing && raider.crossedFleetLine(FLEET_LINE_Y_UNITS)) {
@@ -603,7 +631,8 @@ export class Game {
   }
 
   private resolveCylonHits(events: DomainEvent[]): void {
-    if (!this.viper.isVulnerable) return;
+    const speechActive = this.speech.isActive;
+    if (!speechActive && !this.viper.isVulnerable) return;
 
     for (const shot of this.liveShots) {
       if (!shot.alive || shot.owner !== 'cylon') continue;
@@ -621,6 +650,8 @@ export class Game {
       if (!hit) continue;
 
       shot.kill();
+      // ASSUMPTION: The Speech eats rounds that hit the Viper so they do not become fleet strays.
+      if (speechActive) continue;
       if (this.viper.takeHit()) {
         events.push({ type: 'ViperEjected', x: this.viper.x, y: this.viper.y });
         return;
