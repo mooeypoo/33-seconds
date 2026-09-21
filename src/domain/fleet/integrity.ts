@@ -8,6 +8,12 @@ export const FLEET_INTEGRITY_MAX = 100;
 export const FLEET_DAMAGE_PER_STRAY = 1;
 
 /**
+ * A strafing Raider that reaches the line. Bigger than a stray so intercepting it is the job
+ * (PRD 7.1). ASSUMPTION: 8 until play says otherwise; the cycle cap still holds.
+ */
+export const FLEET_DAMAGE_PER_STRAFE = 8;
+
+/**
  * No single cycle can take more than this much integrity (PRD 7.2). Civilian Ship's 35% until
  * tiers exist.
  */
@@ -92,7 +98,16 @@ export class Fleet {
    * hit; omitted shots land on the centre ship.
    */
   takeStray(x: number = WORLD_WIDTH_UNITS / 2): number {
-    const room = Math.min(FLEET_DAMAGE_PER_STRAY, FLEET_CYCLE_DAMAGE_CAP - this.damageThisCycle, this.integrity);
+    return this.takeDamage(FLEET_DAMAGE_PER_STRAY, x);
+  }
+
+  /** A body that reached the line. Same cap and floor as a stray. */
+  takeStrafe(x: number): number {
+    return this.takeDamage(FLEET_DAMAGE_PER_STRAFE, x);
+  }
+
+  private takeDamage(amount: number, x: number): number {
+    const room = Math.min(amount, FLEET_CYCLE_DAMAGE_CAP - this.damageThisCycle, this.integrity);
     if (room <= 0) return 0;
     this.integrity -= room;
     this.damageThisCycle += room;

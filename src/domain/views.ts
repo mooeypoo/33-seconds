@@ -39,6 +39,8 @@ export interface RaiderView {
   readonly protected: boolean;
   /** True while this Raider holds an attack token and may fire (PRD 9). */
   readonly armed: boolean;
+  /** True while this Raider is diving the fleet (PRD 7.1). */
+  readonly strafing: boolean;
 }
 
 /** A destroyed Raider still downloading. The blip sits where it died. */

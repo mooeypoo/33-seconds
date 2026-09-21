@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { FLEET_LINE_Y_UNITS } from '../../../../domain/fleet/integrity';
 import { RAIDER_HALF_HEIGHT_UNITS, RAIDER_HALF_WIDTH_UNITS, RAIDER_HIT_POINTS } from '../../../../domain/swarm/raider';
 import { RESURRECTION_DOWNLOAD_SECONDS } from '../../../../domain/swarm/resurrection';
 import type { DomainEvent } from '../../../../domain/shared/events';
@@ -37,6 +38,7 @@ export class RaiderPresenter implements Presenter {
 
   private readonly hulls = new Map<number, HullMark>();
   private readonly blips = new Map<number, { root: Phaser.GameObjects.Container; pips: Phaser.GameObjects.Rectangle[] }>();
+  private readonly dives = new Map<number, { line: Phaser.GameObjects.Rectangle; chevron: Phaser.GameObjects.Rectangle }>();
 
   constructor(scene: Phaser.Scene, prefersReducedMotion: boolean) {
     this.scene = scene;
@@ -75,7 +77,32 @@ export class RaiderPresenter implements Presenter {
       mark.hull.setAlpha(raider.protected ? 0.55 : 1);
       this.drawPips(mark.pips, raider);
       this.syncEye(mark, raider.armed);
+      this.syncDive(raider, mark.hull.x, mark.hull.y);
     }
+
+    const strafing = new Set(view.raiders.filter((raider) => raider.strafing).map((raider) => raider.id));
+    for (const [id, dive] of this.dives) {
+      if (strafing.has(id)) continue;
+      dive.line.destroy();
+      dive.chevron.destroy();
+      this.dives.delete(id);
+    }
+  }
+
+  private syncDive(raider: RaiderView, x: number, y: number): void {
+    if (!raider.strafing) return;
+    let dive = this.dives.get(raider.id);
+    if (!dive) {
+      const line = this.scene.add.rectangle(x, y, 1, 1, PALETTE.strayShot, 0.45);
+      const chevron = this.scene.add.rectangle(x, FLEET_LINE_Y_UNITS, 5, 5, PALETTE.strayShot, 0.9);
+      chevron.setAngle(45);
+      dive = { line, chevron };
+      this.dives.set(raider.id, dive);
+    }
+    const span = Math.max(0, FLEET_LINE_Y_UNITS - y);
+    dive.line.setPosition(x, y + span / 2);
+    dive.line.setSize(1, span);
+    dive.chevron.setPosition(x, FLEET_LINE_Y_UNITS);
   }
 
   private syncEye(mark: HullMark, armed: boolean): void {
@@ -210,6 +237,12 @@ export class RaiderPresenter implements Presenter {
     mark.fade?.remove();
     mark.sweep?.remove();
     mark.hull.destroy();
+    const dive = this.dives.get(id);
+    if (dive) {
+      dive.line.destroy();
+      dive.chevron.destroy();
+      this.dives.delete(id);
+    }
     this.hulls.delete(id);
   }
 }

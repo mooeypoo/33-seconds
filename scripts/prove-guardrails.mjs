@@ -155,6 +155,13 @@ const SABOTAGE = [
     mustFail: 'npm run test',
   },
   {
+    what: 'every Raider dives the fleet',
+    file: 'src/domain/swarm/resurrection.ts',
+    find: 'export const STRAFE_TOKENS = 1;',
+    replace: 'export const STRAFE_TOKENS = 8;',
+    mustFail: 'npm run test',
+  },
+  {
     what: 'strays no longer dent the fleet',
     file: 'src/domain/fleet/integrity.ts',
     find: '    this.integrity -= room;',

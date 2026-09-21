@@ -10,6 +10,12 @@ export const DIRECTOR_CAP = 2;
  */
 export const ATTACK_TOKENS = 1;
 
+/**
+ * How many live Raiders may dive the fleet at once (PRD 7.1). Starts at 1 so one body shoots and
+ * the other is the run you can intercept.
+ */
+export const STRAFE_TOKENS = 1;
+
 /** Base download time before a destroyed Raider returns (PRD 6). Tunable per tier later. */
 export const RESURRECTION_DOWNLOAD_SECONDS = 6;
 

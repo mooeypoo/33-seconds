@@ -61,6 +61,7 @@ export interface FleetHit {
   readonly integrity: number;
   readonly x: number;
   readonly shipId: number;
+  readonly kind: 'stray' | 'strafe';
 }
 
 export interface FleetRepaired {

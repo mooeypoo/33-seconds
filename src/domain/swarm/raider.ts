@@ -49,6 +49,7 @@ export class Raider {
   private fireCooldownSeconds: number;
   private protectionRemainingSeconds: number;
   private armed = false;
+  private strafing = false;
 
   constructor(
     id: number,
@@ -90,9 +91,18 @@ export class Raider {
     return this.armed;
   }
 
+  get isStrafing(): boolean {
+    return this.strafing;
+  }
+
   /** The Director hands out attack tokens. Only an armed Raider may fire (PRD 9). */
   setArmed(armed: boolean): void {
     this.armed = armed;
+  }
+
+  /** The Director flags a dive on the fleet. Only a strafing Raider hurts hulls when it crosses. */
+  setStrafing(strafing: boolean): void {
+    this.strafing = strafing;
   }
 
   advance(tickSeconds: number): void {
@@ -114,8 +124,15 @@ export class Raider {
   }
 
   /**
-   * True when the Raider has flown past the bottom of the play area. Until fleet damage exists,
-   * the game sends it back to the top rather than letting it vanish.
+   * True when this Raider crossed the fleet line during the last advance (swept, not endpoint-only).
+   */
+  crossedFleetLine(lineY: number): boolean {
+    return this.previousPositionY <= lineY && this.positionY > lineY;
+  }
+
+  /**
+   * True when the Raider has flown past the bottom of the play area. Non-strafers wrap; strafers
+   * hit the fleet first, then wrap.
    */
   get hasLeftTheBottom(): boolean {
     return this.positionY > WORLD_HEIGHT_UNITS + RAIDER_HALF_HEIGHT_UNITS;
@@ -151,6 +168,7 @@ export class Raider {
       returned: this.returned,
       protected: this.isProtected,
       armed: this.armed,
+      strafing: this.strafing,
     };
   }
 }

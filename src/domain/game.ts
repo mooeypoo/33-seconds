@@ -25,7 +25,7 @@ import {
   raiderSpawnMinX,
 } from './swarm/raider';
 import { Fleet, FLEET_LINE_Y_UNITS } from './fleet/integrity';
-import { ATTACK_TOKENS, DIRECTOR_CAP, Download } from './swarm/resurrection';
+import { ATTACK_TOKENS, DIRECTOR_CAP, Download, STRAFE_TOKENS } from './swarm/resurrection';
 import type { GameView } from './views';
 
 /** Seed used when the caller does not pass one. Play uses this until a run-start seed exists. */
@@ -96,10 +96,11 @@ export class Game {
     if (this.cycle.isInCombat) {
       this.fillTheSwarm(events);
       this.assignAttackTokens();
+      this.assignStrafeTokens();
       this.autoFire(events);
       this.raiderFire(events);
       this.advanceShots();
-      this.advanceRaiders();
+      this.advanceRaiders(events);
       this.resolveHits(events);
       this.reclaimShotsThatLeft();
       this.advanceDownloads();
@@ -188,6 +189,18 @@ export class Game {
     for (const raider of ranked.slice(0, ATTACK_TOKENS)) raider.setArmed(true);
   }
 
+  private assignStrafeTokens(): void {
+    for (const raider of this.raiders) raider.setStrafing(false);
+    const viperX = this.viper.x;
+    const viperY = this.viper.y;
+    const ranked = [...this.raiders].sort((left, right) => {
+      const leftDistance = Math.hypot(left.x - viperX, left.y - viperY);
+      const rightDistance = Math.hypot(right.x - viperX, right.y - viperY);
+      return rightDistance - leftDistance || left.id - right.id;
+    });
+    for (const raider of ranked.slice(0, STRAFE_TOKENS)) raider.setStrafing(true);
+  }
+
   private raiderFire(events: DomainEvent[]): void {
     if (!this.raidersFire || !this.viper.canFight) return;
 
@@ -242,11 +255,25 @@ export class Game {
     }
   }
 
-  private advanceRaiders(): void {
+  private advanceRaiders(events: DomainEvent[]): void {
     for (const raider of this.raiders) {
       raider.advance(TICK_SECONDS);
-      // ASSUMPTION: Raiders still wrap at the bottom. Fleet damage is stray rounds, not bodies.
-      // Strafing runs wait.
+      if (raider.isStrafing && raider.crossedFleetLine(FLEET_LINE_Y_UNITS)) {
+        const damage = this.fleet.takeStrafe(raider.x);
+        if (damage > 0) {
+          const fleet = this.fleet.view;
+          events.push({
+            type: 'FleetHit',
+            damage,
+            integrity: fleet.integrity,
+            x: raider.x,
+            shipId: fleet.lastHitShipId ?? 0,
+            kind: 'strafe',
+          });
+        }
+        raider.reappearAtTop();
+        continue;
+      }
       if (raider.hasLeftTheBottom) raider.reappearAtTop();
     }
   }
@@ -332,6 +359,7 @@ export class Game {
           integrity: fleet.integrity,
           x,
           shipId: fleet.lastHitShipId ?? 0,
+          kind: 'stray',
         });
       }
     }

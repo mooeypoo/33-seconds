@@ -180,7 +180,8 @@ Two separate pools, on purpose:
 | **Fleet Integrity** | Partly | The run's real health bar. It is the only way to lose. |
 
 ### 7.1 How the fleet gets hit
-1. **Strafing runs.** `[Later]` Some Raiders are flagged. Dradis draws a line to the fleet and a warning arrow appears at the screen edge. You can intercept them. Bodies that leave the bottom still wrap; they do not damage the fleet.
+1. **Strafing runs.** Some Raiders are flagged. A line runs from that Raider to the fleet, with a chevron on the hull it is diving. You can intercept them. Starts at **one** strafe token: the body farthest from you. A dive that reaches the line costs **8** integrity, then that Raider wraps. Non-flagged bodies still wrap without hurting anyone.
+   - The line is a placeholder. A later graphics pass can turn it into a directional light or descending arrow. Do not restyle it while proving the rule.
 2. **Stray bullets.** A Raider bullet that misses your Viper keeps flying. If it crosses the fleet line (near the bottom edge) it hits a civilian ship.
    - Two bullet states: *Aimed* (red) and *Stray* (orange). A bullet becomes Stray once it passes you, so the consequence is visible before it lands.
    - Damage per hit starts at **1** of **100** integrity (1%).
@@ -559,3 +560,5 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | Viper hull is 5. Raider hitbox is 8 wu. Aimed fire stays. Mid-cycle life pickups wait for the Recovering bonus design (rare, needs a joke). | First shooting-back play ejected faster than a Raider dies. |
 | 2026-09-21 | Late-cycle border tell waits: at about 10 or 5 seconds left, quietly paint the play-area edge in FTL red or blue. Not a flash. | The quiet 33 is easy to miss; do not restyle the clock while proving the fight. |
 | 2026-09-21 | Ten placeholder civilian hulls sit on the fleet line. A stray notches the nearest one; dinged hulls match the pips. Galactica is the larger middle hull, visually only. | Number-only fleet damage was easy to miss. |
+| 2026-09-21 | One Raider at a time may strafe: farthest from the Viper, a line and chevron as the tell, 8 integrity if it reaches the fleet, then it wraps. | So a body passing the line can mean something, and intercepting is a job. |
+| 2026-09-21 | Strafe tell stays a plain line and diamond. A directional light or descending-arrow look waits for the graphics pass. | First play of the dive was for the rule, not the art. |
