@@ -121,6 +121,14 @@ export interface ViperDownloaded {
   readonly y: number;
 }
 
+export interface GhostDelayed {
+  readonly type: 'GhostDelayed';
+  readonly identityId: number;
+  readonly remainingSeconds: number;
+  readonly x: number;
+  readonly y: number;
+}
+
 export interface RunLost {
   readonly type: 'RunLost';
 }
@@ -135,6 +143,7 @@ export type DomainEvent =
   | ViperEjected
   | ViperRecovered
   | ViperDownloaded
+  | GhostDelayed
   | FleetHit
   | FleetRepaired
   | ResurrectionShipArrived

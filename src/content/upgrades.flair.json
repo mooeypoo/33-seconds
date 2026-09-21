@@ -68,5 +68,15 @@
       "baltar": "PLACEHOLDER: Time. Beautiful, stalling time.",
       "roslin": "PLACEHOLDER: A slower queue is a quieter sky. Take it."
     }
+  },
+  {
+    "id": "spoilers",
+    "title": "Spoilers",
+    "joke": "PLACEHOLDER: You already know how this download ends.",
+    "plain": "Ghost blips sit on the return column. Shooting one delays that download 3 seconds per stack.",
+    "advice": {
+      "baltar": "PLACEHOLDER: Shoot the future. I love a spoiler.",
+      "roslin": "PLACEHOLDER: Every second they wait is a second the fleet does not."
+    }
   }
 ]

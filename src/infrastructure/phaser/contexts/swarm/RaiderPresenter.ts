@@ -18,6 +18,13 @@ const DOWNLOAD_BAR_WIDTH = 20;
 const DOWNLOAD_BAR_HEIGHT = 2;
 const DOWNLOAD_TICKS = 5;
 
+interface GhostMark {
+  root: Phaser.GameObjects.Container;
+  diamond: Phaser.GameObjects.Rectangle;
+  cross: Phaser.GameObjects.Container;
+  pips: Phaser.GameObjects.Rectangle[];
+}
+
 interface HullMark {
   hull: Phaser.GameObjects.Container;
   pips: Phaser.GameObjects.Rectangle[];
@@ -37,7 +44,7 @@ export class RaiderPresenter implements Presenter {
   private readonly sweepMs: number;
 
   private readonly hulls = new Map<number, HullMark>();
-  private readonly blips = new Map<number, { root: Phaser.GameObjects.Container; pips: Phaser.GameObjects.Rectangle[] }>();
+  private readonly blips = new Map<number, GhostMark>();
   private readonly dives = new Map<number, { line: Phaser.GameObjects.Rectangle; chevron: Phaser.GameObjects.Rectangle }>();
 
   constructor(scene: Phaser.Scene, prefersReducedMotion: boolean) {
@@ -55,6 +62,11 @@ export class RaiderPresenter implements Presenter {
 
     if (event.type === 'RaiderDestroyed') {
       this.fadeOut(event.id);
+      return;
+    }
+
+    if (event.type === 'GhostDelayed') {
+      this.pulseGhost(event.identityId);
     }
   }
 
@@ -125,13 +137,19 @@ export class RaiderPresenter implements Presenter {
       const existing = this.blips.get(ghost.identityId);
       const mark = existing ?? this.buildGhost(ghost);
       mark.root.setPosition(this.ghostX(ghost.x), this.ghostY(ghost.y));
+      mark.cross.setVisible(ghost.shootable);
       this.setDownloadPips(mark.pips, ghost.remainingSeconds);
     }
   }
 
-  private buildGhost(ghost: GhostView): { root: Phaser.GameObjects.Container; pips: Phaser.GameObjects.Rectangle[] } {
+  private buildGhost(ghost: GhostView): GhostMark {
     const diamond = this.scene.add.rectangle(0, -6, 5, 5, PALETTE.ghostBlip, 0.55);
     diamond.setAngle(45);
+
+    const vertical = this.scene.add.rectangle(0, -6, 1, 11, PALETTE.playerShot, 0.9);
+    const horizontal = this.scene.add.rectangle(0, -6, 11, 1, PALETTE.playerShot, 0.9);
+    const cross = this.scene.add.container(0, 0, [vertical, horizontal]);
+    cross.setVisible(ghost.shootable);
 
     const track = this.scene.add.rectangle(0, 3, DOWNLOAD_BAR_WIDTH + 2, DOWNLOAD_BAR_HEIGHT + 2, PALETTE.ghostBlip, 0.16);
     const pips: Phaser.GameObjects.Rectangle[] = [];
@@ -141,11 +159,27 @@ export class RaiderPresenter implements Presenter {
       pips.push(this.scene.add.rectangle(x, 3, 3, DOWNLOAD_BAR_HEIGHT, PALETTE.ghostBlip, 0.28));
     }
 
-    const root = this.scene.add.container(ghost.x, ghost.y, [diamond, track, ...pips]);
+    const root = this.scene.add.container(ghost.x, ghost.y, [diamond, cross, track, ...pips]);
     root.setDepth(-1);
-    const mark = { root, pips };
+    const mark = { root, diamond, cross, pips };
     this.blips.set(ghost.identityId, mark);
     return mark;
+  }
+
+  /**
+   * A still plus means the blip is a target (PRD 10.2). A delay rewinds the bar; this pulse is a
+   * one-beat scale, not a flash.
+   */
+  private pulseGhost(identityId: number): void {
+    const mark = this.blips.get(identityId);
+    if (!mark || this.fadeMs === 0) return;
+    this.scene.tweens.killTweensOf(mark.diamond);
+    mark.diamond.setScale(1.25);
+    this.scene.tweens.add({
+      targets: mark.diamond,
+      scale: 1,
+      duration: this.fadeMs,
+    });
   }
 
   private setDownloadPips(pips: readonly Phaser.GameObjects.Rectangle[], remainingSeconds: number): void {

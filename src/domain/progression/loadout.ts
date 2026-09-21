@@ -7,6 +7,7 @@ import type { RandomStream } from '../shared/random';
 import {
   CONTINUITY_CAP_PER_STACK,
   CALL_WAITING_SECONDS_PER_STACK,
+  SPOILERS_DELAY_SECONDS_PER_STACK,
   CANNON_PIERCE_PER_STACK,
   CANNON_RADIUS_PER_STACK,
   CANNON_SPEED_PER_STACK,
@@ -104,6 +105,14 @@ export class Loadout {
 
   get fleetCycleDamageCap(): number {
     return FLEET_CYCLE_DAMAGE_CAP * Math.pow(CONTINUITY_CAP_PER_STACK, this.stacksOf('continuity-of-government'));
+  }
+
+  get ghostDelaySeconds(): number {
+    return SPOILERS_DELAY_SECONDS_PER_STACK * this.stacksOf('spoilers');
+  }
+
+  get ghostsAreShootable(): boolean {
+    return this.ghostDelaySeconds > 0;
   }
 
   get cylonEye(): boolean {

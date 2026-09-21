@@ -1,8 +1,8 @@
 /**
  * Starter upgrade set (PRD 10.2). Effects are modifiers, not flags. Text lives in JSON (D8).
  *
- * ASSUMPTION: these seven are the ones whose systems already exist. Hangar Door Slam, Spoilers,
- * flak, Raptor, and Imaginary Six wait with the features they need.
+ * ASSUMPTION: these eight are the ones whose systems already exist. Hangar Door Slam, flak,
+ * Raptor, and Imaginary Six wait with the features they need.
  */
 export type CardId =
   | 'accidentally-wide'
@@ -11,6 +11,7 @@ export type CardId =
   | 'continuity-of-government'
   | 'overcompensating-cannon'
   | 'personal-vendetta'
+  | 'spoilers'
   | 'your-call-is-important-to-us';
 
 export type CardRarity = 'common' | 'uncommon' | 'questionable';
@@ -24,6 +25,7 @@ export const STARTER_CARDS: readonly CardDefinition[] = [
   { id: 'accidentally-wide', rarity: 'common' },
   { id: 'your-call-is-important-to-us', rarity: 'common' },
   { id: 'continuity-of-government', rarity: 'common' },
+  { id: 'spoilers', rarity: 'uncommon' },
   { id: 'anyone-could-be-a-cylon', rarity: 'uncommon' },
   { id: 'bootleg-hooch', rarity: 'uncommon' },
   { id: 'overcompensating-cannon', rarity: 'uncommon' },
@@ -72,3 +74,6 @@ export const CYLON_SAVE_INVULN_SECONDS = 1.5;
 
 /** *Continuity of Government*: fleet cycle-damage cap multiplier per stack. */
 export const CONTINUITY_CAP_PER_STACK = 0.9;
+
+/** *Spoilers*: extra download seconds per shot on a ghost, per stack (PRD 10.2). */
+export const SPOILERS_DELAY_SECONDS_PER_STACK = 3;

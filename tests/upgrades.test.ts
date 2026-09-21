@@ -3,10 +3,11 @@ import { createGame } from '../src/domain/game';
 import { VIPER_FIRE_INTERVAL_SECONDS } from '../src/domain/combat/projectile';
 import { VIPER_HULL_HIT_POINTS, VIPER_RADIUS_UNITS } from '../src/domain/combat/viper';
 import { RESURRECTION_SHIP_LOCK_ID } from '../src/domain/combat/missile';
-import { CALL_WAITING_SECONDS_PER_STACK, CONTINUITY_CAP_PER_STACK } from '../src/domain/progression/catalog';
+import { CALL_WAITING_SECONDS_PER_STACK, CONTINUITY_CAP_PER_STACK, SPOILERS_DELAY_SECONDS_PER_STACK } from '../src/domain/progression/catalog';
 import { FLEET_CYCLE_DAMAGE_CAP, Fleet } from '../src/domain/fleet/integrity';
 import { Loadout } from '../src/domain/progression/loadout';
 import { RESURRECTION_DOWNLOAD_SECONDS } from '../src/domain/swarm/resurrection';
+import { RAIDER_SPAWN_Y_UNITS } from '../src/domain/swarm/raider';
 import type { DomainEvent } from '../src/domain/shared/events';
 import { IDLE_INTENT, type InputIntent } from '../src/domain/shared/intent';
 import { TICKS_PER_SECOND } from '../src/domain/shared/time';
@@ -210,5 +211,91 @@ describe('starter card effects', () => {
     expect(applied).toBeCloseTo(cap);
     expect(applied).toBeLessThan(FLEET_CYCLE_DAMAGE_CAP);
     expect(two.fleetCycleDamageCap).toBeCloseTo(FLEET_CYCLE_DAMAGE_CAP * CONTINUITY_CAP_PER_STACK ** 2);
+  });
+
+  it('Spoilers puts the blip on the return column, and a shot delays the download', () => {
+    const game = createGame({ seed: 1, raidersFire: false, startingCards: ['spoilers'] });
+    const before = game.view.kills;
+    for (let i = 0; i < ticksFor(12); i++) {
+      const target = game.view.raiders[0];
+      holdUnder(game, target?.x ?? game.view.viper.x);
+      if (game.view.kills > before) break;
+    }
+    expect(game.view.kills).toBeGreaterThan(before);
+    const ghost = game.view.ghosts[0];
+    expect(ghost?.shootable).toBe(true);
+    expect(ghost?.y).toBe(RAIDER_SPAWN_Y_UNITS);
+    const remainingAtKill = ghost?.remainingSeconds ?? 0;
+
+    let delayed = false;
+    for (let i = 0; i < ticksFor(1); i++) {
+      const events = game.tick({
+        ...IDLE_INTENT,
+        moveX: Math.max(-1, Math.min(1, ((ghost?.x ?? 0) - game.view.viper.x) / 20)),
+      });
+      const bump = events.find((event) => event.type === 'GhostDelayed');
+      if (bump) {
+        delayed = true;
+        expect(bump.remainingSeconds).toBeGreaterThan(remainingAtKill);
+        expect(game.view.ghosts[0]?.remainingSeconds ?? 0).toBeGreaterThan(
+          remainingAtKill + SPOILERS_DELAY_SECONDS_PER_STACK - 0.5,
+        );
+        break;
+      }
+    }
+    expect(delayed).toBe(true);
+  });
+
+  it('does not delay a ghost without Spoilers', () => {
+    const game = createGame({ seed: 1, raidersFire: false });
+    const before = game.view.kills;
+    for (let i = 0; i < ticksFor(12); i++) {
+      const target = game.view.raiders[0];
+      holdUnder(game, target?.x ?? game.view.viper.x);
+      if (game.view.kills > before) break;
+    }
+    const ghost = game.view.ghosts[0];
+    expect(ghost?.shootable).toBe(false);
+    expect(ghost?.y).toBeGreaterThan(RAIDER_SPAWN_Y_UNITS);
+    const remainingAtKill = ghost?.remainingSeconds ?? 0;
+
+    for (let i = 0; i < ticksFor(0.5); i++) {
+      const events = game.tick({
+        ...IDLE_INTENT,
+        moveX: Math.max(-1, Math.min(1, ((ghost?.x ?? 0) - game.view.viper.x) / 20)),
+      });
+      expect(events.some((event) => event.type === 'GhostDelayed')).toBe(false);
+    }
+    expect(game.view.ghosts[0]?.remainingSeconds ?? 0).toBeLessThan(remainingAtKill);
+  });
+
+  it('Spoilers stacks add more delay per shot', () => {
+    const game = createGame({
+      seed: 1,
+      raidersFire: false,
+      startingCards: ['spoilers', 'spoilers'],
+    });
+    const before = game.view.kills;
+    for (let i = 0; i < ticksFor(12); i++) {
+      const target = game.view.raiders[0];
+      holdUnder(game, target?.x ?? game.view.viper.x);
+      if (game.view.kills > before) break;
+    }
+    const remainingAtKill = game.view.ghosts[0]?.remainingSeconds ?? 0;
+    let delayed = false;
+    for (let i = 0; i < ticksFor(1); i++) {
+      const ghostX = game.view.ghosts[0]?.x ?? game.view.viper.x;
+      const events = game.tick({
+        ...IDLE_INTENT,
+        moveX: Math.max(-1, Math.min(1, (ghostX - game.view.viper.x) / 20)),
+      });
+      const bump = events.find((event) => event.type === 'GhostDelayed');
+      if (bump) {
+        delayed = true;
+        expect(bump.remainingSeconds).toBeGreaterThan(remainingAtKill + SPOILERS_DELAY_SECONDS_PER_STACK);
+        break;
+      }
+    }
+    expect(delayed).toBe(true);
   });
 });

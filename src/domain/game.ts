@@ -35,7 +35,7 @@ import {
   raiderSpawnMinX,
 } from './swarm/raider';
 import { Fleet, FLEET_INTEGRITY_MAX, FLEET_LINE_Y_UNITS } from './fleet/integrity';
-import { ATTACK_TOKENS, DIRECTOR_CAP, Download, STRAFE_TOKENS } from './swarm/resurrection';
+import { ATTACK_TOKENS, DIRECTOR_CAP, Download, GHOST_RADIUS_UNITS, STRAFE_TOKENS } from './swarm/resurrection';
 import {
   ResurrectionShip,
   RESURRECTION_SHIP_ARRIVES_CYCLE,
@@ -270,8 +270,11 @@ export class Game {
         identityId: download.identityId,
         deaths: download.deaths,
         x: download.x,
-        y: download.y,
+        // Spoilers: sit on the return column at spawn height so you can see and shoot the future
+        // (PRD 10.2). Without the card the bar stays on the corpse.
+        y: this.loadout.ghostsAreShootable ? RAIDER_SPAWN_Y_UNITS : download.y,
         remainingSeconds: download.remaining,
+        shootable: this.loadout.ghostsAreShootable,
       })),
       fleet: this.fleet.view,
       resurrectionShip: this.resurrectionShip?.toView() ?? null,
@@ -613,6 +616,7 @@ export class Game {
         }
       }
       if (hitRaider) continue;
+      if (this.tryDelayGhost(shot, view, events)) continue;
       const ship = this.resurrectionShip;
       if (!ship || ship.isDestroyed) continue;
       const hitsShip = movingCircleHits(
@@ -631,6 +635,55 @@ export class Game {
         events.push({ type: 'ResurrectionShipDestroyed', x: ship.x, y: ship.y });
       }
     }
+  }
+
+  /**
+   * *Spoilers*: a gun hit on a blip delays that download. Live Raiders soak first so the killing
+   * round is not a free delay. Missiles ignore ghosts (a delay is not worth the rack).
+   */
+  private tryDelayGhost(
+    shot: Projectile,
+    view: { readonly previousX: number; readonly previousY: number; readonly x: number; readonly y: number },
+    events: DomainEvent[],
+  ): boolean {
+    const delaySeconds = this.loadout.ghostDelaySeconds;
+    if (delaySeconds <= 0) return false;
+
+    const ghostY = RAIDER_SPAWN_Y_UNITS;
+    let bestAlong = Infinity;
+    let best: Download | null = null;
+    for (const download of this.downloads) {
+      const along = movingCircleHitAlong(
+        view.previousX,
+        view.previousY,
+        view.x,
+        view.y,
+        this.loadout.playerShotRadius,
+        download.x,
+        ghostY,
+        GHOST_RADIUS_UNITS,
+      );
+      if (along === null) continue;
+      if (along < bestAlong || (along === bestAlong && download.identityId < (best?.identityId ?? Infinity))) {
+        bestAlong = along;
+        best = download;
+      }
+    }
+    if (!best) return false;
+
+    best.delay(delaySeconds);
+    events.push({
+      type: 'GhostDelayed',
+      identityId: best.identityId,
+      remainingSeconds: best.remaining,
+      x: best.x,
+      y: ghostY,
+    });
+    if (!shot.tryPierce()) {
+      shot.kill();
+      return true;
+    }
+    return false;
   }
 
   /**

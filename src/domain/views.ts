@@ -72,6 +72,8 @@ export interface GhostView {
   readonly x: number;
   readonly y: number;
   readonly remainingSeconds: number;
+  /** True with *Spoilers*: the blip sits on the return column and a shot delays it. */
+  readonly shootable: boolean;
 }
 
 export interface CycleView {

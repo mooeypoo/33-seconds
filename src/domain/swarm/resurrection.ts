@@ -23,6 +23,12 @@ export const RESURRECTION_DOWNLOAD_SECONDS = 6;
 export const RETURNED_SPAWN_PROTECTION_SECONDS = 1.5;
 
 /**
+ * *Spoilers* hitbox. Near a Raider so the spawn marker is not fiddly. ASSUMPTION: 8 wu until play
+ * says the top-of-column blip is too generous.
+ */
+export const GHOST_RADIUS_UNITS = 8;
+
+/**
  * One soul in the download queue. The timer only moves while the cycle is in combat. A jump
  * marks every pending download ready, so they arrive first in the next Arriving (PRD 5.1, 6).
  */
@@ -58,6 +64,11 @@ export class Download {
   /** Pending downloads finish in transit and arrive first after the jump. */
   arriveNow(): void {
     this.remainingSeconds = 0;
+  }
+
+  /** *Spoilers*: a hit pushes the queue back. Jump still finishes transit (PRD 6). */
+  delay(seconds: number): void {
+    this.remainingSeconds += seconds;
   }
 
   get remaining(): number {

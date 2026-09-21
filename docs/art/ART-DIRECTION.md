@@ -55,7 +55,7 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 | `fleet_pip` | 8 x 6 | 2 (ok, damaged) | P1 | HUD version of the fleet ships |
 | `galactica_silhouette` | about 200 x 60 | 1 | P1 | Dark, slow parallax in the background. Original design. |
 | `resurrection_ship` | 64 x 48 | 3 (damage states) plus a wreck | P1 | Chunky and ominous, clearly *not* a copy of anything. After it dies, the wreck must read as a dead factory, not a parked target. |
-| `ghost_blip` | 8 x 8 | 2 | P1 | Dradis-style download marker. Loop-on: filling bar plus the word. Loop-off: leftover blips go grey and stay that way. Colour is never the only cue; keep a word (`loop` / `offline` or downloading / done). |
+| `ghost_blip` | 8 x 8 | 2 | P1 | Dradis-style download marker. Loop-on: filling bar plus the word. Loop-off: leftover blips go grey and stay that way. *Spoilers*: a still plus / cross on the blip so it reads as a target, and it sits at the return column until pickup. Colour is never the only cue; keep a word (`loop` / `offline` or downloading / done). |
 | `returned_marker` | 6 x 6 | 3 (x1, x2, x3 scratch) | P1 | Small overlay above Returned Raiders |
 | `raptor` | 14 x 12 | 2 | P2 | Escort card |
 | `imaginary_six` | 16 x 16 | 2 | P2 | A steady outline sprite. Costume and silhouette, not likeness. |
@@ -144,3 +144,7 @@ Hull to zero is never a run loss (PRD 8.1). There are two ways back onto the boa
 **Download** (*Anyone Could Be a Cylon*): you do not leave. The hull stays, a red-eye pixel appears until the next jump, HUD says `two transponders`. No seat, no chute, no empty sky. The joke is that you resurrect like they do.
 
 If both look like "the Viper popped and came back," the card is invisible. Do not reuse `pilot_eject` for the download. Colour is never the only cue (PRD 9, 15).
+
+## 11. Spoilers (graphics pass)
+
+Without the card, a ghost is a download bar on the corpse. With *Spoilers*, the same blip sits on the **return column** (spawn height, death X) and is a target: a still plus / cross through the diamond, Dradis green, never Cylon red. A hit rewinds the bar. Play uses a placeholder plus and a one-beat scale (pause-frozen, skipped when reduced-motion). Real `ghost_blip` frames can carry the plus. Colour is never the only cue (PRD 9, 15).

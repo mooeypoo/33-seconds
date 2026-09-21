@@ -274,6 +274,13 @@ const SABOTAGE = [
       mustFail: 'npm run test',
     },
     {
+      what: 'Spoilers does not delay a ghost',
+      file: 'src/domain/swarm/resurrection.ts',
+      find: '    this.remainingSeconds += seconds;',
+      replace: '    // sabotage: a shot on a blip is flavour',
+      mustFail: 'npm run test',
+    },
+    {
       what: 'the loop catches up without a limit',
       file: 'src/application/GameSession.ts',
       find: '    const ticksToRun = Math.min(dueTicks, MAX_CATCH_UP_TICKS);',
