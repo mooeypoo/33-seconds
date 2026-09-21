@@ -69,6 +69,28 @@ export interface FleetRepaired {
   readonly integrity: number;
 }
 
+export interface ResurrectionShipArrived {
+  readonly type: 'ResurrectionShipArrived';
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface ResurrectionShipExposed {
+  readonly type: 'ResurrectionShipExposed';
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface ResurrectionShipDestroyed {
+  readonly type: 'ResurrectionShipDestroyed';
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface RunWon {
+  readonly type: 'RunWon';
+}
+
 export type DomainEvent =
   | ViperSpawned
   | ShotFired
@@ -79,4 +101,8 @@ export type DomainEvent =
   | ViperEjected
   | ViperRecovered
   | FleetHit
-  | FleetRepaired;
+  | FleetRepaired
+  | ResurrectionShipArrived
+  | ResurrectionShipExposed
+  | ResurrectionShipDestroyed
+  | RunWon;

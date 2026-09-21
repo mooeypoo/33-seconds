@@ -33,6 +33,18 @@ const stats = hudStore.state;
       <span data-testid="returned">{{
         stats.stats.returned ? 'returned' : stats.stats.ghosts ? 'downloading' : stats.stats.raiderLive ? 'fresh' : '—'
       }}</span>
+      · ship
+      <span data-testid="ship">{{
+        stats.stats.shipDestroyed
+          ? 'down'
+          : stats.stats.shipHp === null
+            ? '—'
+            : stats.stats.shipShielded
+              ? 'shielded'
+              : `${String(stats.stats.shipHp)}/${String(stats.stats.shipHpMax)}`
+      }}</span>
+      ·
+      <span data-testid="resurrections">{{ stats.stats.resurrectionsActive ? 'loop' : 'offline' }}</span>
     </p>
 
     <FleetReadout v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" />

@@ -1,4 +1,4 @@
-import { createGame, type Game } from '../domain/game';
+import { createGame, type Game, type GameOptions } from '../domain/game';
 import type { DomainEvent } from '../domain/shared/events';
 import { IDLE_INTENT } from '../domain/shared/intent';
 import { TICK_SECONDS } from '../domain/shared/time';
@@ -9,7 +9,7 @@ import type { InputPort } from './ports/InputPort';
  * Where the run is. `resuming` is the 3-2-1 countdown that pause ends with (PRD 13.3): the
  * simulation is still frozen, so it behaves like `paused` as far as the domain is concerned.
  */
-export type SessionPhase = 'title' | 'running' | 'paused' | 'resuming';
+export type SessionPhase = 'title' | 'running' | 'paused' | 'resuming' | 'won';
 
 /** Why the session paused. Shown to the player, because a pause that looks like a freeze is scary. */
 export type PauseReason = 'player' | 'tab-hidden' | 'window-blurred' | 'pointer-cancelled' | 'orientation-changed';
@@ -44,7 +44,8 @@ const NO_FRAME: FrameResult = { events: [], interpolationAlpha: 0, ticksAdvanced
  * stops feeding it ticks (ADR-0001 D7).
  */
 export class GameSession {
-  private readonly game: Game = createGame();
+  private readonly options: GameOptions;
+  private game: Game;
   private readonly input: InputPort;
   private readonly listeners = new Set<(status: SessionStatus) => void>();
 
@@ -54,8 +55,10 @@ export class GameSession {
   private countdownRemainingSeconds = 0;
   private pendingEvents: DomainEvent[] = [];
 
-  constructor(input: InputPort) {
+  constructor(input: InputPort, options: GameOptions = {}) {
     this.input = input;
+    this.options = options;
+    this.game = createGame(options);
   }
 
   get status(): SessionStatus {
@@ -80,6 +83,7 @@ export class GameSession {
   /** Leaves the title screen. Also the first user gesture, which is when audio may start (D12). */
   start(): void {
     if (this.phase !== 'title') return;
+    this.game = createGame(this.options);
     this.phase = 'running';
     this.reason = null;
     this.accumulatorSeconds = 0;
@@ -114,6 +118,15 @@ export class GameSession {
   continueFromJump(): void {
     if (this.phase !== 'running') return;
     this.pendingEvents.push(...this.game.continueFromJump());
+  }
+
+  /** Leaves the win screen for the title. The next Launch starts a new run. */
+  returnToTitle(): void {
+    if (this.phase !== 'won') return;
+    this.phase = 'title';
+    this.reason = null;
+    this.input.clear();
+    this.publish();
   }
 
   /** True while the domain is not being ticked. */
@@ -153,21 +166,34 @@ export class GameSession {
     const dueTicks = Math.floor(this.accumulatorSeconds / TICK_SECONDS);
     const ticksToRun = Math.min(dueTicks, MAX_CATCH_UP_TICKS);
 
+    let ticksRun = 0;
     for (let i = 0; i < ticksToRun; i++) {
-      events.push(...this.game.tick(this.input.readIntent()));
+      const tickEvents = this.game.tick(this.input.readIntent());
+      events.push(...tickEvents);
+      ticksRun += 1;
+      if (tickEvents.some((event) => event.type === 'RunWon')) {
+        this.phase = 'won';
+        this.reason = null;
+        // Frozen on the win tick: leftover catch-up must not keep simulating.
+        this.accumulatorSeconds = 0;
+        this.publish();
+        break;
+      }
     }
 
-    this.accumulatorSeconds -= ticksToRun * TICK_SECONDS;
-    if (dueTicks > ticksToRun) {
-      // Throw the backlog away instead of letting it queue up: on a slow device the game runs
-      // slower than real time, which is honest, rather than spiralling to catch up.
-      this.accumulatorSeconds %= TICK_SECONDS;
+    if (this.phase === 'running') {
+      this.accumulatorSeconds -= ticksRun * TICK_SECONDS;
+      if (dueTicks > ticksToRun) {
+        // Throw the backlog away instead of letting it queue up: on a slow device the game runs
+        // slower than real time, which is honest, rather than spiralling to catch up.
+        this.accumulatorSeconds %= TICK_SECONDS;
+      }
     }
 
     return {
       events,
       interpolationAlpha: this.accumulatorSeconds / TICK_SECONDS,
-      ticksAdvanced: ticksToRun,
+      ticksAdvanced: ticksRun,
     };
   }
 

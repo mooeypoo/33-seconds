@@ -287,3 +287,67 @@ describe('pause', () => {
     expect(session.view.cycle.phase).toBe('recovering');
   });
 });
+
+describe('winning', () => {
+  function steerToward(x: number): void {
+    const delta = x - session.view.viper.x;
+    const scaled = delta / 20;
+    const moveX = scaled > 1 ? 1 : scaled < -1 ? -1 : scaled;
+    input.intent = { ...IDLE_INTENT, moveX, moveY: 0 };
+  }
+
+  function playUntilWon(): boolean {
+    for (let i = 0; i < TICKS_PER_SECOND * 30; i++) {
+      const ship = session.view.resurrectionShip;
+      if (ship && !ship.destroyed) steerToward(ship.x);
+      else {
+        const raider = session.view.raiders.find((body) => !body.protected) ?? session.view.raiders[0];
+        if (raider) steerToward(raider.x);
+        else input.intent = IDLE_INTENT;
+      }
+      session.advance(ONE_FRAME_AT_60HZ);
+      if (session.status.phase === 'won') return true;
+    }
+    return false;
+  }
+
+  beforeEach(() => {
+    input = new FakeInput();
+    session = new GameSession(input, {
+      seed: 1,
+      raidersFire: false,
+      resurrectionShipArrivesCycle: 1,
+      resurrectionShipVulnerableCycle: 1,
+      resurrectionShipHitPoints: 1,
+    });
+  });
+
+  it('freezes on the win, ignores pause, and Launch starts a new run', () => {
+    session.start();
+    expect(playUntilWon()).toBe(true);
+    expect(session.isFrozen).toBe(true);
+    const ticksAtWin = session.view.tickCount;
+
+    session.pause('player');
+    expect(session.status.phase).toBe('won');
+    expect(runFrames(10)).toBe(0);
+    expect(session.view.tickCount).toBe(ticksAtWin);
+
+    session.returnToTitle();
+    expect(session.status.phase).toBe('title');
+
+    session.start();
+    expect(session.view.tickCount).toBe(0);
+    expect(session.view.resurrectionShip).toBeNull();
+    runFrames(1);
+    expect(session.status.phase).toBe('running');
+    expect(session.view.resurrectionShip?.destroyed).toBe(false);
+    expect(session.view.resurrectionShip?.hp).toBe(1);
+  });
+
+  it('ignores Continue to title until the run is actually won', () => {
+    session.start();
+    session.returnToTitle();
+    expect(session.status.phase).toBe('running');
+  });
+});

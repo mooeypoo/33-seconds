@@ -9,6 +9,7 @@ import { ViperPresenter } from './contexts/combat/ViperPresenter';
 import { StickPresenter, type StickSource } from './contexts/controls/StickPresenter';
 import { FleetPresenter } from './contexts/fleet/FleetPresenter';
 import { RaiderPresenter } from './contexts/swarm/RaiderPresenter';
+import { ResurrectionShipPresenter } from './contexts/swarm/ResurrectionShipPresenter';
 import { PALETTE } from './shared/palette';
 
 /** How often the debug readout updates. Often enough to be useful, rarely enough to stay readable. */
@@ -56,6 +57,7 @@ export class GameScene extends Phaser.Scene {
       new ViperPresenter(this),
       new ProjectilePresenter(this),
       new RaiderPresenter(this, prefersReducedMotion),
+      new ResurrectionShipPresenter(this),
       new StickPresenter(this, this.stick, prefersReducedMotion),
     ];
   }
@@ -116,6 +118,11 @@ export class GameScene extends Phaser.Scene {
       raiders: view.raiders.length,
       fleet: Math.round(view.fleet.integrity),
       fleetMax: view.fleet.integrityMax,
+      shipHp: view.resurrectionShip?.hp ?? null,
+      shipHpMax: view.resurrectionShip?.hpMax ?? null,
+      shipDestroyed: view.resurrectionShip?.destroyed ?? false,
+      shipShielded: view.resurrectionShip?.shielded ?? false,
+      resurrectionsActive: view.resurrectionsActive,
     });
 
     this.secondsSinceStatsReport = 0;

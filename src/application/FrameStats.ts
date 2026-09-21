@@ -28,4 +28,9 @@ export interface FrameStats {
   readonly raiders: number;
   readonly fleet: number;
   readonly fleetMax: number;
+  readonly shipHp: number | null;
+  readonly shipHpMax: number | null;
+  readonly shipDestroyed: boolean;
+  readonly shipShielded: boolean;
+  readonly resurrectionsActive: boolean;
 }

@@ -26,6 +26,13 @@ import {
 } from './swarm/raider';
 import { Fleet, FLEET_LINE_Y_UNITS } from './fleet/integrity';
 import { ATTACK_TOKENS, DIRECTOR_CAP, Download, STRAFE_TOKENS } from './swarm/resurrection';
+import {
+  ResurrectionShip,
+  RESURRECTION_SHIP_ARRIVES_CYCLE,
+  RESURRECTION_SHIP_HIT_POINTS,
+  RESURRECTION_SHIP_RADIUS_UNITS,
+  RESURRECTION_SHIP_VULNERABLE_CYCLE,
+} from './swarm/resurrectionShip';
 import type { GameView } from './views';
 
 /** Seed used when the caller does not pass one. Play uses this until a run-start seed exists. */
@@ -39,6 +46,20 @@ export interface GameOptions {
    * can drive the Viper without a dogfight. Play always leaves it on.
    */
   readonly raidersFire?: boolean;
+  /**
+   * First cycle the resurrection ship is on the map, still shielded. Play uses 2 (PRD 5.2).
+   */
+  readonly resurrectionShipArrivesCycle?: number;
+  /**
+   * First cycle the shield is down and HP can be chipped. Play uses 4 (PRD 5.2). If this is
+   * earlier than the arrive cycle, the ship arrives already exposed.
+   */
+  readonly resurrectionShipVulnerableCycle?: number;
+  /**
+   * Hit points for the resurrection ship. Play uses 60 (PRD decision 3). Tests can use 1 so a
+   * kill is one shot, not a twelve-second volley.
+   */
+  readonly resurrectionShipHitPoints?: number;
 }
 
 /**
@@ -48,7 +69,12 @@ export interface GameOptions {
  */
 export class Game {
   private readonly scenario: RandomStream;
+  /** Station-keeping for the resurrection ship. Separate so a wander cannot steal spawn rolls. */
+  private readonly station: RandomStream;
   private readonly raidersFire: boolean;
+  private readonly resurrectionShipArrivesCycle: number;
+  private readonly resurrectionShipVulnerableCycle: number;
+  private readonly resurrectionShipHitPoints: number;
   private readonly cycle = new JumpCycle();
   private readonly fleet = new Fleet();
   private readonly viper = new Viper();
@@ -56,6 +82,8 @@ export class Game {
   private readonly liveShots: Projectile[] = [];
   private readonly raiders: Raider[] = [];
   private readonly downloads: Download[] = [];
+  private resurrectionShip: ResurrectionShip | null = null;
+  private runWon = false;
   private nextId = 1;
   private nextIdentityId = 1;
   private ticks = 0;
@@ -63,8 +91,14 @@ export class Game {
   private kills = 0;
 
   constructor(options: GameOptions = {}) {
-    this.scenario = createRandomStream(options.seed ?? DEFAULT_RUN_SEED);
+    const seed = options.seed ?? DEFAULT_RUN_SEED;
+    this.scenario = createRandomStream(seed);
+    this.station = createRandomStream((seed ^ 0x51ed) >>> 0);
     this.raidersFire = options.raidersFire ?? true;
+    this.resurrectionShipArrivesCycle = options.resurrectionShipArrivesCycle ?? RESURRECTION_SHIP_ARRIVES_CYCLE;
+    const vulnerable = options.resurrectionShipVulnerableCycle ?? RESURRECTION_SHIP_VULNERABLE_CYCLE;
+    this.resurrectionShipVulnerableCycle = Math.max(this.resurrectionShipArrivesCycle, vulnerable);
+    this.resurrectionShipHitPoints = options.resurrectionShipHitPoints ?? RESURRECTION_SHIP_HIT_POINTS;
   }
 
   /** Advances the simulation by exactly one tick. The only way to change domain state. */
@@ -87,6 +121,10 @@ export class Game {
       }
     }
 
+    this.maybeArriveShip(events);
+    this.maybeExposeShip(events);
+    this.resurrectionShip?.advance(TICK_SECONDS, this.station);
+
     this.viper.steer(intent.moveX, intent.moveY, TICK_SECONDS);
     if (this.viper.isReadyForPickup) {
       this.viper.recoverFromEject();
@@ -108,6 +146,7 @@ export class Game {
     }
 
     this.ticks += 1;
+    this.maybeWin(events);
     return events;
   }
 
@@ -120,6 +159,8 @@ export class Game {
     if (!change) return [];
     const events: DomainEvent[] = [change];
     this.viper.resetAtJump();
+    this.maybeArriveShip(events);
+    this.maybeExposeShip(events);
     this.fillTheSwarm(events);
     return events;
   }
@@ -150,6 +191,8 @@ export class Game {
         remainingSeconds: download.remaining,
       })),
       fleet: this.fleet.view,
+      resurrectionShip: this.resurrectionShip?.toView() ?? null,
+      resurrectionsActive: this.resurrectionShip?.isDestroyed !== true,
       cycle: this.cycle.view,
     };
   }
@@ -290,6 +333,7 @@ export class Game {
       if (!shot.alive || shot.owner !== 'player') continue;
       const view = shot.toView();
 
+      let hitRaider = false;
       for (let index = 0; index < this.raiders.length; index++) {
         const raider = this.raiders[index];
         if (!raider) continue;
@@ -307,14 +351,35 @@ export class Game {
         );
         if (!hit) continue;
 
+        hitRaider = true;
         shot.kill();
         if (raider.takeHit()) {
           events.push({ type: 'RaiderDestroyed', id: raider.id, x: raider.x, y: raider.y });
-          this.downloads.push(new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y));
+          if (!this.resurrectionShip?.isDestroyed) {
+            this.downloads.push(new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y));
+          }
           this.raiders.splice(index, 1);
           this.kills += 1;
         }
         break;
+      }
+      if (hitRaider) continue;
+      const ship = this.resurrectionShip;
+      if (!ship || ship.isDestroyed) continue;
+      const hitsShip = movingCircleHits(
+        view.previousX,
+        view.previousY,
+        view.x,
+        view.y,
+        VIPER_SHOT_RADIUS_UNITS,
+        ship.x,
+        ship.y,
+        RESURRECTION_SHIP_RADIUS_UNITS,
+      );
+      if (!hitsShip) continue;
+      shot.kill();
+      if (ship.takeHit()) {
+        events.push({ type: 'ResurrectionShipDestroyed', x: ship.x, y: ship.y });
       }
     }
   }
@@ -394,6 +459,11 @@ export class Game {
       this.dropDeadShots();
       events.push({ type: 'ShotsCleared' });
     }
+    if (this.resurrectionShip?.isDestroyed) {
+      for (const raider of this.raiders) {
+        this.downloads.push(new Download(raider.identityId, raider.deaths, raider.x, raider.y));
+      }
+    }
     this.raiders.length = 0;
     for (const download of this.downloads) download.arriveNow();
   }
@@ -407,6 +477,7 @@ export class Game {
    * download reserves one slot so a refill cannot add pressure (PRD 6).
    */
   private fillTheSwarm(events: DomainEvent[]): void {
+    const shipGone = this.resurrectionShip?.isDestroyed === true;
     while (this.raiders.length < DIRECTOR_CAP) {
       const readyIndex = this.downloads.findIndex((download) => download.isReady);
       if (readyIndex >= 0) {
@@ -421,9 +492,34 @@ export class Game {
         continue;
       }
 
+      if (shipGone) return;
       if (this.raiders.length + this.downloads.length >= DIRECTOR_CAP) return;
       this.spawnRaider(events);
     }
+  }
+
+  private maybeArriveShip(events: DomainEvent[]): void {
+    if (this.resurrectionShip) return;
+    if (this.cycle.view.cycleIndex < this.resurrectionShipArrivesCycle) return;
+    const shielded = this.cycle.view.cycleIndex < this.resurrectionShipVulnerableCycle;
+    this.resurrectionShip = new ResurrectionShip(this.resurrectionShipHitPoints, shielded);
+    events.push({ type: 'ResurrectionShipArrived', x: this.resurrectionShip.x, y: this.resurrectionShip.y });
+  }
+
+  private maybeExposeShip(events: DomainEvent[]): void {
+    const ship = this.resurrectionShip;
+    if (!ship?.isShielded) return;
+    if (this.cycle.view.cycleIndex < this.resurrectionShipVulnerableCycle) return;
+    if (!ship.expose()) return;
+    events.push({ type: 'ResurrectionShipExposed', x: ship.x, y: ship.y });
+  }
+
+  private maybeWin(events: DomainEvent[]): void {
+    if (this.runWon) return;
+    if (!this.resurrectionShip?.isDestroyed) return;
+    if (this.raiders.length > 0 || this.downloads.length > 0) return;
+    this.runWon = true;
+    events.push({ type: 'RunWon' });
   }
 
   private spawnRaider(

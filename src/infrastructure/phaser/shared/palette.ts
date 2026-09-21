@@ -19,4 +19,6 @@ export const PALETTE = {
   fleetLine: 0x3d5a4c,
   civilianHull: 0x6b8f73,
   civilianDinged: 0x2f4536,
+  /** Glass bubble around a shielded resurrection ship. Not Cylon red (PRD 9, 15). */
+  shipShield: 0x9ec8dc,
 } as const;

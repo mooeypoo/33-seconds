@@ -13,6 +13,9 @@ import { PALETTE } from '../../shared/palette';
 /**
  * The civilian line and placeholder hulls. A dinged hull plus an orange notch is the hit tell, not
  * a flash (PRD 7.4, 15).
+ *
+ * ASSUMPTION: the line is still rigid. A later pass can give hulls a slight up/down and a little
+ * sideways idle, like the resurrection ship's station-keeping, without leaving the bottom edge.
  */
 export class FleetPresenter implements Presenter {
   private readonly scene: Phaser.Scene;

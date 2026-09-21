@@ -8,6 +8,7 @@ import JumpFade from './components/JumpFade.vue';
 import PauseOverlay from './components/PauseOverlay.vue';
 import RecoveringOverlay from './components/RecoveringOverlay.vue';
 import TitleOverlay from './components/TitleOverlay.vue';
+import WinOverlay from './components/WinOverlay.vue';
 import { hudStore } from './stores/hudStore';
 
 const session = inject(SESSION_KEY);
@@ -40,6 +41,8 @@ onUnmounted(() => {
   <DragHint v-if="status.phase === 'running' && cyclePhase !== 'recovering' && cyclePhase !== 'jumping'" />
 
   <TitleOverlay v-if="status.phase === 'title'" @start="session.start()" />
+
+  <WinOverlay v-else-if="status.phase === 'won'" @continue="session.returnToTitle()" />
 
   <JumpFade v-else-if="status.phase === 'running' && cyclePhase === 'jumping'" />
 

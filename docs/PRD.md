@@ -33,8 +33,8 @@ Read this every session. The rest of the document is detail.
 
 - You fly a **Viper** defending a civilian **fleet** along the bottom edge. Auto-fire is always on. Move with the keyboard, or with a touch-drag anywhere on a phone.
 - The game is a series of **33-second cycles**. The last 8 seconds are the FTL spool. Then the fleet jumps, and there is a short calm.
-- Destroyed Raiders come back as **ghost blips** after about 6 seconds. A cap on concurrent Raiders means returns *refill* the swarm and do not add to it, so waves are endless without getting harder.
-- Around cycle 4 the **resurrection ship** arrives. Chip away at its persistent HP. Destroy it to stop the resurrections, then clear the remaining Raiders to win.
+- Destroyed Raiders come back as **ghost blips** after about 6 seconds. A cap on concurrent Raiders means returns *refill* the swarm and do not add to it, so waves are endless without getting harder. The download bar (and the word) is the tell that the loop is **on**. After the resurrection ship is gone, new kills leave no ghost: the HUD says **offline**, and that is when the last wave is finite. A later graphics pass can grey the leftover blips and the wreck; the word must stay so colour is never the only cue.
+- Cycle 1 teaches the loop. On cycle 2 the **resurrection ship** arrives **shielded** (visible, cannot be hurt). On cycle 4 the shield drops. Chip away at its persistent HP. Destroy it to stop the resurrections, then clear the remaining Raiders to win. It stations high on the right and drifts a little, slowly. Both cycle numbers are tunables.
 - You **lose** only when **Fleet Integrity** reaches zero. Strafing runs and stray bullets hurt the fleet. There is a per-cycle damage cap and a partial repair at each jump. Your Viper being destroyed costs time, not the run.
 - **Missiles** (3 per cycle) hit the first hostile thing they touch. One **special**: The Speech.
 - At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). Start with about 6 cards and grow to 12.
@@ -116,17 +116,19 @@ A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 
 | Cycles | What happens |
 |---|---|
-| 1-3 | Survival and build-up. Teaches the resurrection loop. |
-| about 4 | The resurrection ship jumps in at the map edge and follows the fleet across jumps. Its HP persists between cycles. |
-| 4+ | Fly toward it, clear escorts, chip away at it while the swarm harasses you. Progress shows at 75%, 50%, and 25% (bays go dark, launch rate drops, the ship "panics"). Weakening it makes later cycles easier. |
-| Final 25% | The ship spools its own FTL on a 33-second countdown. Kill it before it jumps. If it escapes, it returns next cycle with a little HP restored (amount is tunable). |
-| Kill | Slow motion, music drop, Dradis ghost blips go grey permanently. **No more resurrections.** Existing Raiders keep fighting. |
-| Finish | The last wave is finite. Clear it to make the victory jump. |
+| 1 | Survival and build-up. Teaches the resurrection loop. |
+| 2 | The resurrection ship jumps in high on the right, **shielded**. A still glass bubble plus the word "shielded" is the tell. Shots splash on the shield and do no HP. It keeps station with a slow, seeded side-to-side wander (small range, not a beat). A real path waits. Both the arrive cycle and the vulnerable cycle are named constants. |
+| 3 | Still shielded. The loop keeps teaching while the ship is a landmark. |
+| about 4 | The shield drops. Fly toward it, chip away at **60 HP** that persist across jumps. Path, bay states, panic, and its own FTL wait. |
+| 4+ | Clear escorts, chip away while the swarm harasses you. Progress shows at 75%, 50%, and 25% (bays go dark, launch rate drops, the ship "panics"). Weakening it makes later cycles easier. `[Later]` |
+| Final 25% | The ship spools its own FTL on a 33-second countdown. Kill it before it jumps. If it escapes, it returns next cycle with a little HP restored (amount is tunable). `[Later]` |
+| Kill | Slow motion, music drop, Dradis ghost blips go grey permanently. **No more resurrections.** Existing Raiders keep fighting. **Live now:** new downloads stop; pending ones still finish; live Raiders at a jump come back as that last wave. HUD switches from `loop` to `offline` (a kill no longer grows a download bar). Grey-out of leftover blips, the wreck, and slow-mo wait for the graphics pass. Jumping is not a shortcut to a clear sky. |
+| Finish | The last wave is finite. Clear it to make the victory jump. **Live now:** a placeholder win overlay, then back to the title. |
 
 ### 5.3 Winning and losing `[Core]`
 
-- **Win:** destroy the resurrection ship, then clear the remaining Raiders.
-- **Lose:** Fleet Integrity reaches zero. (Your Viper cannot end the run. Being destroyed costs time, not the game. See 8.1.)
+- **Win:** destroy the resurrection ship, then clear the remaining Raiders. A placeholder overlay says so; Continue returns to the title and Launch starts a new run.
+- **Lose:** Fleet Integrity reaches zero. (Your Viper cannot end the run. Being destroyed costs time, not the game. See 8.1.) The lose screen still waits.
 - On loss, a short epilogue scene plays, then retry. On Civilian Ship tier, retry offers "from the last jump."
 
 ## 6. Resurrection `[Core]`
@@ -136,7 +138,8 @@ A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 - Returned Raiders come out of the **Director's concurrency cap**. Resurrection does not add pressure, it *refills* the swarm. That is how waves stay endless without any single moment getting harder.
 - Pending resurrections carry across a jump and arrive first in the next cycle.
 - Each Raider carries a private death counter. That drives cosmetic escalation and an end-of-run stat ("Most-killed Raider: 14 times. Still not over it.").
-- Once the resurrection ship is destroyed, the queue stops.
+- Once the resurrection ship is destroyed, the queue stops. Pending downloads still finish. Raiders still alive at a jump after that come back as the last wave, so jumping is not a win.
+- **Loop-on / loop-off tell.** While resurrections are active, a kill becomes a ghost with a filling bar plus a word (`downloading` / `loop`). That is true from cycle 1, even before the ship is on the map. After the ship is destroyed, a kill leaves no new ghost, and the HUD says `offline`. Colour is never the only cue. The graphics pass can grey leftover blips and the wreck; do not restyle this while proving the rule.
 
 ### 6.1 Staged rollout of "smarter and angrier" `[Later]`
 
@@ -210,6 +213,7 @@ Losing on Viper Pilot requires taking near-cap damage over and over, meaning ign
 - A stray marks the nearest hull with an orange notch (not a flash). Hulls ding to match the pips as integrity drops. Pause-menu silly names (for example, "The Slightly Leaky Freighter") wait. No show ship names.
 - The slightly larger hull in the middle is Galactica visually only. Flak waits.
 - Reaching zero does not yet end the run. The lose screen waits with the rest of M3.
+- The line is still a rigid row. A later pass can give the hulls a slight up/down and a little sideways idle (the same idea as the resurrection ship's station-keeping) so they do not feel stuck. Not enough to leave the bottom edge.
 - End-of-run stat: "Civilians endangered by your dodging: 47." `[Later]`
 
 ## 8. Combat
@@ -515,7 +519,7 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | # | Question | Default |
 |---|---|---|
 | 1 | Name | **33 Seconds**. Logo gag: "33 ~~MINUTES~~ SECONDS." Disclaimer: "Unofficial fan project, not affiliated with or endorsed by the show's rights holders or anyone in the cast." |
-| 2 | Fleet layout | A fixed line along the bottom edge. Revisit after a playtest. |
+| 2 | Fleet layout | A fixed line along the bottom edge. Later: a slight idle (up/down and a little sideways) so it does not feel glued. Revisit after a playtest. |
 | 3 | Resurrection ship tuning | Start with HP sized so focused fire takes about 2 to 3 cycles, and it returns with about 10% of its max HP when it escapes. Tune by feel. |
 | 4 | Special recharge | The Speech recharges every 3rd jump. |
 | 5 | *Imaginary Six* balance | Weak beam at about half your gun's damage. Check how it stacks with flak and the Raptor in playtests. |
@@ -562,3 +566,7 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | Ten placeholder civilian hulls sit on the fleet line. A stray notches the nearest one; dinged hulls match the pips. Galactica is the larger middle hull, visually only. | Number-only fleet damage was easy to miss. |
 | 2026-09-21 | One Raider at a time may strafe: farthest from the Viper, a line and chevron as the tell, 8 integrity if it reaches the fleet, then it wraps. | So a body passing the line can mean something, and intercepting is a job. |
 | 2026-09-21 | Strafe tell stays a plain line and diamond. A directional light or descending-arrow look waits for the graphics pass. | First play of the dive was for the rule, not the art. |
+| 2026-09-21 | Resurrection ship arrives on cycle 4, parked at the right edge, 60 HP that persist across jumps. Destroying it stops new downloads. Clear the last wave to win. Path, bays, panic, escape FTL, slow-mo, and the lose screen wait. | M3 needs a win, not the whole ship drama. |
+| 2026-09-21 | Resurrection ship arrives **shielded on cycle 2**, shield drops on **cycle 4**. Both cycle numbers are tunables (`RESURRECTION_SHIP_ARRIVES_CYCLE`, `RESURRECTION_SHIP_VULNERABLE_CYCLE`). Shots cannot chip HP while the bubble is up. | Cycle 4 was too late a first look; the ship should be a landmark before it is a target. |
+| 2026-09-21 | Resurrection ship stations higher on the right and drifts slowly side to side in a small seeded range. Fleet idle motion (slight up/down and a little sideways) is documented, not applied. | A parked rectangle read as stuck. The fleet can get the same treatment in a later pass. |
+| 2026-09-21 | Loop-on / loop-off tell: HUD `loop` while kills still download, `offline` after the ship is gone (no new ghost bar). Grey leftover blips and the wreck wait for the graphics pass. Colour is never the only cue. | A dead factory must read differently from an endless swarm, including on cycle 1 before the ship is visible. |
