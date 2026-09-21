@@ -351,3 +351,40 @@ describe('winning', () => {
     expect(session.status.phase).toBe('running');
   });
 });
+
+describe('losing', () => {
+  beforeEach(() => {
+    input = new FakeInput();
+    session = new GameSession(input, {
+      seed: 1,
+      raidersFire: false,
+      fleetStartingIntegrity: 8,
+    });
+  });
+
+  it('freezes when the fleet is gone, and Retry starts a new run', () => {
+    session.start();
+    let lost = false;
+    for (let i = 0; i < TICKS_PER_SECOND * 15; i++) {
+      session.advance(ONE_FRAME_AT_60HZ);
+      if (session.status.phase === 'lost') {
+        lost = true;
+        break;
+      }
+    }
+    expect(lost).toBe(true);
+    expect(session.isFrozen).toBe(true);
+    const ticksAtLoss = session.view.tickCount;
+
+    session.pause('player');
+    expect(session.status.phase).toBe('lost');
+    expect(runFrames(10)).toBe(0);
+    expect(session.view.tickCount).toBe(ticksAtLoss);
+
+    session.returnToTitle();
+    expect(session.status.phase).toBe('title');
+    session.start();
+    expect(session.view.tickCount).toBe(0);
+    expect(session.view.fleet.integrity).toBe(8);
+  });
+});

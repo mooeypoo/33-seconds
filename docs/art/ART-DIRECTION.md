@@ -53,8 +53,8 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 | `fleet_ship_a/b/c` | 16 x 10 | 1 each | P1 | Civilian ships along the fleet edge, three silly silhouettes |
 | `fleet_pip` | 8 x 6 | 2 (ok, damaged) | P1 | HUD version of the fleet ships |
 | `galactica_silhouette` | about 200 x 60 | 1 | P1 | Dark, slow parallax in the background. Original design. |
-| `resurrection_ship` | 64 x 48 | 3 (damage states) | P1 | Chunky and ominous, clearly *not* a copy of anything |
-| `ghost_blip` | 8 x 8 | 2 | P1 | Dradis-style download marker |
+| `resurrection_ship` | 64 x 48 | 3 (damage states) plus a wreck | P1 | Chunky and ominous, clearly *not* a copy of anything. After it dies, the wreck must read as a dead factory, not a parked target. |
+| `ghost_blip` | 8 x 8 | 2 | P1 | Dradis-style download marker. Loop-on: filling bar plus the word. Loop-off: leftover blips go grey and stay that way. Colour is never the only cue; keep a word (`loop` / `offline` or downloading / done). |
 | `returned_marker` | 6 x 6 | 3 (x1, x2, x3 scratch) | P1 | Small overlay above Returned Raiders |
 | `raptor` | 14 x 12 | 2 | P2 | Escort card |
 | `imaginary_six` | 16 x 16 | 2 | P2 | A steady outline sprite. Costume and silhouette, not likeness. |
@@ -123,3 +123,13 @@ Keep `assets/PROVENANCE.md`, one row per file: file, creator, tool, date, licens
 2. Draw `viper`, `raider`, and the three bullets. Export.
 3. Draw `explosion_small`.
 4. Put them in the game (via a milestone M1 slice), and look at them on a phone at arm's length before drawing anything else.
+
+## 9. Loop-on / loop-off (graphics pass)
+
+The player must always know whether Raiders will come back. Play uses a HUD word (`loop` / `offline`) and a download bar that only appears while the factory is alive. Do not drop the word when the real art arrives; colour is never the only cue (PRD 6).
+
+**Loop on** (cycle 1 until the resurrection ship is destroyed, including before the ship is on the map): a kill grows a ghost with a filling bar and the word downloading.
+
+**Loop off** (ship destroyed): new kills leave no ghost. Leftover blips and Returned markers go grey for good. The wreck should look dead. Slow-mo and a music drop wait with the rest of the kill beat (PRD 5.2).
+
+Do not restyle this while proving other rules. Arrive cycle, expose cycle, HP, and wander are tunables for a later fairness / hardship pass, not this art pass.

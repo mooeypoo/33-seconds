@@ -44,10 +44,10 @@ shield that still takes hits, and a ship that never leaves its sticker.
 
 ## What is still open
 
-1. Flak, a lose screen.
-2. Mid-cycle life pickups, with the bonus cards.
-3. Straight-down fire, if bodyguarding still feels like a fast eject.
-4. A quiet FTL border when 10 or 5 seconds remain.
-5. A graphics pass on the dive tell (directional light or descending arrow).
-6. Ship path, bays, panic, escape FTL, slow-mo.
-8. Grey leftover ghosts and the wreck when the loop is offline (graphics pass).
+1. Viper Pilot numbers, so a player who ignores the fleet can actually lose.
+2. Flak, retry-from-last-jump, epilogue.
+3. Mid-cycle life pickups, with the bonus cards.
+4. Straight-down fire, if bodyguarding still feels like a fast eject.
+5. A quiet FTL border when 10 or 5 seconds remain.
+6. Graphics: dive tell, grey leftover ghosts and the wreck when the loop is offline (ART-DIRECTION §9), fleet idle motion.
+7. Ship path, bays, panic, escape FTL, slow-mo.

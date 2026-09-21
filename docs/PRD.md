@@ -117,7 +117,7 @@ A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 | Cycles | What happens |
 |---|---|
 | 1 | Survival and build-up. Teaches the resurrection loop. |
-| 2 | The resurrection ship jumps in high on the right, **shielded**. A still glass bubble plus the word "shielded" is the tell. Shots splash on the shield and do no HP. It keeps station with a slow, seeded side-to-side wander (small range, not a beat). A real path waits. Both the arrive cycle and the vulnerable cycle are named constants. |
+| 2 | The resurrection ship jumps in high on the right, **shielded**. A still glass bubble plus the word "shielded" is the tell. Shots splash on the shield and do no HP. It keeps station with a slow, seeded side-to-side wander (small range, not a beat). A real path waits. Arrive cycle, expose cycle, HP, and wander are tunables for a later fairness / hardship pass. |
 | 3 | Still shielded. The loop keeps teaching while the ship is a landmark. |
 | about 4 | The shield drops. Fly toward it, chip away at **60 HP** that persist across jumps. Path, bay states, panic, and its own FTL wait. |
 | 4+ | Clear escorts, chip away while the swarm harasses you. Progress shows at 75%, 50%, and 25% (bays go dark, launch rate drops, the ship "panics"). Weakening it makes later cycles easier. `[Later]` |
@@ -128,7 +128,7 @@ A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 ### 5.3 Winning and losing `[Core]`
 
 - **Win:** destroy the resurrection ship, then clear the remaining Raiders. A placeholder overlay says so; Continue returns to the title and Launch starts a new run.
-- **Lose:** Fleet Integrity reaches zero. (Your Viper cannot end the run. Being destroyed costs time, not the game. See 8.1.) The lose screen still waits.
+- **Lose:** Fleet Integrity reaches zero. (Your Viper cannot end the run. Being destroyed costs time, not the game. See 8.1.) A placeholder overlay says so; Retry returns to the title. Retry-from-last-jump waits for the Civilian Ship tier. **Live now:** Civilian Ship numbers cannot reach zero (cap 35, repair 60%). The overlay is real; Viper Pilot numbers will make it reachable.
 - On loss, a short epilogue scene plays, then retry. On Civilian Ship tier, retry offers "from the last jump."
 
 ## 6. Resurrection `[Core]`
@@ -212,7 +212,7 @@ Losing on Viper Pilot requires taking near-cap damage over and over, meaning ign
 - Fleet shown as **ten pips plus `n/max`** near the jump clock, and as **ten placeholder hulls** on the olive line. Colour is never the only cue.
 - A stray marks the nearest hull with an orange notch (not a flash). Hulls ding to match the pips as integrity drops. Pause-menu silly names (for example, "The Slightly Leaky Freighter") wait. No show ship names.
 - The slightly larger hull in the middle is Galactica visually only. Flak waits.
-- Reaching zero does not yet end the run. The lose screen waits with the rest of M3.
+- Reaching zero ends the run. A placeholder lose overlay; Retry returns to the title. Civilian Ship numbers cannot reach zero yet (PRD 7.2). Viper Pilot numbers and the epilogue wait.
 - The line is still a rigid row. A later pass can give the hulls a slight up/down and a little sideways idle (the same idea as the resurrection ship's station-keeping) so they do not feel stuck. Not enough to leave the bottom edge.
 - End-of-run stat: "Civilians endangered by your dodging: 47." `[Later]`
 
@@ -570,3 +570,5 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | Resurrection ship arrives **shielded on cycle 2**, shield drops on **cycle 4**. Both cycle numbers are tunables (`RESURRECTION_SHIP_ARRIVES_CYCLE`, `RESURRECTION_SHIP_VULNERABLE_CYCLE`). Shots cannot chip HP while the bubble is up. | Cycle 4 was too late a first look; the ship should be a landmark before it is a target. |
 | 2026-09-21 | Resurrection ship stations higher on the right and drifts slowly side to side in a small seeded range. Fleet idle motion (slight up/down and a little sideways) is documented, not applied. | A parked rectangle read as stuck. The fleet can get the same treatment in a later pass. |
 | 2026-09-21 | Loop-on / loop-off tell: HUD `loop` while kills still download, `offline` after the ship is gone (no new ghost bar). Grey leftover blips and the wreck wait for the graphics pass. Colour is never the only cue. | A dead factory must read differently from an endless swarm, including on cycle 1 before the ship is visible. |
+| 2026-09-21 | Arrive cycle, expose cycle, HP (60), and wander stay as play numbers. Fairness / hardship may retune them. | First play of the ship worked; do not chase the details live. |
+| 2026-09-21 | Reaching zero Fleet Integrity ends the run (placeholder overlay, Retry to title). Civilian Ship numbers still cannot reach zero; Viper Pilot numbers wait. | M3 asked for a lose screen. The overlay is the rule; the numbers are the later fairness pass. |

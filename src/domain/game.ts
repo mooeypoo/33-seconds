@@ -24,7 +24,7 @@ import {
   raiderSpawnMaxX,
   raiderSpawnMinX,
 } from './swarm/raider';
-import { Fleet, FLEET_LINE_Y_UNITS } from './fleet/integrity';
+import { Fleet, FLEET_INTEGRITY_MAX, FLEET_LINE_Y_UNITS } from './fleet/integrity';
 import { ATTACK_TOKENS, DIRECTOR_CAP, Download, STRAFE_TOKENS } from './swarm/resurrection';
 import {
   ResurrectionShip,
@@ -60,6 +60,11 @@ export interface GameOptions {
    * kill is one shot, not a twelve-second volley.
    */
   readonly resurrectionShipHitPoints?: number;
+  /**
+   * Starting Fleet Integrity. Play uses 100. Tests can start near the floor so a dive can end
+   * the run; Civilian Ship numbers cannot reach zero in a normal cycle (PRD 7.2).
+   */
+  readonly fleetStartingIntegrity?: number;
 }
 
 /**
@@ -76,7 +81,7 @@ export class Game {
   private readonly resurrectionShipVulnerableCycle: number;
   private readonly resurrectionShipHitPoints: number;
   private readonly cycle = new JumpCycle();
-  private readonly fleet = new Fleet();
+  private readonly fleet: Fleet;
   private readonly viper = new Viper();
   private readonly shots: Projectile[] = [];
   private readonly liveShots: Projectile[] = [];
@@ -84,6 +89,7 @@ export class Game {
   private readonly downloads: Download[] = [];
   private resurrectionShip: ResurrectionShip | null = null;
   private runWon = false;
+  private runLost = false;
   private nextId = 1;
   private nextIdentityId = 1;
   private ticks = 0;
@@ -99,6 +105,7 @@ export class Game {
     const vulnerable = options.resurrectionShipVulnerableCycle ?? RESURRECTION_SHIP_VULNERABLE_CYCLE;
     this.resurrectionShipVulnerableCycle = Math.max(this.resurrectionShipArrivesCycle, vulnerable);
     this.resurrectionShipHitPoints = options.resurrectionShipHitPoints ?? RESURRECTION_SHIP_HIT_POINTS;
+    this.fleet = new Fleet(options.fleetStartingIntegrity ?? FLEET_INTEGRITY_MAX);
   }
 
   /** Advances the simulation by exactly one tick. The only way to change domain state. */
@@ -146,6 +153,7 @@ export class Game {
     }
 
     this.ticks += 1;
+    this.maybeLose(events);
     this.maybeWin(events);
     return events;
   }
@@ -514,8 +522,15 @@ export class Game {
     events.push({ type: 'ResurrectionShipExposed', x: ship.x, y: ship.y });
   }
 
+  private maybeLose(events: DomainEvent[]): void {
+    if (this.runLost || this.runWon) return;
+    if (this.fleet.view.integrity > 0) return;
+    this.runLost = true;
+    events.push({ type: 'RunLost' });
+  }
+
   private maybeWin(events: DomainEvent[]): void {
-    if (this.runWon) return;
+    if (this.runWon || this.runLost) return;
     if (!this.resurrectionShip?.isDestroyed) return;
     if (this.raiders.length > 0 || this.downloads.length > 0) return;
     this.runWon = true;

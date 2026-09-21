@@ -9,7 +9,7 @@ import type { InputPort } from './ports/InputPort';
  * Where the run is. `resuming` is the 3-2-1 countdown that pause ends with (PRD 13.3): the
  * simulation is still frozen, so it behaves like `paused` as far as the domain is concerned.
  */
-export type SessionPhase = 'title' | 'running' | 'paused' | 'resuming' | 'won';
+export type SessionPhase = 'title' | 'running' | 'paused' | 'resuming' | 'won' | 'lost';
 
 /** Why the session paused. Shown to the player, because a pause that looks like a freeze is scary. */
 export type PauseReason = 'player' | 'tab-hidden' | 'window-blurred' | 'pointer-cancelled' | 'orientation-changed';
@@ -120,9 +120,9 @@ export class GameSession {
     this.pendingEvents.push(...this.game.continueFromJump());
   }
 
-  /** Leaves the win screen for the title. The next Launch starts a new run. */
+  /** Leaves the win or lose screen for the title. The next Launch starts a new run. */
   returnToTitle(): void {
-    if (this.phase !== 'won') return;
+    if (this.phase !== 'won' && this.phase !== 'lost') return;
     this.phase = 'title';
     this.reason = null;
     this.input.clear();
@@ -171,10 +171,10 @@ export class GameSession {
       const tickEvents = this.game.tick(this.input.readIntent());
       events.push(...tickEvents);
       ticksRun += 1;
-      if (tickEvents.some((event) => event.type === 'RunWon')) {
-        this.phase = 'won';
+      if (tickEvents.some((event) => event.type === 'RunWon' || event.type === 'RunLost')) {
+        this.phase = tickEvents.some((event) => event.type === 'RunLost') ? 'lost' : 'won';
         this.reason = null;
-        // Frozen on the win tick: leftover catch-up must not keep simulating.
+        // Frozen on the win or lose tick: leftover catch-up must not keep simulating.
         this.accumulatorSeconds = 0;
         this.publish();
         break;

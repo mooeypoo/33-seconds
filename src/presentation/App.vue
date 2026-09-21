@@ -9,6 +9,7 @@ import PauseOverlay from './components/PauseOverlay.vue';
 import RecoveringOverlay from './components/RecoveringOverlay.vue';
 import TitleOverlay from './components/TitleOverlay.vue';
 import WinOverlay from './components/WinOverlay.vue';
+import LoseOverlay from './components/LoseOverlay.vue';
 import { hudStore } from './stores/hudStore';
 
 const session = inject(SESSION_KEY);
@@ -43,6 +44,8 @@ onUnmounted(() => {
   <TitleOverlay v-if="status.phase === 'title'" @start="session.start()" />
 
   <WinOverlay v-else-if="status.phase === 'won'" @continue="session.returnToTitle()" />
+
+  <LoseOverlay v-else-if="status.phase === 'lost'" @continue="session.returnToTitle()" />
 
   <JumpFade v-else-if="status.phase === 'running' && cyclePhase === 'jumping'" />
 

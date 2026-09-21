@@ -225,6 +225,13 @@ const SABOTAGE = [
       mustFail: 'npm run test',
     },
     {
+      what: 'the fleet can die without ending the run',
+      file: 'src/domain/game.ts',
+      find: '    if (this.fleet.view.integrity > 0) return;',
+      replace: '    // sabotage: a zero pool is decorative',
+      mustFail: 'npm run test',
+    },
+    {
       what: 'the loop catches up without a limit',
       file: 'src/application/GameSession.ts',
       find: '    const ticksToRun = Math.min(dueTicks, MAX_CATCH_UP_TICKS);',

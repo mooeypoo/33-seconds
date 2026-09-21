@@ -1,4 +1,4 @@
-import { WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../shared/world';
+import { clamp, WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../shared/world';
 import type { CivilianShipView, FleetView } from '../views';
 
 /** The run's real health bar. 100 is full. The only way to lose (PRD 7). */
@@ -66,9 +66,13 @@ export function nearestCivilianShipIndex(x: number): number {
  * so the first play of the pool is readable and deterministic.
  */
 export class Fleet {
-  private integrity = FLEET_INTEGRITY_MAX;
+  private integrity: number;
   private damageThisCycle = 0;
   private lastHitShipId: number | null = null;
+
+  constructor(startingIntegrity: number = FLEET_INTEGRITY_MAX) {
+    this.integrity = clamp(startingIntegrity, 0, FLEET_INTEGRITY_MAX);
+  }
 
   get view(): FleetView {
     const healthyCount = Math.round((this.integrity / FLEET_INTEGRITY_MAX) * CIVILIAN_SHIP_COUNT);

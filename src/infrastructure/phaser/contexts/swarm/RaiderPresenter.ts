@@ -112,7 +112,7 @@ export class RaiderPresenter implements Presenter {
 
   private syncGhosts(view: GameView): void {
     // A download bar means the loop is still on. After the ship is gone, new kills do not spawn a
-    // blip. Grey-out / "offline" treatment of leftover ghosts waits for the graphics pass (PRD 6).
+    // blip. Grey leftover ghosts and the wreck wait for the graphics pass (PRD 6, ART-DIRECTION §9).
     const live = new Set(view.ghosts.map((ghost) => ghost.identityId));
 
     for (const [identityId, mark] of this.blips) {

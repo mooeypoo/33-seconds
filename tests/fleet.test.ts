@@ -6,6 +6,7 @@ import {
   CIVILIAN_SHIP_COUNT,
   FLEET_CYCLE_DAMAGE_CAP,
   FLEET_DAMAGE_PER_STRAY,
+  FLEET_DAMAGE_PER_STRAFE,
   FLEET_INTEGRITY_MAX,
   FLEET_LINE_Y_UNITS,
   FLEET_REPAIR_OF_MISSING,
@@ -58,6 +59,12 @@ describe('Fleet Integrity', () => {
     const full = new Fleet();
     full.repairAtJump();
     expect(full.view.integrity).toBe(FLEET_INTEGRITY_MAX);
+  });
+
+  it('can reach zero when the pool is already thin', () => {
+    const fleet = new Fleet(8);
+    expect(fleet.takeStrafe(0)).toBe(FLEET_DAMAGE_PER_STRAFE);
+    expect(fleet.view.integrity).toBe(0);
   });
 
   it('puts ten hulls on the line, and a stray marks the nearest one', () => {
@@ -149,5 +156,20 @@ describe('strays in a run', () => {
     run(game, ticksFor(JUMPING_SECONDS));
     expect(game.view.cycle.phase).toBe('recovering');
     expect(game.view.fleet.integrity).toBeLessThanOrEqual(FLEET_INTEGRITY_MAX);
+  });
+
+  it('ends the run when integrity reaches zero', () => {
+    const game = createGame({ seed: 1, raidersFire: false, fleetStartingIntegrity: FLEET_DAMAGE_PER_STRAFE });
+    let lost = false;
+    for (let i = 0; i < ticksFor(12); i++) {
+      const events = game.tick(IDLE_INTENT);
+      if (events.some((event) => event.type === 'RunLost')) {
+        lost = true;
+        expect(game.view.fleet.integrity).toBe(0);
+        break;
+      }
+    }
+    expect(lost).toBe(true);
+    expect(game.tick(IDLE_INTENT).some((event) => event.type === 'RunLost')).toBe(false);
   });
 });

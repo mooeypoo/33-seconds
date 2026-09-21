@@ -91,6 +91,10 @@ export interface RunWon {
   readonly type: 'RunWon';
 }
 
+export interface RunLost {
+  readonly type: 'RunLost';
+}
+
 export type DomainEvent =
   | ViperSpawned
   | ShotFired
@@ -105,4 +109,5 @@ export type DomainEvent =
   | ResurrectionShipArrived
   | ResurrectionShipExposed
   | ResurrectionShipDestroyed
-  | RunWon;
+  | RunWon
+  | RunLost;
