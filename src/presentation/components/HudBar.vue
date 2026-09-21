@@ -67,6 +67,7 @@ const stats = hudStore.state;
             : `raptor ${String(stats.stats.raptorHp)}/${String(stats.stats.raptorHpMax)}`
         }}
       </span>
+      <span v-if="stats.stats.sixPresent" data-testid="six"> · six</span>
       <span v-if="stats.stats.cylonEye" data-testid="cylon-eye"> · two transponders</span>
     </p>
 

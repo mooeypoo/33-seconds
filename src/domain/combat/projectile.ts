@@ -57,6 +57,18 @@ export class Projectile {
     return this.ownerValue;
   }
 
+  get isStray(): boolean {
+    return this.stray;
+  }
+
+  get x(): number {
+    return this.positionX;
+  }
+
+  get y(): number {
+    return this.positionY;
+  }
+
   revive(
     id: number,
     x: number,

@@ -24,4 +24,6 @@ export const PALETTE = {
   /** Missiles and their lock reticle (ring plus four-quadrant cross). Dradis green, never Cylon red (PRD 9, 15). */
   missile: 0xb8ffdc,
   missileLock: 0x4fe19a,
+  /** Imaginary Six outline and beam. Pale Dradis, never Cylon red, never a flicker (PRD 10.3, 15). */
+  sixGlow: 0xb8ffdc,
 } as const;

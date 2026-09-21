@@ -59,7 +59,7 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 | `ghost_blip` | 8 x 8 | 2 | P1 | Dradis-style download marker. Loop-on: filling bar plus the word. Loop-off: leftover blips go grey and stay that way. *Spoilers*: a still plus / cross on the blip so it reads as a target, and it sits at the return column until pickup. Colour is never the only cue; keep a word (`loop` / `offline` or downloading / done). |
 | `returned_marker` | 6 x 6 | 3 (x1, x2, x3 scratch) | P1 | Small overlay above Returned Raiders |
 | `raptor` | 14 x 12 | 2 | P2 | Escort card. Play uses an olive wedge and hull pips above the fleet line. HUD `raptor n/max` or `hangar`. Never Cylon red. |
-| `imaginary_six` | 16 x 16 | 2 | P2 | A steady outline sprite. Costume and silhouette, not likeness. |
+| `imaginary_six` | 16 x 16 | 2 | P2 | A steady outline sprite. Costume and silhouette, not likeness. Play uses a pale Dradis outline and a still glow; HUD `six`. Never flickers. Never Cylon red. |
 | `explosion_large` | 32 x 32 | 8 | P2 | Same rules as small |
 | `icon_hourglass`, `icon_hold_music`, `icon_missile`, `icon_special_ready`, `icon_eye` | 8 x 8 | 1 each | P2 | HUD and status icons |
 | `portrait_adama`, `_starbuck`, `_gaeta`, `_dualla` | 32 x 32 | 4 each (closed, open, blink, signature) | P2 | Core comms cast. Costume and silhouette, not actor likeness. |
@@ -161,3 +161,7 @@ While the resurrection ship is exposed, the hangar doors cycle: **4 s open, 4 s 
 ## 14. Raptor escort (graphics pass)
 
 *Raptor Escort* puts an olive wedge on the fleet line with three hull pips. Hangared escorts vanish; the HUD says `hangar` until the next cycle relaunches them. Play uses a rectangle and a short nose. Real `raptor` frames replace the wedge. Never Cylon red. Colour is never the only cue (PRD 9, 15).
+
+## 15. Imaginary Six (graphics pass)
+
+A pale outline beside the Viper and a thin persistent beam to her current target. The glow is still, never a flicker, well under 3 flashes per second because it does not flash. HUD says `six`. Play uses a stroked rectangle and a low-alpha disc. Real `imaginary_six` frames replace the outline. Costume and silhouette, not likeness. Never Cylon red. Colour is never the only cue (PRD 9, 15). Comms portraits wait.

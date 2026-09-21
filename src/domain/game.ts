@@ -18,6 +18,7 @@ import {
 } from './combat/missile';
 import { pickMissileLock, type LockCandidate } from './combat/targeting';
 import { Speech } from './combat/speech';
+import { ImaginarySix, SIX_DAMAGE } from './combat/imaginarySix';
 import { CYLON_SAVE_INVULN_SECONDS, type CardId } from './progression/catalog';
 import { Loadout } from './progression/loadout';
 import type { DomainEvent } from './shared/events';
@@ -105,6 +106,7 @@ export class Game {
   private readonly cycle = new JumpCycle();
   private readonly fleet: Fleet;
   private raptors: Raptor[] = [];
+  private six: ImaginarySix | null = null;
   private readonly viper = new Viper();
   private readonly shots: Projectile[] = [];
   private readonly liveShots: Projectile[] = [];
@@ -138,6 +140,7 @@ export class Game {
     this.fleet = new Fleet(options.fleetStartingIntegrity ?? FLEET_INTEGRITY_MAX);
     this.loadout = new Loadout(options.startingCards ?? []);
     this.launchRaptors();
+    this.syncSix();
   }
 
   /** Advances the simulation by exactly one tick. The only way to change domain state. */
@@ -176,6 +179,7 @@ export class Game {
       this.loadout.viperMaxSpeed,
       this.loadout.viperScale,
     );
+    this.six?.follow(this.viper.x, this.viper.y, this.viper.isEjected);
     if (this.viper.isReadyForPickup) {
       this.viper.recoverFromEject();
       events.push({ type: 'ViperRecovered', x: this.viper.x, y: this.viper.y });
@@ -198,6 +202,7 @@ export class Game {
       this.raiderFire(events);
       this.advanceShots();
       this.advanceMissiles();
+      this.fireSix(events);
       this.advanceRaiders(events);
       this.advanceRaptors();
       this.resolveHits(events);
@@ -210,6 +215,7 @@ export class Game {
     this.ticks += 1;
     this.maybeLose(events);
     this.maybeWin(events);
+    this.six?.follow(this.viper.x, this.viper.y, this.viper.isEjected);
     return events;
   }
 
@@ -224,7 +230,9 @@ export class Game {
     this.loadout.onCycleStart();
     const events: DomainEvent[] = [change];
     this.launchRaptors();
+    this.syncSix();
     this.viper.resetAtJump();
+    this.six?.follow(this.viper.x, this.viper.y, this.viper.isEjected);
     this.maybeArriveShip(events);
     this.maybeExposeShip(events);
     this.fillTheSwarm(events);
@@ -284,6 +292,7 @@ export class Game {
       })),
       fleet: this.fleet.view,
       raptors: this.raptors.map((raptor) => raptor.toView()),
+      imaginarySix: this.six?.isPresent ? this.six.toView() : null,
       resurrectionShip: this.resurrectionShip?.toView() ?? null,
       resurrectionsActive: this.resurrectionShip?.isDestroyed !== true,
       speechActive: this.speech.isActive,
@@ -846,6 +855,87 @@ export class Game {
 
   private advanceRaptors(): void {
     for (const raptor of this.raptors) raptor.advance(TICK_SECONDS);
+  }
+
+  private syncSix(): void {
+    if (this.loadout.hasImaginarySix) this.six ??= new ImaginarySix();
+    else this.six = null;
+  }
+
+  /**
+   * Fleet-defense beam: strafing Raiders first, then stray rounds, in range only. She does not
+   * shoot parked Raiders or the factory (PRD 10.3).
+   */
+  private fireSix(events: DomainEvent[]): void {
+    if (!this.six?.isPresent) return;
+    this.six.advance(TICK_SECONDS);
+    const target = this.pickSixTarget();
+    if (!target) {
+      this.six.clearAim();
+      return;
+    }
+    this.six.pointAt(target.x, target.y);
+    if (!this.six.readyToFire) return;
+    this.six.spentShot();
+    events.push({
+      type: 'SixFired',
+      x: this.six.x,
+      y: this.six.y,
+      targetX: target.x,
+      targetY: target.y,
+      kind: target.kind,
+    });
+    if (target.kind === 'stray') {
+      target.shot.kill();
+      events.push({ type: 'SixIntercepted', x: target.x, y: target.y });
+      return;
+    }
+    if (target.raider.takeHit(SIX_DAMAGE)) {
+      events.push({ type: 'RaiderDestroyed', id: target.raider.id, x: target.raider.x, y: target.raider.y });
+      if (!this.resurrectionShip?.isDestroyed) {
+        this.downloads.push(
+          new Download(
+            target.raider.identityId,
+            target.raider.deaths + 1,
+            target.raider.x,
+            target.raider.y,
+            this.loadout.downloadSeconds,
+          ),
+        );
+      }
+      const index = this.raiders.indexOf(target.raider);
+      if (index >= 0) this.raiders.splice(index, 1);
+      this.kills += 1;
+    }
+  }
+
+  private pickSixTarget():
+    | { readonly kind: 'strafe'; readonly raider: Raider; readonly x: number; readonly y: number }
+    | { readonly kind: 'stray'; readonly shot: Projectile; readonly x: number; readonly y: number }
+    | null {
+    const six = this.six;
+    if (!six) return null;
+
+    let bestStrafe: Raider | null = null;
+    for (const raider of this.raiders) {
+      if (!raider.isStrafing || raider.isProtected) continue;
+      if (!six.inRange(raider.x, raider.y)) continue;
+      if (!bestStrafe || raider.y > bestStrafe.y || (raider.y === bestStrafe.y && raider.id < bestStrafe.id)) {
+        bestStrafe = raider;
+      }
+    }
+    if (bestStrafe) return { kind: 'strafe', raider: bestStrafe, x: bestStrafe.x, y: bestStrafe.y };
+
+    let bestShot: Projectile | null = null;
+    for (const shot of this.liveShots) {
+      if (!shot.alive || shot.owner !== 'cylon' || !shot.isStray) continue;
+      if (!six.inRange(shot.x, shot.y)) continue;
+      if (!bestShot || shot.y > bestShot.y || (shot.y === bestShot.y && shot.id < bestShot.id)) {
+        bestShot = shot;
+      }
+    }
+    if (bestShot) return { kind: 'stray', shot: bestShot, x: bestShot.x, y: bestShot.y };
+    return null;
   }
 
   /**

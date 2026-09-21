@@ -37,7 +37,7 @@ Read this every session. The rest of the document is detail.
 - Cycle 1 teaches the loop. On cycle 2 the **resurrection ship** arrives **shielded** (visible, cannot be hurt). On cycle 4 the shield drops. Chip away at its persistent HP. Destroy it to stop the resurrections, then clear the remaining Raiders to win. It stations high on the right and drifts a little, slowly. Both cycle numbers are tunables.
 - You **lose** only when **Fleet Integrity** reaches zero. Strafing runs and stray bullets hurt the fleet. There is a per-cycle damage cap and a partial repair at each jump. Your Viper being destroyed costs time, not the run.
 - **Missiles** (3 per cycle) hit the first hostile thing they touch. Lock is the nearest hostile in a forward cone. Space, a large on-screen button, or a second finger fires one. **The Speech** (E or a button): 4 s of hover and invulnerability, ready again every 3 jumps.
-- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). Eleven starter cards are live; grow to 12. One free reroll: Ask Baltar Again.
+- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). The twelve MVP cards are live. One free reroll: Ask Baltar Again.
 - **Comfort rules:** no shake, wobble, or flashing. Color is never the only cue. Pause works anywhere.
 - **Comms portraits and jokes** are data written later. Use clearly labeled placeholders first.
 - Two difficulty tiers: **Civilian Ship** and **Viper Pilot**.
@@ -323,16 +323,16 @@ Rarities are initial proposals. **MVP** marks the launch set of 12.
 | *Raptor Escort* | A Raptor patrols the fleet line and soaks strays. After 3 hits it returns to hangar and comes back next cycle. | Uncommon | MVP |
 | *Imaginary Six* | See below. | Questionable | MVP |
 
-**Live now:** eleven starter cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, placeholder flair in JSON. Picking a card starts the next cycle. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. *Flak Enthusiast* is Galactica eating strays (40% then +15% per extra stack); without it every stray still hits. *Hangar Door Slam* is +30% factory damage while bays are open. *Raptor Escort* is one body per stack on the fleet line (3 HP, hangar, relaunch next cycle). Advice portraits, Imaginary Six, and Later cards wait.
+**Live now:** twelve MVP cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, placeholder flair in JSON. Picking a card starts the next cycle. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. *Flak Enthusiast* is Galactica eating strays (40% then +15% per extra stack); without it every stray still hits. *Hangar Door Slam* is +30% factory damage while bays are open. *Raptor Escort* is one body per stack on the fleet line (3 HP, hangar, relaunch next cycle). *Imaginary Six* is a formation wingman: thin beam, half a gun hit, strafes then strays, in range, untouchable. Advice portraits, comms "who are you talking to", and Later cards wait.
 
 ### 10.3 *Imaginary Six* (Questionable, one copy) `[Tunable]`
 
 An escort only you can see.
 
-- **Overwatch:** she flies in formation beside your Viper and auto-fires a thin beam, at about half the damage of your gun, prioritizing **strafing runs and bullets headed for the fleet**. She is the fleet-defense escort, where the Raptor is the fleet-soak escort.
-- **Untouchable:** she cannot be hit and does not soak damage. She is imaginary.
-- **Cosmetic downside:** other characters occasionally ask who you are talking to. Starbuck's replies read as one side of a conversation. Six's portrait style differs from the others.
-- **Presentation:** a distinct outline sprite with a steady (never flickering) glow. Card text stays vague: "An ally only you can see."
+- **Overwatch:** she flies in formation beside your Viper and auto-fires a thin beam, at about half the damage of your gun, prioritizing **strafing runs and bullets headed for the fleet**. She is the fleet-defense escort, where the Raptor is the fleet-soak escort. Live numbers: 0.5 damage, same interval as the gun, **140** wu range. She does not shoot parked Raiders or the factory.
+- **Untouchable:** she cannot be hit and does not soak damage. She is imaginary. She leaves the board while you are ejected.
+- **Cosmetic downside:** other characters occasionally ask who you are talking to. Starbuck's replies read as one side of a conversation. Six's portrait style differs from the others. Comms lines wait.
+- **Presentation:** a distinct outline sprite with a steady (never flickering) glow. The beam is a persistent line to the current target, not a strobe. HUD says `six`. Card text stays vague: "An ally only you can see."
 - **Balance watch:** her beam overlaps with *Flak Enthusiast* and *Raptor Escort*. The simulation harness should confirm that stacking all three does not make the fleet unloseable.
 
 ### 10.4 Sample builds (where replay value comes from)
@@ -588,3 +588,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | *Flak Enthusiast*: first stack intercepts 40% of strays (seeded, scenario stream only when the card is held). Extra stacks +15%, cap 85%. Strafes still land. Without the card every stray still hits. Placeholder puffs; real `flak_burst` later. Hangar Door Slam, Raptor, Imaginary Six wait. | Galactica's guns are a card, not a silent 40% on every run. |
 | 2026-09-21 | Hangar bays: 4 s open / 4 s sealed while the resurrection ship is exposed. Starts open when the shield drops. Combat ticks only. HUD `bays` / `sealed`; doors split or meet. *Hangar Door Slam* is +30% factory damage per stack while open. Path, panic, escape FTL wait. Raptor and Imaginary Six remain. | The queue-sniper card needs a door you can see. |
 | 2026-09-21 | *Raptor Escort*: one escort per stack (max 2), patrols the fleet line, soaks strays whose landing x is within 10 wu. 3 HP then hangar until the next cycle; relaunch at full hull. Raptor, then flak, then fleet. Strafes still land. Placeholder olive wedge and pips; HUD `raptor n/max` or `hangar`. Imaginary Six remains. | The bodyguard card needs a body on the line. |
+| 2026-09-21 | *Imaginary Six*: one copy. Formation wingman, thin beam at 0.5 damage, gun interval, 140 wu range. Strafes first, then strays. Untouchable, gone while ejected. Steady outline and a persistent beam (not a flash). HUD `six`. Comms "who are you talking to" waits. MVP table of 12 is live. | The last MVP card is the fleet-defense escort only you can see. |

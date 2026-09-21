@@ -139,6 +139,10 @@ export class Loadout {
     return this.stacksOf('raptor-escort');
   }
 
+  get hasImaginarySix(): boolean {
+    return this.stacksOf('imaginary-six') > 0;
+  }
+
   get cylonEye(): boolean {
     return this.cylonEyeActive;
   }

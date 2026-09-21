@@ -44,4 +44,5 @@ export interface FrameStats {
   readonly cylonEye: boolean;
   readonly raptorHp: number;
   readonly raptorHpMax: number;
+  readonly sixPresent: boolean;
 }

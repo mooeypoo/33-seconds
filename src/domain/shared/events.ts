@@ -150,6 +150,21 @@ export interface RaptorHangared {
   readonly y: number;
 }
 
+export interface SixFired {
+  readonly type: 'SixFired';
+  readonly x: number;
+  readonly y: number;
+  readonly targetX: number;
+  readonly targetY: number;
+  readonly kind: 'strafe' | 'stray';
+}
+
+export interface SixIntercepted {
+  readonly type: 'SixIntercepted';
+  readonly x: number;
+  readonly y: number;
+}
+
 export interface RunLost {
   readonly type: 'RunLost';
 }
@@ -168,6 +183,8 @@ export type DomainEvent =
   | FlakIntercepted
   | RaptorHit
   | RaptorHangared
+  | SixFired
+  | SixIntercepted
   | FleetHit
   | FleetRepaired
   | ResurrectionShipArrived

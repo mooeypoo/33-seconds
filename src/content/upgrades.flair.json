@@ -60,6 +60,16 @@
     }
   },
   {
+    "id": "imaginary-six",
+    "title": "Imaginary Six",
+    "joke": "PLACEHOLDER: An ally only you can see.",
+    "plain": "A wingman only you can see. She cuts down strafes and stray rounds in range. Others will ask who you are talking to.",
+    "advice": {
+      "baltar": "PLACEHOLDER: I am not seeing anyone. That is probably fine.",
+      "roslin": "PLACEHOLDER: If she is watching the civilians, I will not ask twice."
+    }
+  },
+  {
     "id": "raptor-escort",
     "title": "Raptor Escort",
     "joke": "PLACEHOLDER: They volunteered. Do not make it a habit.",

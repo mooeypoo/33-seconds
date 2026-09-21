@@ -316,6 +316,20 @@ const SABOTAGE = [
       mustFail: 'npm run test',
     },
     {
+      what: 'Imaginary Six never appears',
+      file: 'src/domain/game.ts',
+      find: '    if (this.loadout.hasImaginarySix) this.six ??= new ImaginarySix();\n    else this.six = null;',
+      replace: '    // sabotage: she was never there',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'Imaginary Six never fires',
+      file: 'src/domain/game.ts',
+      find: '    if (!this.six?.isPresent) return;',
+      replace: '    return;',
+      mustFail: 'npm run test',
+    },
+    {
       what: 'the loop catches up without a limit',
       file: 'src/application/GameSession.ts',
       find: '    const ticksToRun = Math.min(dueTicks, MAX_CATCH_UP_TICKS);',

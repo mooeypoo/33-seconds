@@ -6,6 +6,7 @@ import { WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../../domain/shared/world
 import type { Presenter } from './Presenter';
 import { MissilePresenter } from './contexts/combat/MissilePresenter';
 import { ProjectilePresenter } from './contexts/combat/ProjectilePresenter';
+import { ImaginarySixPresenter } from './contexts/combat/ImaginarySixPresenter';
 import { ViperPresenter } from './contexts/combat/ViperPresenter';
 import { StickPresenter, type StickSource } from './contexts/controls/StickPresenter';
 import { FleetPresenter } from './contexts/fleet/FleetPresenter';
@@ -58,6 +59,7 @@ export class GameScene extends Phaser.Scene {
       new FleetPresenter(this, prefersReducedMotion),
       new RaptorPresenter(this),
       new ViperPresenter(this),
+      new ImaginarySixPresenter(this),
       new ProjectilePresenter(this),
       new MissilePresenter(this),
       new RaiderPresenter(this, prefersReducedMotion),
@@ -138,6 +140,7 @@ export class GameScene extends Phaser.Scene {
       cylonEye: view.viper.cylonEye,
       raptorHp: view.raptors.reduce((sum, raptor) => sum + (raptor.hangared ? 0 : raptor.hp), 0),
       raptorHpMax: view.raptors.reduce((sum, raptor) => sum + raptor.hpMax, 0),
+      sixPresent: view.imaginarySix?.present === true,
     });
 
     this.secondsSinceStatsReport = 0;
