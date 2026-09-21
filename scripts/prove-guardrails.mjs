@@ -232,6 +232,20 @@ const SABOTAGE = [
       mustFail: 'npm run test',
     },
     {
+      what: 'an empty missile rack still fires',
+      file: 'src/domain/game.ts',
+      find: '    if (this.viper.missileAmmo <= 0) return;',
+      replace: '    // sabotage: the rack is a decoration',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'missile lock prefers the farthest hostile',
+      file: 'src/domain/combat/targeting.ts',
+      find: '    if (distance < bestDistance || (distance === bestDistance && candidate.id < (best?.id ?? Infinity))) {',
+      replace: '    if (distance > bestDistance || (distance === bestDistance && candidate.id < (best?.id ?? Infinity))) {',
+      mustFail: 'npm run test',
+    },
+    {
       what: 'the loop catches up without a limit',
       file: 'src/application/GameSession.ts',
       find: '    const ticksToRun = Math.min(dueTicks, MAX_CATCH_UP_TICKS);',

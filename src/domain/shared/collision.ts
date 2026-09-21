@@ -34,11 +34,28 @@ export function movingCircleHits(
   stillY: number,
   stillRadius: number,
 ): boolean {
-  return segmentHitsCircle(startX, startY, endX, endY, stillX, stillY, movingRadius + stillRadius);
+  return movingCircleHitAlong(startX, startY, endX, endY, movingRadius, stillX, stillY, stillRadius) !== null;
 }
 
-/** True when the closest point on the segment to the circle's centre is inside the circle. */
-function segmentHitsCircle(
+/**
+ * How far along the moving circle's path the hit happens, 0 at the start and 1 at the end.
+ * Null when the swept circle misses. Missiles use this to pick the *first* hostile on the path.
+ */
+export function movingCircleHitAlong(
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+  movingRadius: number,
+  stillX: number,
+  stillY: number,
+  stillRadius: number,
+): number | null {
+  return segmentHitAlong(startX, startY, endX, endY, stillX, stillY, movingRadius + stillRadius);
+}
+
+/** How far along the segment the closest point in the circle sits, or null on a miss. */
+function segmentHitAlong(
   startX: number,
   startY: number,
   endX: number,
@@ -46,7 +63,7 @@ function segmentHitsCircle(
   circleX: number,
   circleY: number,
   radius: number,
-): boolean {
+): number | null {
   const travelX = endX - startX;
   const travelY = endY - startY;
   const travelSquared = travelX * travelX + travelY * travelY;
@@ -54,7 +71,7 @@ function segmentHitsCircle(
   const offsetY = circleY - startY;
 
   if (travelSquared === 0) {
-    return offsetX * offsetX + offsetY * offsetY <= radius * radius;
+    return offsetX * offsetX + offsetY * offsetY <= radius * radius ? 0 : null;
   }
 
   let along = (offsetX * travelX + offsetY * travelY) / travelSquared;
@@ -63,5 +80,6 @@ function segmentHitsCircle(
 
   const closestX = startX + along * travelX - circleX;
   const closestY = startY + along * travelY - circleY;
-  return closestX * closestX + closestY * closestY <= radius * radius;
+  if (closestX * closestX + closestY * closestY > radius * radius) return null;
+  return along;
 }

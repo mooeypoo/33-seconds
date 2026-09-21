@@ -80,4 +80,23 @@ test.describe('steering works wherever the finger lands', () => {
     await expectViperToMove(page, 'fly up on the up arrow', (now) => now.y < afterRight.y);
     await page.keyboard.up('ArrowUp');
   });
+
+  test('the missile button fires one round and does not steal the stick', async ({ page }) => {
+    await startRun(page);
+    await expect(page.getByTestId('missiles')).toHaveText('3/3');
+
+    await page.getByTestId('fire-missile').click();
+    await expect.poll(async () => page.getByTestId('missiles').textContent(), {
+      message: 'ammo should drop after one press',
+      timeout: 10_000,
+    }).toBe('2/3');
+
+    const before = await viperPosition(page);
+    const box = (await page.getByTestId('fire-missile').boundingBox())!;
+    await dragFrom(page, { x: box.x + box.width / 2, y: box.y + box.height / 2 }, -80, -80);
+    await page.waitForTimeout(700);
+    const after = await viperPosition(page);
+    await releaseDrag(page);
+    expect(after).toEqual(before);
+  });
 });

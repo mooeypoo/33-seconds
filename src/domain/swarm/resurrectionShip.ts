@@ -110,9 +110,9 @@ export class ResurrectionShip {
     this.positionX += Math.sign(remaining) * step;
   }
 
-  takeHit(): boolean {
+  takeHit(damage = 1): boolean {
     if (this.hull <= 0 || this.shielded) return false;
-    this.hull -= 1;
+    this.hull = Math.max(0, this.hull - damage);
     return this.hull <= 0;
   }
 

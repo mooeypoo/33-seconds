@@ -45,6 +45,8 @@ const stats = hudStore.state;
       }}</span>
       ·
       <span data-testid="resurrections">{{ stats.stats.resurrectionsActive ? 'loop' : 'offline' }}</span>
+      · missiles
+      <span data-testid="missiles">{{ stats.stats.missiles }}/{{ stats.stats.missilesMax }}</span>
     </p>
 
     <FleetReadout v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" />

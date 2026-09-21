@@ -1,3 +1,4 @@
+import { MISSILE_CAPACITY } from './missile';
 import { clampIntentDirection } from '../shared/intent';
 import { clamp, WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../shared/world';
 
@@ -48,6 +49,7 @@ export class Viper {
   private previousPositionX = VIPER_SPAWN_X_UNITS;
   private previousPositionY = VIPER_SPAWN_Y_UNITS;
   private hull = VIPER_HULL_HIT_POINTS;
+  private missiles = MISSILE_CAPACITY;
   private ejected = false;
   private ejectRemainingSeconds = 0;
   private invulnerableRemainingSeconds = 0;
@@ -78,6 +80,17 @@ export class Viper {
 
   get hp(): number {
     return this.hull;
+  }
+
+  get missileAmmo(): number {
+    return this.missiles;
+  }
+
+  /** Spends one missile. False when the rack is empty. */
+  trySpendMissile(): boolean {
+    if (this.missiles <= 0) return false;
+    this.missiles -= 1;
+    return true;
   }
 
   get isEjected(): boolean {
@@ -159,11 +172,12 @@ export class Viper {
     this.velocityY = 0;
   }
 
-  /** Tyrol at the jump: full hull, and a pilot who was still in a Raptor is back in the seat. */
+  /** Tyrol at the jump: full hull and a fresh rack of missiles, and a pilot in a Raptor is back. */
   resetAtJump(): void {
     this.ejected = false;
     this.ejectRemainingSeconds = 0;
     this.hull = VIPER_HULL_HIT_POINTS;
+    this.missiles = MISSILE_CAPACITY;
     this.invulnerableRemainingSeconds = 0;
     this.velocityX = 0;
     this.velocityY = 0;

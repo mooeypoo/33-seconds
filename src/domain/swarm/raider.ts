@@ -148,10 +148,10 @@ export class Raider {
     this.previousPositionX = this.positionX;
   }
 
-  /** Removes one hit point. Returns true when this hit destroyed it. */
-  takeHit(): boolean {
+  /** Removes hit points. Returns true when this hit destroyed it. */
+  takeHit(damage = 1): boolean {
     if (this.hitPoints <= 0) return false;
-    this.hitPoints -= 1;
+    this.hitPoints = Math.max(0, this.hitPoints - damage);
     return this.hitPoints <= 0;
   }
 

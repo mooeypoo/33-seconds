@@ -11,7 +11,8 @@ const emit = defineEmits<{ start: [] }>();
     <button class="start" type="button" @click="emit('start')">Launch</button>
 
     <p class="hint">
-      Move with WASD, the arrow keys, or by dragging anywhere. Pause with Esc, P, or the button.
+      Move with WASD, the arrow keys, or by dragging anywhere. Missiles with Space or the button.
+      Pause with Esc, P, or the button.
     </p>
     <p class="disclaimer">
       Unofficial fan project. Not affiliated with or endorsed by the show's rights holders or anyone

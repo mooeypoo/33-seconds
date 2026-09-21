@@ -14,6 +14,22 @@ export interface ViperView {
   readonly ejected: boolean;
 }
 
+export interface MissileView {
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+  readonly previousX: number;
+  readonly previousY: number;
+}
+
+export interface MissileLockView {
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+  readonly previousX: number;
+  readonly previousY: number;
+}
+
 export type ProjectileOwner = 'player' | 'cylon';
 
 export interface ProjectileView {
@@ -93,6 +109,10 @@ export interface ResurrectionShipView {
 export interface GameView {
   readonly viper: ViperView;
   readonly projectiles: readonly ProjectileView[];
+  readonly missiles: readonly MissileView[];
+  readonly missileLock: MissileLockView | null;
+  readonly missileAmmo: number;
+  readonly missileAmmoMax: number;
   readonly raiders: readonly RaiderView[];
   readonly ghosts: readonly GhostView[];
   readonly fleet: FleetView;

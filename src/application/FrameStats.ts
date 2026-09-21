@@ -33,4 +33,6 @@ export interface FrameStats {
   readonly shipDestroyed: boolean;
   readonly shipShielded: boolean;
   readonly resurrectionsActive: boolean;
+  readonly missiles: number;
+  readonly missilesMax: number;
 }

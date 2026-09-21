@@ -10,8 +10,19 @@ import {
   VIPER_SHOT_RADIUS_UNITS,
   VIPER_SHOT_SPEED_UNITS_PER_SECOND,
 } from './combat/projectile';
+import {
+  MAX_MISSILES,
+  MISSILE_CAPACITY,
+  MISSILE_RADIUS_UNITS,
+  MISSILE_RAIDER_DAMAGE,
+  MISSILE_SHIP_DAMAGE,
+  MISSILE_SPEED_UNITS_PER_SECOND,
+  Missile,
+  RESURRECTION_SHIP_LOCK_ID,
+} from './combat/missile';
+import { pickMissileLock, type LockCandidate } from './combat/targeting';
 import type { DomainEvent } from './shared/events';
-import { movingCircleHits } from './shared/collision';
+import { movingCircleHitAlong, movingCircleHits } from './shared/collision';
 import type { InputIntent } from './shared/intent';
 import { createRandomStream, type RandomStream } from './shared/random';
 import { TICK_SECONDS } from './shared/time';
@@ -61,6 +72,11 @@ export interface GameOptions {
    */
   readonly resurrectionShipHitPoints?: number;
   /**
+   * When false, the Viper holds its gun. Missile tests use this so a kill is the missile's, not
+   * three auto-fire rounds. Play always leaves it on.
+   */
+  readonly viperFires?: boolean;
+  /**
    * Starting Fleet Integrity. Play uses 100. Tests can start near the floor so a dive can end
    * the run; Civilian Ship numbers cannot reach zero in a normal cycle (PRD 7.2).
    */
@@ -77,6 +93,7 @@ export class Game {
   /** Station-keeping for the resurrection ship. Separate so a wander cannot steal spawn rolls. */
   private readonly station: RandomStream;
   private readonly raidersFire: boolean;
+  private readonly viperFires: boolean;
   private readonly resurrectionShipArrivesCycle: number;
   private readonly resurrectionShipVulnerableCycle: number;
   private readonly resurrectionShipHitPoints: number;
@@ -85,6 +102,8 @@ export class Game {
   private readonly viper = new Viper();
   private readonly shots: Projectile[] = [];
   private readonly liveShots: Projectile[] = [];
+  private readonly missiles: Missile[] = [];
+  private readonly liveMissiles: Missile[] = [];
   private readonly raiders: Raider[] = [];
   private readonly downloads: Download[] = [];
   private resurrectionShip: ResurrectionShip | null = null;
@@ -95,12 +114,14 @@ export class Game {
   private ticks = 0;
   private fireCooldownSeconds = 0;
   private kills = 0;
+  private missileHeld = false;
 
   constructor(options: GameOptions = {}) {
     const seed = options.seed ?? DEFAULT_RUN_SEED;
     this.scenario = createRandomStream(seed);
     this.station = createRandomStream((seed ^ 0x51ed) >>> 0);
     this.raidersFire = options.raidersFire ?? true;
+    this.viperFires = options.viperFires ?? true;
     this.resurrectionShipArrivesCycle = options.resurrectionShipArrivesCycle ?? RESURRECTION_SHIP_ARRIVES_CYCLE;
     const vulnerable = options.resurrectionShipVulnerableCycle ?? RESURRECTION_SHIP_VULNERABLE_CYCLE;
     this.resurrectionShipVulnerableCycle = Math.max(this.resurrectionShipArrivesCycle, vulnerable);
@@ -138,16 +159,21 @@ export class Game {
       events.push({ type: 'ViperRecovered', x: this.viper.x, y: this.viper.y });
     }
 
+    const missileRising = this.noteMissilePress(intent);
+
     if (this.cycle.isInCombat) {
       this.fillTheSwarm(events);
       this.assignAttackTokens();
       this.assignStrafeTokens();
       this.autoFire(events);
+      this.maybeFireMissile(missileRising, events);
       this.raiderFire(events);
       this.advanceShots();
+      this.advanceMissiles();
       this.advanceRaiders(events);
       this.resolveHits(events);
       this.reclaimShotsThatLeft();
+      this.reclaimMissilesThatLeft();
       this.advanceDownloads();
       this.fillTheSwarm(events);
     }
@@ -190,6 +216,10 @@ export class Game {
         ejected: viper.isEjected,
       },
       projectiles: this.liveShots.map((shot) => shot.toView()),
+      missiles: this.liveMissiles.map((missile) => missile.toView()),
+      missileLock: this.lockView(),
+      missileAmmo: this.viper.missileAmmo,
+      missileAmmoMax: MISSILE_CAPACITY,
       raiders: this.raiders.map((raider) => raider.toView()),
       ghosts: this.downloads.map((download) => ({
         identityId: download.identityId,
@@ -206,7 +236,7 @@ export class Game {
   }
 
   private autoFire(events: DomainEvent[]): void {
-    if (!this.viper.canFight) return;
+    if (!this.viperFires || !this.viper.canFight) return;
     this.fireCooldownSeconds -= TICK_SECONDS;
     if (this.fireCooldownSeconds > 0) return;
     if (this.liveCount('player') >= MAX_PLAYER_SHOTS) return;
@@ -221,6 +251,103 @@ export class Game {
     this.liveShots.push(shot);
     this.fireCooldownSeconds = VIPER_FIRE_INTERVAL_SECONDS;
     events.push({ type: 'ShotFired', id: shot.id, x, y, owner: 'player' });
+  }
+
+  /**
+   * One missile per rising edge, so a held Space cannot dump the rack (PRD 8.2). Pointer and the
+   * on-screen button already latch; the domain still edges so a keyboard hold is safe. The edge is
+   * tracked every tick, including Recovering, so a hold across the jump is not a free launch.
+   */
+  private noteMissilePress(intent: InputIntent): boolean {
+    const rising = intent.missile && !this.missileHeld;
+    this.missileHeld = intent.missile;
+    return rising;
+  }
+
+  private maybeFireMissile(rising: boolean, events: DomainEvent[]): void {
+    if (!rising || !this.viper.canFight) return;
+    if (this.viper.missileAmmo <= 0) return;
+
+    const missile = this.obtainMissile();
+    if (!missile) return;
+    if (!this.viper.trySpendMissile()) return;
+
+    const lock = pickMissileLock(this.viper.x, this.viper.y, this.lockCandidates());
+    const x = this.viper.x;
+    const y = this.viper.y - VIPER_HALF_HEIGHT_UNITS;
+    let velocityX = 0;
+    let velocityY = -MISSILE_SPEED_UNITS_PER_SECOND;
+    if (lock) {
+      const deltaX = lock.x - x;
+      const deltaY = lock.y - y;
+      const distance = Math.hypot(deltaX, deltaY) || 1;
+      velocityX = (deltaX / distance) * MISSILE_SPEED_UNITS_PER_SECOND;
+      velocityY = (deltaY / distance) * MISSILE_SPEED_UNITS_PER_SECOND;
+    }
+    missile.revive(this.nextId, x, y, velocityX, velocityY, lock?.id ?? null);
+    this.nextId += 1;
+    this.liveMissiles.push(missile);
+    events.push({ type: 'MissileFired', id: missile.id, x, y });
+  }
+
+  private obtainMissile(): Missile | null {
+    const recycled = this.missiles.find((missile) => !missile.alive);
+    if (recycled) return recycled;
+    if (this.missiles.length >= MAX_MISSILES) return null;
+    const created = new Missile();
+    this.missiles.push(created);
+    return created;
+  }
+
+  private lockCandidates(): LockCandidate[] {
+    const candidates: LockCandidate[] = [];
+    for (const raider of this.raiders) {
+      if (raider.isProtected) continue;
+      candidates.push({ id: raider.id, x: raider.x, y: raider.y });
+    }
+    const ship = this.resurrectionShip;
+    if (ship && !ship.isDestroyed) {
+      candidates.push({ id: RESURRECTION_SHIP_LOCK_ID, x: ship.x, y: ship.y });
+    }
+    return candidates;
+  }
+
+  private lockView(): GameView['missileLock'] {
+    const lock = pickMissileLock(this.viper.x, this.viper.y, this.lockCandidates());
+    if (!lock) return null;
+    const previous = this.lockPreviousPose(lock.id);
+    return {
+      id: lock.id,
+      x: lock.x,
+      y: lock.y,
+      previousX: previous?.x ?? lock.x,
+      previousY: previous?.y ?? lock.y,
+    };
+  }
+
+  private lockPreviousPose(id: number): { x: number; y: number } | null {
+    if (id === RESURRECTION_SHIP_LOCK_ID) {
+      const ship = this.resurrectionShip;
+      if (!ship) return null;
+      const view = ship.toView();
+      return { x: view.previousX, y: view.previousY };
+    }
+    const raider = this.raiders.find((body) => body.id === id);
+    if (!raider) return null;
+    const view = raider.toView();
+    return { x: view.previousX, y: view.previousY };
+  }
+
+  private poseForMissileTarget(id: number | null): { x: number; y: number } | null {
+    if (id === null) return null;
+    if (id === RESURRECTION_SHIP_LOCK_ID) {
+      const ship = this.resurrectionShip;
+      if (!ship || ship.isDestroyed) return null;
+      return { x: ship.x, y: ship.y };
+    }
+    const raider = this.raiders.find((body) => body.id === id);
+    if (!raider) return null;
+    return { x: raider.x, y: raider.y };
   }
 
   private assignAttackTokens(): void {
@@ -306,6 +433,14 @@ export class Game {
     }
   }
 
+  private advanceMissiles(): void {
+    for (const missile of this.liveMissiles) {
+      const target = this.poseForMissileTarget(missile.targetId);
+      if (target) missile.advance(TICK_SECONDS, target.x, target.y);
+      else missile.advance(TICK_SECONDS);
+    }
+  }
+
   private advanceRaiders(events: DomainEvent[]): void {
     for (const raider of this.raiders) {
       raider.advance(TICK_SECONDS);
@@ -331,9 +466,11 @@ export class Game {
 
   private resolveHits(events: DomainEvent[]): void {
     this.resolvePlayerHits(events);
+    this.resolveMissileHits(events);
     this.resolveCylonHits(events);
     this.resolveFleetHits(events);
     this.dropDeadShots();
+    this.dropDeadMissiles();
   }
 
   private resolvePlayerHits(events: DomainEvent[]): void {
@@ -392,6 +529,79 @@ export class Game {
     }
   }
 
+  /**
+   * Hits the first hostile on the path, not the lock. An escort in front of the ship soaks the
+   * round even when the reticle is on the factory (PRD 8.2).
+   */
+  private resolveMissileHits(events: DomainEvent[]): void {
+    for (const missile of this.liveMissiles) {
+      if (!missile.alive) continue;
+      const view = missile.toView();
+
+      let bestAlong = Infinity;
+      let bestId = Infinity;
+      let hitRaider: Raider | null = null;
+      let hitShip = false;
+
+      for (const raider of this.raiders) {
+        if (raider.isProtected) continue;
+        const along = movingCircleHitAlong(
+          view.previousX,
+          view.previousY,
+          view.x,
+          view.y,
+          MISSILE_RADIUS_UNITS,
+          raider.x,
+          raider.y,
+          RAIDER_RADIUS_UNITS,
+        );
+        if (along === null) continue;
+        if (along < bestAlong || (along === bestAlong && raider.id < bestId)) {
+          bestAlong = along;
+          bestId = raider.id;
+          hitRaider = raider;
+          hitShip = false;
+        }
+      }
+
+      const ship = this.resurrectionShip;
+      if (ship && !ship.isDestroyed) {
+        const along = movingCircleHitAlong(
+          view.previousX,
+          view.previousY,
+          view.x,
+          view.y,
+          MISSILE_RADIUS_UNITS,
+          ship.x,
+          ship.y,
+          RESURRECTION_SHIP_RADIUS_UNITS,
+        );
+        if (
+          along !== null &&
+          (along < bestAlong || (along === bestAlong && RESURRECTION_SHIP_LOCK_ID < bestId))
+        ) {
+          hitRaider = null;
+          hitShip = true;
+        }
+      }
+
+      if (!hitRaider && !hitShip) continue;
+      missile.kill();
+      if (hitRaider?.takeHit(MISSILE_RAIDER_DAMAGE)) {
+        events.push({ type: 'RaiderDestroyed', id: hitRaider.id, x: hitRaider.x, y: hitRaider.y });
+        if (!this.resurrectionShip?.isDestroyed) {
+          this.downloads.push(new Download(hitRaider.identityId, hitRaider.deaths + 1, hitRaider.x, hitRaider.y));
+        }
+        const index = this.raiders.indexOf(hitRaider);
+        if (index >= 0) this.raiders.splice(index, 1);
+        this.kills += 1;
+      }
+      if (hitShip && ship?.takeHit(MISSILE_SHIP_DAMAGE)) {
+        events.push({ type: 'ResurrectionShipDestroyed', x: ship.x, y: ship.y });
+      }
+    }
+  }
+
   private resolveCylonHits(events: DomainEvent[]): void {
     if (!this.viper.isVulnerable) return;
 
@@ -445,6 +655,13 @@ export class Game {
     this.dropDeadShots();
   }
 
+  private reclaimMissilesThatLeft(): void {
+    for (const missile of this.liveMissiles) {
+      if (missile.hasLeftTheWorld) missile.kill();
+    }
+    this.dropDeadMissiles();
+  }
+
   private dropDeadShots(): void {
     let write = 0;
     for (let read = 0; read < this.liveShots.length; read++) {
@@ -457,14 +674,28 @@ export class Game {
     this.liveShots.length = write;
   }
 
+  private dropDeadMissiles(): void {
+    let write = 0;
+    for (let read = 0; read < this.liveMissiles.length; read++) {
+      const missile = this.liveMissiles[read];
+      if (missile?.alive) {
+        this.liveMissiles[write] = missile;
+        write += 1;
+      }
+    }
+    this.liveMissiles.length = write;
+  }
+
   /**
    * Jumping clears live fire and the Raider that was in this sector. That is not a kill: the
    * body left with the fleet. Pending downloads finish in transit and arrive first next cycle.
    */
   private clearTheSky(events: DomainEvent[]): void {
-    if (this.liveShots.length > 0) {
+    if (this.liveShots.length > 0 || this.liveMissiles.length > 0) {
       for (const shot of this.liveShots) shot.kill();
       this.dropDeadShots();
+      for (const missile of this.liveMissiles) missile.kill();
+      this.dropDeadMissiles();
       events.push({ type: 'ShotsCleared' });
     }
     if (this.resurrectionShip?.isDestroyed) {

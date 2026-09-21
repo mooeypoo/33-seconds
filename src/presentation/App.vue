@@ -10,6 +10,7 @@ import RecoveringOverlay from './components/RecoveringOverlay.vue';
 import TitleOverlay from './components/TitleOverlay.vue';
 import WinOverlay from './components/WinOverlay.vue';
 import LoseOverlay from './components/LoseOverlay.vue';
+import MissileButton from './components/MissileButton.vue';
 import { hudStore } from './stores/hudStore';
 
 const session = inject(SESSION_KEY);
@@ -38,6 +39,10 @@ onUnmounted(() => {
   <div ref="canvasHost" class="canvas-host" aria-hidden="true" />
 
   <HudBar :phase="status.phase" @pause="session.pause('player')" />
+
+  <MissileButton
+    v-if="status.phase === 'running' && cyclePhase !== 'recovering' && cyclePhase !== 'jumping'"
+  />
 
   <DragHint v-if="status.phase === 'running' && cyclePhase !== 'recovering' && cyclePhase !== 'jumping'" />
 

@@ -4,6 +4,7 @@ import type { GameSession } from '../../application/GameSession';
 import { VIPER_HULL_HIT_POINTS } from '../../domain/combat/viper';
 import { WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../../domain/shared/world';
 import type { Presenter } from './Presenter';
+import { MissilePresenter } from './contexts/combat/MissilePresenter';
 import { ProjectilePresenter } from './contexts/combat/ProjectilePresenter';
 import { ViperPresenter } from './contexts/combat/ViperPresenter';
 import { StickPresenter, type StickSource } from './contexts/controls/StickPresenter';
@@ -56,6 +57,7 @@ export class GameScene extends Phaser.Scene {
       new FleetPresenter(this),
       new ViperPresenter(this),
       new ProjectilePresenter(this),
+      new MissilePresenter(this),
       new RaiderPresenter(this, prefersReducedMotion),
       new ResurrectionShipPresenter(this),
       new StickPresenter(this, this.stick, prefersReducedMotion),
@@ -123,6 +125,8 @@ export class GameScene extends Phaser.Scene {
       shipDestroyed: view.resurrectionShip?.destroyed ?? false,
       shipShielded: view.resurrectionShip?.shielded ?? false,
       resurrectionsActive: view.resurrectionsActive,
+      missiles: view.missileAmmo,
+      missilesMax: view.missileAmmoMax,
     });
 
     this.secondsSinceStatsReport = 0;

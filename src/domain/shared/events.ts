@@ -91,6 +91,13 @@ export interface RunWon {
   readonly type: 'RunWon';
 }
 
+export interface MissileFired {
+  readonly type: 'MissileFired';
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+}
+
 export interface RunLost {
   readonly type: 'RunLost';
 }
@@ -109,5 +116,6 @@ export type DomainEvent =
   | ResurrectionShipArrived
   | ResurrectionShipExposed
   | ResurrectionShipDestroyed
+  | MissileFired
   | RunWon
   | RunLost;

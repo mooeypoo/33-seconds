@@ -36,7 +36,7 @@ Read this every session. The rest of the document is detail.
 - Destroyed Raiders come back as **ghost blips** after about 6 seconds. A cap on concurrent Raiders means returns *refill* the swarm and do not add to it, so waves are endless without getting harder. The download bar (and the word) is the tell that the loop is **on**. After the resurrection ship is gone, new kills leave no ghost: the HUD says **offline**, and that is when the last wave is finite. A later graphics pass can grey the leftover blips and the wreck; the word must stay so colour is never the only cue.
 - Cycle 1 teaches the loop. On cycle 2 the **resurrection ship** arrives **shielded** (visible, cannot be hurt). On cycle 4 the shield drops. Chip away at its persistent HP. Destroy it to stop the resurrections, then clear the remaining Raiders to win. It stations high on the right and drifts a little, slowly. Both cycle numbers are tunables.
 - You **lose** only when **Fleet Integrity** reaches zero. Strafing runs and stray bullets hurt the fleet. There is a per-cycle damage cap and a partial repair at each jump. Your Viper being destroyed costs time, not the run.
-- **Missiles** (3 per cycle) hit the first hostile thing they touch. One **special**: The Speech.
+- **Missiles** (3 per cycle) hit the first hostile thing they touch. Lock is the nearest hostile in a forward cone. Space, a large on-screen button, or a second finger fires one. One **special**: The Speech (not yet).
 - At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). Start with about 6 cards and grow to 12.
 - **Comfort rules:** no shake, wobble, or flashing. Color is never the only cue. Pause works anywhere.
 - **Comms portraits and jokes** are data written later. Use clearly labeled placeholders first.
@@ -227,11 +227,12 @@ Losing on Viper Pilot requires taking near-cap damage over and over, meaning ign
 - Raider guns **aim at the Viper** (perfect lead, no spread). A later look may switch them to **straight down** (a column you bodyguard while you hunt). Not this pass.
 
 ### 8.2 Missiles `[Tunable]`
-- Start each cycle with 3. Tyrol refills them at each jump. Heavy Raiders sometimes drop a pickup.
+- Start each cycle with 3. Tyrol refills them at each jump. Heavy Raiders sometimes drop a pickup. `[Later]`
 - **A missile hits the first hostile thing it touches**, so it is never wasted. If a Raider drifts into its path, that Raider explodes in a small blast.
 - **Targeting:** the nearest hostile inside a forward cone (about 70 degrees, limited range), not the nearest overall. Ties break by lowest entity ID. A small reticle shows the lock before you fire.
 - Escorts in front of the resurrection ship soak missiles, so clearing a lane matters.
 - Upgrades swap the targeting policy instead of adding flags (see the upgrade catalog).
+- **Live now:** Space, a second finger, or a large on-screen button. One press, one missile; holding does not dump the rack. A missile one-shots a Raider and deals **8** to the resurrection ship. Pickups, blast radius, and upgrade-swapped targeting wait.
 
 ### 8.3 Specials `[Tunable]` (Mandatory Firmware Update is `[Later]`)
 One special per run, chosen at run start. Each has an original-text comms moment and no recorded audio from the show.
@@ -412,7 +413,7 @@ Shift is deliberately not used for the special. On Windows, pressing it five tim
   - Reduced-effects mode keeps the ring and dot. They are information, not decoration, so the fade is what shortens, never the indicator.
 - **A first-run hint tells new players to drag** `[Core]`: on a touch device, before the first drag of a player's first run, a short line near the bottom of the play area says that dragging anywhere flies the Viper. It disappears on the first touch, is remembered as seen, and reappears only if storage is unavailable. No timers on it, and it never blocks play.
 - It works **wherever the finger lands**, on any overlay layer, except on visible buttons and menus.
-- **Missile:** a tap from a second finger anywhere.
+- **Missile:** a large on-screen button (one-handed), or a tap from a second finger anywhere. **Live now:** both.
 - **Special:** one small button in the corner opposite the stick thumb.
 - **Pause:** a button of at least 44 x 44 px in a top corner, inside the safe area.
 - **The play area is one fixed 9:16 portrait world** (for example 270 x 480 logical pixels). On phones it fills the screen, with thumbs at the bottom and HUD and comms at the top. On desktop it is centered, and the side margins hold the comms log and decoration. Phone landscape pillarboxes. (Default, see section 19.)
@@ -572,3 +573,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | Loop-on / loop-off tell: HUD `loop` while kills still download, `offline` after the ship is gone (no new ghost bar). Grey leftover blips and the wreck wait for the graphics pass. Colour is never the only cue. | A dead factory must read differently from an endless swarm, including on cycle 1 before the ship is visible. |
 | 2026-09-21 | Arrive cycle, expose cycle, HP (60), and wander stay as play numbers. Fairness / hardship may retune them. | First play of the ship worked; do not chase the details live. |
 | 2026-09-21 | Reaching zero Fleet Integrity ends the run (placeholder overlay, Retry to title). Civilian Ship numbers still cannot reach zero; Viper Pilot numbers wait. | M3 asked for a lose screen. The overlay is the rule; the numbers are the later fairness pass. |
+| 2026-09-21 | Missiles: 3 per cycle, refill at the jump. Nearest hostile in a 70° forward cone. Hits the first body on the path. One-shots a Raider, 8 damage to the resurrection ship. Space, on-screen button, or second finger. Lock reticle is a ring with a four-quadrant cross. Holding does not dump the rack. Pickups and policy upgrades wait. | M4 starts with a weapon you choose, not a card table. |
