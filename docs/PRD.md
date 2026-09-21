@@ -37,7 +37,7 @@ Read this every session. The rest of the document is detail.
 - Cycle 1 teaches the loop. On cycle 2 the **resurrection ship** arrives **shielded** (visible, cannot be hurt). On cycle 4 the shield drops. Chip away at its persistent HP. Destroy it to stop the resurrections, then clear the remaining Raiders to win. It stations high on the right and drifts a little, slowly. Both cycle numbers are tunables.
 - You **lose** only when **Fleet Integrity** reaches zero. Strafing runs and stray bullets hurt the fleet. There is a per-cycle damage cap and a partial repair at each jump. Your Viper being destroyed costs time, not the run.
 - **Missiles** (3 per cycle) hit the first hostile thing they touch. Lock is the nearest hostile in a forward cone. Space, a large on-screen button, or a second finger fires one. **The Speech** (E or a button): 4 s of hover and invulnerability, ready again every 3 jumps.
-- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). Ten starter cards are live; grow to 12. One free reroll: Ask Baltar Again.
+- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). Eleven starter cards are live; grow to 12. One free reroll: Ask Baltar Again.
 - **Comfort rules:** no shake, wobble, or flashing. Color is never the only cue. Pause works anywhere.
 - **Comms portraits and jokes** are data written later. Use clearly labeled placeholders first.
 - Two difficulty tiers: **Civilian Ship** and **Viper Pilot**.
@@ -188,6 +188,7 @@ Two separate pools, on purpose:
 2. **Stray bullets.** A Raider bullet that misses your Viper keeps flying. If it crosses the fleet line (near the bottom edge) it hits a civilian ship.
    - Two bullet states: *Aimed* (red) and *Stray* (orange). A bullet becomes Stray once it passes you, so the consequence is visible before it lands.
    - Damage per hit starts at **1** of **100** integrity (1%).
+   - *Raptor Escort* soaks a stray whose landing x is within about **10** wu of an on-station Raptor, before flak rolls. One escort per stack (max 2), **3** HP, then hangar until the next cycle. Strafes are not soaked.
    - Galactica's flak waits behind *Flak Enthusiast*: first stack intercepts about **40%** of strays (seeded). Extra stacks add 15%. Without the card every stray that crosses the line still hits, so the pool stays readable. Strafes are not flak. Placeholder puffs at the stray and a muzzle on Galactica; real `flak_burst` later.
    - Standing between the swarm and the fleet catches strays. Your Viper hull resets each jump, so absorbing hits is cheap. That makes a bodyguard build viable.
 
@@ -322,7 +323,7 @@ Rarities are initial proposals. **MVP** marks the launch set of 12.
 | *Raptor Escort* | A Raptor patrols the fleet line and soaks strays. After 3 hits it returns to hangar and comes back next cycle. | Uncommon | MVP |
 | *Imaginary Six* | See below. | Questionable | MVP |
 
-**Live now:** ten starter cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, placeholder flair in JSON. Picking a card starts the next cycle. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. *Flak Enthusiast* is Galactica eating strays (40% then +15% per extra stack); without it every stray still hits. *Hangar Door Slam* is +30% factory damage while bays are open. Advice portraits, Raptor, Imaginary Six, and Later cards wait.
+**Live now:** eleven starter cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, placeholder flair in JSON. Picking a card starts the next cycle. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. *Flak Enthusiast* is Galactica eating strays (40% then +15% per extra stack); without it every stray still hits. *Hangar Door Slam* is +30% factory damage while bays are open. *Raptor Escort* is one body per stack on the fleet line (3 HP, hangar, relaunch next cycle). Advice portraits, Imaginary Six, and Later cards wait.
 
 ### 10.3 *Imaginary Six* (Questionable, one copy) `[Tunable]`
 
@@ -586,3 +587,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | *Spoilers*: with the card, ghost blips sit on the return column (spawn height, death X) and a gun hit delays that download 3 s per stack. The killing round does not also delay. Missiles ignore ghosts. Jump still finishes transit. Placeholder plus on the blip; real art later. | Queue sniper: see the future, spend gun time to hold it. |
 | 2026-09-21 | *Flak Enthusiast*: first stack intercepts 40% of strays (seeded, scenario stream only when the card is held). Extra stacks +15%, cap 85%. Strafes still land. Without the card every stray still hits. Placeholder puffs; real `flak_burst` later. Hangar Door Slam, Raptor, Imaginary Six wait. | Galactica's guns are a card, not a silent 40% on every run. |
 | 2026-09-21 | Hangar bays: 4 s open / 4 s sealed while the resurrection ship is exposed. Starts open when the shield drops. Combat ticks only. HUD `bays` / `sealed`; doors split or meet. *Hangar Door Slam* is +30% factory damage per stack while open. Path, panic, escape FTL wait. Raptor and Imaginary Six remain. | The queue-sniper card needs a door you can see. |
+| 2026-09-21 | *Raptor Escort*: one escort per stack (max 2), patrols the fleet line, soaks strays whose landing x is within 10 wu. 3 HP then hangar until the next cycle; relaunch at full hull. Raptor, then flak, then fleet. Strafes still land. Placeholder olive wedge and pips; HUD `raptor n/max` or `hangar`. Imaginary Six remains. | The bodyguard card needs a body on the line. |

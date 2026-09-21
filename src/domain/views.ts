@@ -116,6 +116,17 @@ export interface ResurrectionShipView {
   readonly baysOpen: boolean;
 }
 
+export interface RaptorView {
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+  readonly previousX: number;
+  readonly previousY: number;
+  readonly hp: number;
+  readonly hpMax: number;
+  readonly hangared: boolean;
+}
+
 export interface GameView {
   readonly viper: ViperView;
   readonly projectiles: readonly ProjectileView[];
@@ -126,6 +137,7 @@ export interface GameView {
   readonly raiders: readonly RaiderView[];
   readonly ghosts: readonly GhostView[];
   readonly fleet: FleetView;
+  readonly raptors: readonly RaptorView[];
   readonly resurrectionShip: ResurrectionShipView | null;
   /**
    * True while kills still queue a download. False after the resurrection ship is gone: the last

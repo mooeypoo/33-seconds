@@ -60,6 +60,16 @@
     }
   },
   {
+    "id": "raptor-escort",
+    "title": "Raptor Escort",
+    "joke": "PLACEHOLDER: They volunteered. Do not make it a habit.",
+    "plain": "A Raptor patrols the fleet line and soaks strays. After 3 hits it hangars until the next cycle.",
+    "advice": {
+      "baltar": "PLACEHOLDER: Someone else catching the mail. I like this person.",
+      "roslin": "PLACEHOLDER: They will not stay up forever. Cover them when they peel off."
+    }
+  },
+  {
     "id": "overcompensating-cannon",
     "title": "Overcompensating Cannon",
     "joke": "PLACEHOLDER: The round is late. The round is huge.",

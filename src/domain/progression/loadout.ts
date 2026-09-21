@@ -134,6 +134,11 @@ export class Loadout {
     return base * (1 + HANGAR_SLAM_DAMAGE_PER_STACK * this.stacksOf('hangar-door-slam'));
   }
 
+  /** One escort per *Raptor Escort* stack. */
+  get raptorCount(): number {
+    return this.stacksOf('raptor-escort');
+  }
+
   get cylonEye(): boolean {
     return this.cylonEyeActive;
   }

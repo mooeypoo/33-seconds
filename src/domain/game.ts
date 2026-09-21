@@ -35,6 +35,7 @@ import {
   raiderSpawnMinX,
 } from './swarm/raider';
 import { Fleet, FLEET_INTEGRITY_MAX, FLEET_LINE_Y_UNITS } from './fleet/integrity';
+import { Raptor, raptorLaunchX } from './fleet/raptor';
 import { ATTACK_TOKENS, DIRECTOR_CAP, Download, GHOST_RADIUS_UNITS, STRAFE_TOKENS } from './swarm/resurrection';
 import {
   ResurrectionShip,
@@ -103,6 +104,7 @@ export class Game {
   private readonly resurrectionShipHitPoints: number;
   private readonly cycle = new JumpCycle();
   private readonly fleet: Fleet;
+  private raptors: Raptor[] = [];
   private readonly viper = new Viper();
   private readonly shots: Projectile[] = [];
   private readonly liveShots: Projectile[] = [];
@@ -135,6 +137,7 @@ export class Game {
     this.resurrectionShipHitPoints = options.resurrectionShipHitPoints ?? RESURRECTION_SHIP_HIT_POINTS;
     this.fleet = new Fleet(options.fleetStartingIntegrity ?? FLEET_INTEGRITY_MAX);
     this.loadout = new Loadout(options.startingCards ?? []);
+    this.launchRaptors();
   }
 
   /** Advances the simulation by exactly one tick. The only way to change domain state. */
@@ -196,6 +199,7 @@ export class Game {
       this.advanceShots();
       this.advanceMissiles();
       this.advanceRaiders(events);
+      this.advanceRaptors();
       this.resolveHits(events);
       this.reclaimShotsThatLeft();
       this.reclaimMissilesThatLeft();
@@ -219,6 +223,7 @@ export class Game {
     this.loadout.clearOffer();
     this.loadout.onCycleStart();
     const events: DomainEvent[] = [change];
+    this.launchRaptors();
     this.viper.resetAtJump();
     this.maybeArriveShip(events);
     this.maybeExposeShip(events);
@@ -278,6 +283,7 @@ export class Game {
         shootable: this.loadout.ghostsAreShootable,
       })),
       fleet: this.fleet.view,
+      raptors: this.raptors.map((raptor) => raptor.toView()),
       resurrectionShip: this.resurrectionShip?.toView() ?? null,
       resurrectionsActive: this.resurrectionShip?.isDestroyed !== true,
       speechActive: this.speech.isActive,
@@ -807,6 +813,7 @@ export class Game {
       if (!shot.alive || !shot.crossedFleetLine(FLEET_LINE_Y_UNITS)) continue;
       const x = shot.toView().x;
       shot.kill();
+      if (this.tryRaptorSoak(x, events)) continue;
       const chance = this.loadout.flakInterceptChance;
       // No roll when chance is 0, so a run without the card does not spend scenario RNG (D3).
       if (chance > 0 && this.scenario.next() < chance) {
@@ -826,6 +833,43 @@ export class Game {
         });
       }
     }
+  }
+
+  /** One escort per stack, full hull, spread along the line. Hangared ones relaunch next cycle. */
+  private launchRaptors(): void {
+    const count = this.loadout.raptorCount;
+    this.raptors = [];
+    for (let index = 0; index < count; index++) {
+      this.raptors.push(new Raptor(index, raptorLaunchX(index, count), index % 2 === 0 ? 1 : -1));
+    }
+  }
+
+  private advanceRaptors(): void {
+    for (const raptor of this.raptors) raptor.advance(TICK_SECONDS);
+  }
+
+  /**
+   * A stray that lands on a Raptor is eaten. Nearest escort on a tie. Strafes are not soaked
+   * (PRD 10.2).
+   */
+  private tryRaptorSoak(x: number, events: DomainEvent[]): boolean {
+    let best: Raptor | null = null;
+    let bestDistance = Infinity;
+    for (const raptor of this.raptors) {
+      if (!raptor.canSoak(x)) continue;
+      const distance = Math.abs(raptor.x - x);
+      if (distance < bestDistance || (distance === bestDistance && raptor.id < (best?.id ?? Infinity))) {
+        best = raptor;
+        bestDistance = distance;
+      }
+    }
+    if (!best) return false;
+    const hangared = best.takeHit();
+    events.push({ type: 'RaptorHit', id: best.id, hp: best.hp, x: best.x, y: best.y });
+    if (hangared) {
+      events.push({ type: 'RaptorHangared', id: best.id, x: best.x, y: best.y });
+    }
+    return true;
   }
 
   private reclaimShotsThatLeft(): void {

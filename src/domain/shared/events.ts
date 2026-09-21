@@ -135,6 +135,21 @@ export interface FlakIntercepted {
   readonly y: number;
 }
 
+export interface RaptorHit {
+  readonly type: 'RaptorHit';
+  readonly id: number;
+  readonly hp: number;
+  readonly x: number;
+  readonly y: number;
+}
+
+export interface RaptorHangared {
+  readonly type: 'RaptorHangared';
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+}
+
 export interface RunLost {
   readonly type: 'RunLost';
 }
@@ -151,6 +166,8 @@ export type DomainEvent =
   | ViperDownloaded
   | GhostDelayed
   | FlakIntercepted
+  | RaptorHit
+  | RaptorHangared
   | FleetHit
   | FleetRepaired
   | ResurrectionShipArrived

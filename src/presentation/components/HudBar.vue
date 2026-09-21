@@ -59,6 +59,14 @@ const stats = hudStore.state;
       }}</span>
       · cards
       <span data-testid="cards">{{ stats.stats.cards }}</span>
+      <span v-if="stats.stats.raptorHpMax > 0" data-testid="raptor">
+        ·
+        {{
+          stats.stats.raptorHp === 0
+            ? 'hangar'
+            : `raptor ${String(stats.stats.raptorHp)}/${String(stats.stats.raptorHpMax)}`
+        }}
+      </span>
       <span v-if="stats.stats.cylonEye" data-testid="cylon-eye"> · two transponders</span>
     </p>
 

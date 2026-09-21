@@ -9,6 +9,7 @@ import { ProjectilePresenter } from './contexts/combat/ProjectilePresenter';
 import { ViperPresenter } from './contexts/combat/ViperPresenter';
 import { StickPresenter, type StickSource } from './contexts/controls/StickPresenter';
 import { FleetPresenter } from './contexts/fleet/FleetPresenter';
+import { RaptorPresenter } from './contexts/fleet/RaptorPresenter';
 import { RaiderPresenter } from './contexts/swarm/RaiderPresenter';
 import { ResurrectionShipPresenter } from './contexts/swarm/ResurrectionShipPresenter';
 import { PALETTE } from './shared/palette';
@@ -55,6 +56,7 @@ export class GameScene extends Phaser.Scene {
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.presenters = [
       new FleetPresenter(this, prefersReducedMotion),
+      new RaptorPresenter(this),
       new ViperPresenter(this),
       new ProjectilePresenter(this),
       new MissilePresenter(this),
@@ -134,6 +136,8 @@ export class GameScene extends Phaser.Scene {
       speechJumpsUntilReady: view.speechJumpsUntilReady,
       cards: view.loadout.reduce((sum, card) => sum + card.stacks, 0),
       cylonEye: view.viper.cylonEye,
+      raptorHp: view.raptors.reduce((sum, raptor) => sum + (raptor.hangared ? 0 : raptor.hp), 0),
+      raptorHpMax: view.raptors.reduce((sum, raptor) => sum + raptor.hpMax, 0),
     });
 
     this.secondsSinceStatsReport = 0;

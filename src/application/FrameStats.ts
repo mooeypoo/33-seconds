@@ -42,4 +42,6 @@ export interface FrameStats {
   readonly speechJumpsUntilReady: number;
   readonly cards: number;
   readonly cylonEye: boolean;
+  readonly raptorHp: number;
+  readonly raptorHpMax: number;
 }

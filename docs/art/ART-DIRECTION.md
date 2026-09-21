@@ -58,7 +58,7 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 | `resurrection_ship` | 64 x 48 | 3 (damage states) plus a wreck | P1 | Chunky and ominous, clearly *not* a copy of anything. After it dies, the wreck must read as a dead factory, not a parked target. Hangar doors: split when open (red well visible), meet when sealed. HUD also says `bays` / `sealed`. |
 | `ghost_blip` | 8 x 8 | 2 | P1 | Dradis-style download marker. Loop-on: filling bar plus the word. Loop-off: leftover blips go grey and stay that way. *Spoilers*: a still plus / cross on the blip so it reads as a target, and it sits at the return column until pickup. Colour is never the only cue; keep a word (`loop` / `offline` or downloading / done). |
 | `returned_marker` | 6 x 6 | 3 (x1, x2, x3 scratch) | P1 | Small overlay above Returned Raiders |
-| `raptor` | 14 x 12 | 2 | P2 | Escort card |
+| `raptor` | 14 x 12 | 2 | P2 | Escort card. Play uses an olive wedge and hull pips above the fleet line. HUD `raptor n/max` or `hangar`. Never Cylon red. |
 | `imaginary_six` | 16 x 16 | 2 | P2 | A steady outline sprite. Costume and silhouette, not likeness. |
 | `explosion_large` | 32 x 32 | 8 | P2 | Same rules as small |
 | `icon_hourglass`, `icon_hold_music`, `icon_missile`, `icon_special_ready`, `icon_eye` | 8 x 8 | 1 each | P2 | HUD and status icons |
@@ -157,3 +157,7 @@ Without *Flak Enthusiast*, strays that cross the line hit. With it, Galactica ea
 ## 13. Hangar bays (graphics pass)
 
 While the resurrection ship is exposed, the hangar doors cycle: **4 s open, 4 s sealed**. Open is a split (red well visible). Sealed is doors meeting (well hidden). HUD says `bays` or `sealed`. Shielded stays `shielded` with doors hidden under the bubble. Play uses sliding placeholder doors. Real ship frames should carry an open and a sealed bay. Colour is never the only cue (PRD 9, 15). Path, panic, and escape FTL still wait.
+
+## 14. Raptor escort (graphics pass)
+
+*Raptor Escort* puts an olive wedge on the fleet line with three hull pips. Hangared escorts vanish; the HUD says `hangar` until the next cycle relaunches them. Play uses a rectangle and a short nose. Real `raptor` frames replace the wedge. Never Cylon red. Colour is never the only cue (PRD 9, 15).

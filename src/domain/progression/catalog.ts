@@ -1,8 +1,8 @@
 /**
  * Starter upgrade set (PRD 10.2). Effects are modifiers, not flags. Text lives in JSON (D8).
  *
- * ASSUMPTION: these ten are the ones whose systems already exist. Raptor and Imaginary Six wait
- * with the features they need.
+ * ASSUMPTION: these eleven are the ones whose systems already exist. Imaginary Six waits on her
+ * own escort.
  */
 export type CardId =
   | 'accidentally-wide'
@@ -13,6 +13,7 @@ export type CardId =
   | 'hangar-door-slam'
   | 'overcompensating-cannon'
   | 'personal-vendetta'
+  | 'raptor-escort'
   | 'spoilers'
   | 'your-call-is-important-to-us';
 
@@ -29,6 +30,7 @@ export const STARTER_CARDS: readonly CardDefinition[] = [
   { id: 'continuity-of-government', rarity: 'common' },
   { id: 'flak-enthusiast', rarity: 'common' },
   { id: 'hangar-door-slam', rarity: 'uncommon' },
+  { id: 'raptor-escort', rarity: 'uncommon' },
   { id: 'spoilers', rarity: 'uncommon' },
   { id: 'anyone-could-be-a-cylon', rarity: 'uncommon' },
   { id: 'bootleg-hooch', rarity: 'uncommon' },

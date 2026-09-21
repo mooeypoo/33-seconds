@@ -302,6 +302,20 @@ const SABOTAGE = [
       mustFail: 'npm run test',
     },
     {
+      what: 'Raptor Escort never soaks a stray',
+      file: 'src/domain/fleet/raptor.ts',
+      find: '    return this.isOnStation && Math.abs(this.positionX - x) <= RAPTOR_RADIUS_UNITS;',
+      replace: '    return false;',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'Raptor Escort never launches',
+      file: 'src/domain/game.ts',
+      find: '    const count = this.loadout.raptorCount;\n    this.raptors = [];\n    for (let index = 0; index < count; index++) {\n      this.raptors.push(new Raptor(index, raptorLaunchX(index, count), index % 2 === 0 ? 1 : -1));\n    }',
+      replace: '    // sabotage: the escort stayed in the barn',
+      mustFail: 'npm run test',
+    },
+    {
       what: 'the loop catches up without a limit',
       file: 'src/application/GameSession.ts',
       find: '    const ticksToRun = Math.min(dueTicks, MAX_CATCH_UP_TICKS);',
