@@ -42,6 +42,7 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 | Asset id | Size (px) | Frames | Priority | Notes |
 |---|---|---|---|---|
 | `viper` | 16 x 16 | neutral x2 (engine flicker), bank_left, bank_right | P0 | Wedge silhouette, twin engine glow. Olive and gunmetal. |
+| `pilot_eject` | 12 x 16 | 1 (still) | P2 | Ejection seat / chute at the last Viper pose until pickup. Not a flash. Never used for *Anyone Could Be a Cylon* (that death keeps the hull and a red-eye). HUD also says `ejected`. |
 | `raider` | 12 x 12 | 4 (eye positions) | P0 | Arrowhead. The **only** thing in the game that uses hot red. |
 | `bullet_player` | 3 x 5 | 1 | P0 | Dradis green |
 | `bullet_aimed` | 3 x 5 | 1 | P0 | Red |
@@ -133,3 +134,13 @@ The player must always know whether Raiders will come back. Play uses a HUD word
 **Loop off** (ship destroyed): new kills leave no ghost. Leftover blips and Returned markers go grey for good. The wreck should look dead. Slow-mo and a music drop wait with the rest of the kill beat (PRD 5.2).
 
 Do not restyle this while proving other rules. Arrive cycle, expose cycle, HP, and wander are tunables for a later fairness / hardship pass, not this art pass.
+
+## 10. Eject vs download (graphics pass)
+
+Hull to zero is never a run loss (PRD 8.1). There are two ways back onto the board, and they must read as different deaths at a glance.
+
+**Eject** (default): the Viper leaves. You are gone for about 3 seconds, then a pickup at spawn. Play uses a vanished hull, HUD `ejected`, and a still placeholder seat where you were. The real `pilot_eject` sprite replaces that seat: a pilot-ejection symbol (seat / chute), still, no flash, no strobe. It sits until the Viper reappears, then it is gone. Olive/gunmetal, never Cylon red.
+
+**Download** (*Anyone Could Be a Cylon*): you do not leave. The hull stays, a red-eye pixel appears until the next jump, HUD says `two transponders`. No seat, no chute, no empty sky. The joke is that you resurrect like they do.
+
+If both look like "the Viper popped and came back," the card is invisible. Do not reuse `pilot_eject` for the download. Colour is never the only cue (PRD 9, 15).

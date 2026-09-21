@@ -45,6 +45,7 @@ export class Missile {
   private velocityY = 0;
   private targetIdValue: number | null = null;
   private live = false;
+  private speed = MISSILE_SPEED_UNITS_PER_SECOND;
 
   get id(): number {
     return this.idValue;
@@ -75,6 +76,7 @@ export class Missile {
     this.velocityY = velocityY;
     this.targetIdValue = targetId;
     this.live = true;
+    this.speed = Math.hypot(velocityX, velocityY) || MISSILE_SPEED_UNITS_PER_SECOND;
   }
 
   kill(): void {
@@ -93,8 +95,8 @@ export class Missile {
       const deltaY = targetY - this.positionY;
       const distance = Math.hypot(deltaX, deltaY);
       if (distance > 0) {
-        this.velocityX = (deltaX / distance) * MISSILE_SPEED_UNITS_PER_SECOND;
-        this.velocityY = (deltaY / distance) * MISSILE_SPEED_UNITS_PER_SECOND;
+        this.velocityX = (deltaX / distance) * this.speed;
+        this.velocityY = (deltaY / distance) * this.speed;
       }
     }
     this.positionX += this.velocityX * tickSeconds;

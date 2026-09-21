@@ -37,7 +37,7 @@ Read this every session. The rest of the document is detail.
 - Cycle 1 teaches the loop. On cycle 2 the **resurrection ship** arrives **shielded** (visible, cannot be hurt). On cycle 4 the shield drops. Chip away at its persistent HP. Destroy it to stop the resurrections, then clear the remaining Raiders to win. It stations high on the right and drifts a little, slowly. Both cycle numbers are tunables.
 - You **lose** only when **Fleet Integrity** reaches zero. Strafing runs and stray bullets hurt the fleet. There is a per-cycle damage cap and a partial repair at each jump. Your Viper being destroyed costs time, not the run.
 - **Missiles** (3 per cycle) hit the first hostile thing they touch. Lock is the nearest hostile in a forward cone. Space, a large on-screen button, or a second finger fires one. **The Speech** (E or a button): 4 s of hover and invulnerability, ready again every 3 jumps.
-- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). Start with about 6 cards and grow to 12.
+- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). Six starter cards are live; grow to 12. One free reroll: Ask Baltar Again.
 - **Comfort rules:** no shake, wobble, or flashing. Color is never the only cue. Pause works anywhere.
 - **Comms portraits and jokes** are data written later. Use clearly labeled placeholders first.
 - Two difficulty tiers: **Civilian Ship** and **Viper Pilot**.
@@ -108,7 +108,7 @@ The HUD clock is enough to test the rule. **Make the countdown more noticeable l
 | **Jumping** | about 1 s | Fade, never a white flash (a still overlay in reduced-effects mode). Bullets clear. |
 | **Recovering** | 8-12 s | Invulnerable. Tyrol resets your Viper hull and missiles. The fleet gets a partial repair. You pick 1 of 3 upgrades. A short comms scene plays. |
 
-The next cycle starts when **both** the scene has ended **and** the upgrade is chosen. There is no timer on the pick. A player who wants to think can. Until cards and comms exist, Continue is that pick: Recovering does not advance on its own.
+The next cycle starts when **both** the scene has ended **and** the upgrade is chosen. There is no timer on the pick. A player who wants to think can. **Live now:** picking a card *is* Continue. Comms scenes wait.
 
 A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 
@@ -222,6 +222,7 @@ Losing on Viper Pilot requires taking near-cap damage over and over, meaning ign
 - Free movement in world units, with a little acceleration smoothing so it feels spacey but not drifty.
 - **Auto-fire** always on. No fire button. The gun points at the swarm side (up); it does not track a target. Start at about 5 shots per second.
 - Hull is reset by Tyrol at each jump. Start at **5** hits, so you outlast one Raider's 3 HP. If destroyed mid-cycle, you eject and are picked up after about 3 seconds. That costs downtime, never the run. A short cover on pickup so a round already in the cockpit is not an instant second eject.
+- **Eject and download must not look like the same pop.** Default death is an eject: you leave the board. *Anyone Could Be a Cylon* is a download: you never leave (PRD 10.2). **Live now:** the hull vanishes and the HUD says `ejected`; a still placeholder seat (not a flash) sits where you were until pickup. The card keeps the hull, adds a red-eye pixel, and the HUD says `two transponders`. **Graphics pass:** a real pilot-ejection symbol (seat / chute) for eject only. The download never uses that symbol. Colour is never the only cue.
 - **Hull is visible on the Viper** as a row of pips (count, not only a colour), the same language as Raider pips. The HUD also names `hull n/max`.
 - **Mid-cycle hull pickups** ("life") wait. They should be rare and need a funny reason. Design them with the Recovering bonus cards, not as a combat drop in this pass.
 - Raider guns **aim at the Viper** (perfect lead, no spread). A later look may switch them to **straight down** (a column you bodyguard while you hunt). Not this pass.
@@ -280,7 +281,7 @@ Rarities are initial proposals. **MVP** marks the launch set of 12.
 
 | Card | Effect | Rarity | Set |
 |---|---|---|---|
-| *Anyone Could Be a Cylon* | Once per cycle, a lethal hit "downloads" you into a fresh Viper with 1.5 s invulnerability. A red-eye pixel appears on your Viper until the next jump, and Gaeta reports two transponders for one pilot. | Uncommon | MVP |
+| *Anyone Could Be a Cylon* | Once per cycle, a lethal hit "downloads" you into a fresh Viper with 1.5 s invulnerability. A red-eye pixel appears on your Viper until the next jump, and Gaeta reports two transponders for one pilot. Not an eject: you stay on station, and the ejection seat never appears. | Uncommon | MVP |
 | *Accidentally Wide* | Viper is 25% chunkier: more hurtbox, more intercepted strays. | Common | MVP |
 | *Bootleg Hooch (Unlabeled)* | **+35% fire rate, -20% movement speed.** Starbuck's portrait looks flushed and her lines pick up the odd "*hic*." | Uncommon | MVP |
 | *Look At Me, I'm the Threat Now* | Raiders aim at you harder: fewer strays, more shots on you. | Common | Later |
@@ -320,6 +321,8 @@ Rarities are initial proposals. **MVP** marks the launch set of 12.
 | *Suspiciously Shiny Freighter* | A decoy that strafing runs target first. Small HP, regenerates. | Uncommon | Later |
 | *Raptor Escort* | A Raptor patrols the fleet line and soaks strays. After 3 hits it returns to hangar and comes back next cycle. | Uncommon | MVP |
 | *Imaginary Six* | See below. | Questionable | MVP |
+
+**Live now:** six starter cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, placeholder flair in JSON. Picking a card starts the next cycle. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). Advice portraits, the remaining MVP six, and Later cards wait.
 
 ### 10.3 *Imaginary Six* (Questionable, one copy) `[Tunable]`
 
@@ -577,3 +580,5 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | Reaching zero Fleet Integrity ends the run (placeholder overlay, Retry to title). Civilian Ship numbers still cannot reach zero; Viper Pilot numbers wait. | M3 asked for a lose screen. The overlay is the rule; the numbers are the later fairness pass. |
 | 2026-09-21 | Missiles: 3 per cycle, refill at the jump. Nearest hostile in a 70° forward cone. Hits the first body on the path. One-shots a Raider, 8 damage to the resurrection ship. Space, on-screen button, or second finger. Lock reticle is a ring with a four-quadrant cross. Holding does not dump the rack. Pickups and policy upgrades wait. | M4 starts with a weapon you choose, not a card table. |
 | 2026-09-21 | The Speech: 4 s hover and invulnerability, E or a button, ready at launch then every 3 jumps. Placeholder comms. Incoming rounds that hit the Viper are eaten. Firmware Update and the loadout pick wait. | M4's special is a panic button, not a second gun. |
+| 2026-09-21 | Recovering: pick 1 of 3 from six starter cards. One free reroll. Picking a card is Continue. Effects: Accidentally Wide, Bootleg Hooch, Your Call Is Important to Us, Overcompensating Cannon, Personal Vendetta, Anyone Could Be a Cylon. Remaining catalog, portraits, and comms scenes wait. | M4's variety is a table, not a second gun. |
+| 2026-09-21 | Eject vs download: default death leaves the board (~3 s, HUD `ejected`, placeholder seat until pickup). *Anyone Could Be a Cylon* stays on station (red-eye, `two transponders`). Real ejection-seat art waits for the graphics pass. Colour is never the only cue. | A second life that looks like eject is not a card. |

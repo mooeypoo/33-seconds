@@ -1,0 +1,62 @@
+[
+  {
+    "id": "accidentally-wide",
+    "title": "Accidentally Wide",
+    "joke": "PLACEHOLDER: Tyrol swears the spec said slim.",
+    "plain": "Viper is 25% chunkier: more hurtbox, more intercepted strays.",
+    "advice": {
+      "baltar": "PLACEHOLDER: Bigger target, yes, but also a bigger wall. I like walls.",
+      "roslin": "PLACEHOLDER: You will catch more fire. That is the point."
+    }
+  },
+  {
+    "id": "anyone-could-be-a-cylon",
+    "title": "Anyone Could Be a Cylon",
+    "joke": "PLACEHOLDER: Gaeta reports two transponders. One pilot.",
+    "plain": "Once per cycle per stack, a lethal hit downloads you into a fresh Viper with 1.5 s cover.",
+    "advice": {
+      "baltar": "PLACEHOLDER: Very theoretical. Very safe. Don't overthink the eye.",
+      "roslin": "PLACEHOLDER: A second chance is still a chance. The eye is the cost."
+    }
+  },
+  {
+    "id": "bootleg-hooch",
+    "title": "Bootleg Hooch (Unlabeled)",
+    "joke": "PLACEHOLDER: Starbuck found a bottle. The gun found a tempo.",
+    "plain": "+35% fire rate, -20% movement speed.",
+    "advice": {
+      "baltar": "PLACEHOLDER: Shoot faster, think slower. I can work with that.",
+      "roslin": "PLACEHOLDER: You will not outrun what you pick a fight with."
+    }
+  },
+  {
+    "id": "overcompensating-cannon",
+    "title": "Overcompensating Cannon",
+    "joke": "PLACEHOLDER: The round is late. The round is huge.",
+    "plain": "Slower, bigger shots that pierce two extra Raiders per stack.",
+    "advice": {
+      "baltar": "PLACEHOLDER: One shot, several problems. I love efficiency.",
+      "roslin": "PLACEHOLDER: Lead the shot. It will not hurry for you."
+    }
+  },
+  {
+    "id": "personal-vendetta",
+    "title": "Personal Vendetta",
+    "joke": "PLACEHOLDER: The missile has opinions about the factory.",
+    "plain": "Missiles lock the resurrection ship whenever it is on screen. -20% missile speed. Escorts still intercept.",
+    "advice": {
+      "baltar": "PLACEHOLDER: Ignore the small ones. The factory is the point. Mostly.",
+      "roslin": "PLACEHOLDER: Escorts will still eat the round. Position anyway."
+    }
+  },
+  {
+    "id": "your-call-is-important-to-us",
+    "title": "Your Call Is Important to Us",
+    "joke": "PLACEHOLDER: Please continue to hold. Your resurrection is very important to us.",
+    "plain": "Resurrection takes +2 seconds per stack.",
+    "advice": {
+      "baltar": "PLACEHOLDER: Time. Beautiful, stalling time.",
+      "roslin": "PLACEHOLDER: A slower queue is a quieter sky. Take it."
+    }
+  }
+]

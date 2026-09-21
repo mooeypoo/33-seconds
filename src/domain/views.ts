@@ -3,6 +3,8 @@
  * Nothing outside the domain may mutate these, and the domain does not copy whole aggregates
  * per frame: each view is a small plain object of numbers.
  */
+import type { CardId } from './progression/catalog';
+
 export interface ViperView {
   readonly x: number;
   readonly y: number;
@@ -12,6 +14,10 @@ export interface ViperView {
   readonly velocityY: number;
   readonly hp: number;
   readonly ejected: boolean;
+  /** Drawn and collision scale. 1 unless *Accidentally Wide* is stacked. */
+  readonly scale: number;
+  /** Red-eye pixel after a Cylon save. HUD also names it, so colour is not the only cue. */
+  readonly cylonEye: boolean;
 }
 
 export interface MissileView {
@@ -126,6 +132,12 @@ export interface GameView {
   readonly speechReady: boolean;
   readonly speechRemainingSeconds: number;
   readonly speechJumpsUntilReady: number;
+  readonly playerShotScale: number;
+  readonly upgradeOffer: {
+    readonly cardIds: readonly CardId[];
+    readonly rerollAvailable: boolean;
+  } | null;
+  readonly loadout: readonly { readonly id: CardId; readonly stacks: number }[];
   readonly cycle: CycleView;
   readonly tickCount: number;
   readonly kills: number;

@@ -33,7 +33,7 @@ export class ProjectilePresenter implements Presenter {
       const sprite = this.ensure(shot.id, shot.x, shot.y, shot.owner === 'cylon', shot.stray);
       sprite.x = Phaser.Math.Linear(shot.previousX, shot.x, alpha);
       sprite.y = Phaser.Math.Linear(shot.previousY, shot.y, alpha);
-      this.paint(sprite, shot);
+      this.paint(sprite, shot, view.playerShotScale);
     }
 
     for (const [id, sprite] of this.sprites) {
@@ -61,8 +61,11 @@ export class ProjectilePresenter implements Presenter {
     return sprite;
   }
 
-  private paint(sprite: Phaser.GameObjects.Rectangle, shot: ProjectileView): void {
-    if (shot.owner !== 'cylon') return;
+  private paint(sprite: Phaser.GameObjects.Rectangle, shot: ProjectileView, playerScale: number): void {
+    if (shot.owner === 'player') {
+      sprite.setDisplaySize(VIPER_SHOT_WIDTH_UNITS * playerScale, VIPER_SHOT_HEIGHT_UNITS * playerScale);
+      return;
+    }
     sprite.setFillStyle(shot.stray ? PALETTE.strayShot : PALETTE.aimedShot);
     sprite.setDisplaySize(VIPER_SHOT_WIDTH_UNITS, shot.stray ? VIPER_SHOT_HEIGHT_UNITS + 2 : VIPER_SHOT_HEIGHT_UNITS);
   }

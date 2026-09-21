@@ -62,10 +62,7 @@ onUnmounted(() => {
 
   <JumpFade v-else-if="status.phase === 'running' && cyclePhase === 'jumping'" />
 
-  <RecoveringOverlay
-    v-else-if="status.phase === 'running' && cyclePhase === 'recovering'"
-    @continue="session.continueFromJump()"
-  />
+  <RecoveringOverlay v-else-if="status.phase === 'running' && cyclePhase === 'recovering'" />
 
   <PauseOverlay
     v-else-if="status.phase === 'paused' || status.phase === 'resuming'"

@@ -55,6 +55,9 @@ const stats = hudStore.state;
             ? 'ready'
             : `${String(stats.stats.speechJumpsUntilReady)} jumps`
       }}</span>
+      · cards
+      <span data-testid="cards">{{ stats.stats.cards }}</span>
+      <span v-if="stats.stats.cylonEye" data-testid="cylon-eye"> · two transponders</span>
     </p>
 
     <FleetReadout v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" />

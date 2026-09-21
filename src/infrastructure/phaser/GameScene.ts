@@ -131,6 +131,8 @@ export class GameScene extends Phaser.Scene {
       speechReady: view.speechReady,
       speechRemainingSeconds: view.speechRemainingSeconds,
       speechJumpsUntilReady: view.speechJumpsUntilReady,
+      cards: view.loadout.reduce((sum, card) => sum + card.stacks, 0),
+      cylonEye: view.viper.cylonEye,
     });
 
     this.secondsSinceStatsReport = 0;

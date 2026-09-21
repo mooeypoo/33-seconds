@@ -111,8 +111,16 @@ export class Viper {
    * @param moveX -1..1, negative is left
    * @param moveY -1..1, negative is up
    * @param tickSeconds length of one tick
+   * @param maxSpeedUnitsPerSecond top speed after cards (Bootleg Hooch)
+   * @param sizeScale hull scale after cards (Accidentally Wide)
    */
-  steer(moveX: number, moveY: number, tickSeconds: number): void {
+  steer(
+    moveX: number,
+    moveY: number,
+    tickSeconds: number,
+    maxSpeedUnitsPerSecond = VIPER_MAX_SPEED_UNITS_PER_SECOND,
+    sizeScale = 1,
+  ): void {
     if (this.invulnerableRemainingSeconds > 0) {
       this.invulnerableRemainingSeconds = Math.max(0, this.invulnerableRemainingSeconds - tickSeconds);
     }
@@ -128,8 +136,8 @@ export class Viper {
     this.previousPositionY = this.positionY;
 
     const direction = clampIntentDirection(moveX, moveY);
-    const targetVelocityX = direction.x * VIPER_MAX_SPEED_UNITS_PER_SECOND;
-    const targetVelocityY = direction.y * VIPER_MAX_SPEED_UNITS_PER_SECOND;
+    const targetVelocityX = direction.x * maxSpeedUnitsPerSecond;
+    const targetVelocityY = direction.y * maxSpeedUnitsPerSecond;
     const maxVelocityChange = VIPER_ACCELERATION_UNITS_PER_SECOND_SQUARED * tickSeconds;
 
     this.velocityX = approach(this.velocityX, targetVelocityX, maxVelocityChange);
@@ -138,7 +146,7 @@ export class Viper {
     this.positionX += this.velocityX * tickSeconds;
     this.positionY += this.velocityY * tickSeconds;
 
-    this.clampIntoWorld();
+    this.clampIntoWorld(sizeScale);
   }
 
   /** Removes one hull point. Returns true when this hit ejected the pilot. */
@@ -156,6 +164,19 @@ export class Viper {
   /** True when downtime is over and the pickup should put a Viper back in the fight. */
   get isReadyForPickup(): boolean {
     return this.ejected && this.ejectRemainingSeconds <= 0;
+  }
+
+  /**
+   * *Anyone Could Be a Cylon*: undo a lethal hit in place, full hull, longer cover. The red-eye
+   * flag lives on the loadout, not here.
+   */
+  absorbDownload(invulnerableSeconds: number): void {
+    this.ejected = false;
+    this.ejectRemainingSeconds = 0;
+    this.hull = VIPER_HULL_HIT_POINTS;
+    this.invulnerableRemainingSeconds = invulnerableSeconds;
+    this.velocityX = 0;
+    this.velocityY = 0;
   }
 
   /** Puts a fresh Viper at the spawn, with a short cover so the next shot is not free. */
@@ -187,11 +208,13 @@ export class Viper {
    * Keeps the whole ship inside the play area. Hitting an edge also drops the velocity along that
    * axis, so holding into a wall does not build up momentum that fires the Viper away on release.
    */
-  private clampIntoWorld(): void {
-    const minX = VIPER_HALF_WIDTH_UNITS;
-    const maxX = WORLD_WIDTH_UNITS - VIPER_HALF_WIDTH_UNITS;
-    const minY = VIPER_HALF_HEIGHT_UNITS;
-    const maxY = WORLD_HEIGHT_UNITS - VIPER_HALF_HEIGHT_UNITS;
+  private clampIntoWorld(sizeScale = 1): void {
+    const halfWidth = VIPER_HALF_WIDTH_UNITS * sizeScale;
+    const halfHeight = VIPER_HALF_HEIGHT_UNITS * sizeScale;
+    const minX = halfWidth;
+    const maxX = WORLD_WIDTH_UNITS - halfWidth;
+    const minY = halfHeight;
+    const maxY = WORLD_HEIGHT_UNITS - halfHeight;
 
     const clampedX = clamp(this.positionX, minX, maxX);
     const clampedY = clamp(this.positionY, minY, maxY);

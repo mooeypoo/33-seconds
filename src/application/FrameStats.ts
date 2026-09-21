@@ -39,4 +39,6 @@ export interface FrameStats {
   readonly speechReady: boolean;
   readonly speechRemainingSeconds: number;
   readonly speechJumpsUntilReady: number;
+  readonly cards: number;
+  readonly cylonEye: boolean;
 }

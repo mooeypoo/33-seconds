@@ -26,7 +26,8 @@ export function phaseAtCombatTick(tick: number): Exclude<CyclePhase, 'jumping' |
 /**
  * The jump cycle. Combat time accumulates only in arriving / building / spooling. Jumping lasts a
  * fixed second. Recovering does not advance on its own: the next cycle starts when the player
- * continues (PRD 5.1: no timer on the pick). The 8-12 s comms scene arrives with M5.
+ * continues. The pick is that continue (PRD 5.1: no timer on the pick). The 8-12 s comms scene
+ * arrives with M5.
  */
 export class JumpCycle {
   private phase: CyclePhase = 'arriving';

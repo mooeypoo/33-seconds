@@ -1,14 +1,11 @@
 import { JumpCycle } from './cycle/jumpCycle';
-import { Viper, VIPER_HALF_HEIGHT_UNITS, VIPER_RADIUS_UNITS } from './combat/viper';
+import { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';
 import {
   MAX_CYLON_SHOTS,
   MAX_PLAYER_SHOTS,
   Projectile,
   RAIDER_SHOT_RADIUS_UNITS,
   RAIDER_SHOT_SPEED_UNITS_PER_SECOND,
-  VIPER_FIRE_INTERVAL_SECONDS,
-  VIPER_SHOT_RADIUS_UNITS,
-  VIPER_SHOT_SPEED_UNITS_PER_SECOND,
 } from './combat/projectile';
 import {
   MAX_MISSILES,
@@ -16,12 +13,13 @@ import {
   MISSILE_RADIUS_UNITS,
   MISSILE_RAIDER_DAMAGE,
   MISSILE_SHIP_DAMAGE,
-  MISSILE_SPEED_UNITS_PER_SECOND,
   Missile,
   RESURRECTION_SHIP_LOCK_ID,
 } from './combat/missile';
 import { pickMissileLock, type LockCandidate } from './combat/targeting';
 import { Speech } from './combat/speech';
+import { CYLON_SAVE_INVULN_SECONDS, type CardId } from './progression/catalog';
+import { Loadout } from './progression/loadout';
 import type { DomainEvent } from './shared/events';
 import { movingCircleHitAlong, movingCircleHits } from './shared/collision';
 import type { InputIntent } from './shared/intent';
@@ -82,6 +80,11 @@ export interface GameOptions {
    * the run; Civilian Ship numbers cannot reach zero in a normal cycle (PRD 7.2).
    */
   readonly fleetStartingIntegrity?: number;
+  /**
+   * Cards already stacked at launch. Tests use this so an effect is not gated on a random offer.
+   * Play always starts empty.
+   */
+  readonly startingCards?: readonly CardId[];
 }
 
 /**
@@ -118,6 +121,7 @@ export class Game {
   private missileHeld = false;
   private specialHeld = false;
   private readonly speech = new Speech();
+  private readonly loadout: Loadout;
 
   constructor(options: GameOptions = {}) {
     const seed = options.seed ?? DEFAULT_RUN_SEED;
@@ -130,6 +134,7 @@ export class Game {
     this.resurrectionShipVulnerableCycle = Math.max(this.resurrectionShipArrivesCycle, vulnerable);
     this.resurrectionShipHitPoints = options.resurrectionShipHitPoints ?? RESURRECTION_SHIP_HIT_POINTS;
     this.fleet = new Fleet(options.fleetStartingIntegrity ?? FLEET_INTEGRITY_MAX);
+    this.loadout = new Loadout(options.startingCards ?? []);
   }
 
   /** Advances the simulation by exactly one tick. The only way to change domain state. */
@@ -149,7 +154,11 @@ export class Game {
         this.viper.resetAtJump();
         this.fleet.repairAtJump();
         this.speech.onJump();
+        this.loadout.onJump();
         events.push({ type: 'FleetRepaired', integrity: this.fleet.view.integrity });
+      }
+      if (phaseChange.phase === 'recovering') {
+        this.loadout.openOffer(this.scenario);
       }
     }
 
@@ -157,7 +166,13 @@ export class Game {
     this.maybeExposeShip(events);
     this.resurrectionShip?.advance(TICK_SECONDS, this.station);
 
-    this.viper.steer(intent.moveX, intent.moveY, TICK_SECONDS);
+    this.viper.steer(
+      intent.moveX,
+      intent.moveY,
+      TICK_SECONDS,
+      this.loadout.viperMaxSpeed,
+      this.loadout.viperScale,
+    );
     if (this.viper.isReadyForPickup) {
       this.viper.recoverFromEject();
       events.push({ type: 'ViperRecovered', x: this.viper.x, y: this.viper.y });
@@ -200,12 +215,31 @@ export class Game {
   continueFromJump(): readonly DomainEvent[] {
     const change = this.cycle.continueFromJump();
     if (!change) return [];
+    this.loadout.clearOffer();
+    this.loadout.onCycleStart();
     const events: DomainEvent[] = [change];
     this.viper.resetAtJump();
     this.maybeArriveShip(events);
     this.maybeExposeShip(events);
     this.fillTheSwarm(events);
     return events;
+  }
+
+  /**
+   * Picks a card from the Recovering table and starts the next cycle. The pick *is* Continue
+   * (PRD 5.1). Ignored unless recovering and that card is on the table.
+   */
+  pickUpgrade(cardId: string): readonly DomainEvent[] {
+    if (!this.cycle.isRecovering) return [];
+    if (!this.loadout.pick(cardId)) return [];
+    return [{ type: 'UpgradePicked', cardId }, ...this.continueFromJump()];
+  }
+
+  /** One free reroll per Recovering (PRD 10.1). */
+  rerollOffer(): readonly DomainEvent[] {
+    if (!this.cycle.isRecovering) return [];
+    if (!this.loadout.reroll(this.scenario)) return [];
+    return [{ type: 'UpgradeRerolled' }];
   }
 
   /** A read-only snapshot for presenters. Cheap: it reads live state, it does not copy aggregates. */
@@ -223,6 +257,8 @@ export class Game {
         velocityY: viper.velocityYUnitsPerSecond,
         hp: viper.hp,
         ejected: viper.isEjected,
+        scale: this.loadout.viperScale,
+        cylonEye: this.loadout.cylonEye,
       },
       projectiles: this.liveShots.map((shot) => shot.toView()),
       missiles: this.liveMissiles.map((missile) => missile.toView()),
@@ -244,6 +280,9 @@ export class Game {
       speechReady: this.speech.isReady,
       speechRemainingSeconds: this.speech.remaining,
       speechJumpsUntilReady: this.speech.jumpsUntilReadyCount,
+      playerShotScale: this.loadout.playerShotScale,
+      upgradeOffer: this.loadout.offer,
+      loadout: this.loadout.cards,
       cycle: this.cycle.view,
     };
   }
@@ -258,11 +297,19 @@ export class Game {
     if (!shot) return;
 
     const x = this.viper.x;
-    const y = this.viper.y - VIPER_HALF_HEIGHT_UNITS;
-    shot.revive(this.nextId, x, y, 0, -VIPER_SHOT_SPEED_UNITS_PER_SECOND, 'player');
+    const y = this.viper.y - VIPER_HALF_HEIGHT_UNITS * this.loadout.viperScale;
+    shot.revive(
+      this.nextId,
+      x,
+      y,
+      0,
+      -this.loadout.playerShotSpeed,
+      'player',
+      this.loadout.playerPierce,
+    );
     this.nextId += 1;
     this.liveShots.push(shot);
-    this.fireCooldownSeconds = VIPER_FIRE_INTERVAL_SECONDS;
+    this.fireCooldownSeconds = this.loadout.fireIntervalSeconds;
     events.push({ type: 'ShotFired', id: shot.id, x, y, owner: 'player' });
   }
 
@@ -296,17 +343,23 @@ export class Game {
     if (!missile) return;
     if (!this.viper.trySpendMissile()) return;
 
-    const lock = pickMissileLock(this.viper.x, this.viper.y, this.lockCandidates());
+    const lock = pickMissileLock(
+      this.viper.x,
+      this.viper.y,
+      this.lockCandidates(),
+      this.preferredMissileLockId(),
+    );
     const x = this.viper.x;
-    const y = this.viper.y - VIPER_HALF_HEIGHT_UNITS;
+    const y = this.viper.y - VIPER_HALF_HEIGHT_UNITS * this.loadout.viperScale;
+    const speed = this.loadout.missileSpeed;
     let velocityX = 0;
-    let velocityY = -MISSILE_SPEED_UNITS_PER_SECOND;
+    let velocityY = -speed;
     if (lock) {
       const deltaX = lock.x - x;
       const deltaY = lock.y - y;
       const distance = Math.hypot(deltaX, deltaY) || 1;
-      velocityX = (deltaX / distance) * MISSILE_SPEED_UNITS_PER_SECOND;
-      velocityY = (deltaY / distance) * MISSILE_SPEED_UNITS_PER_SECOND;
+      velocityX = (deltaX / distance) * speed;
+      velocityY = (deltaY / distance) * speed;
     }
     missile.revive(this.nextId, x, y, velocityX, velocityY, lock?.id ?? null);
     this.nextId += 1;
@@ -337,7 +390,12 @@ export class Game {
   }
 
   private lockView(): GameView['missileLock'] {
-    const lock = pickMissileLock(this.viper.x, this.viper.y, this.lockCandidates());
+    const lock = pickMissileLock(
+      this.viper.x,
+      this.viper.y,
+      this.lockCandidates(),
+      this.preferredMissileLockId(),
+    );
     if (!lock) return null;
     const previous = this.lockPreviousPose(lock.id);
     return {
@@ -360,6 +418,13 @@ export class Game {
     if (!raider) return null;
     const view = raider.toView();
     return { x: view.previousX, y: view.previousY };
+  }
+
+  private preferredMissileLockId(): number | null {
+    if (!this.loadout.missilesPreferShip) return null;
+    const ship = this.resurrectionShip;
+    if (!ship || ship.isDestroyed) return null;
+    return RESURRECTION_SHIP_LOCK_ID;
   }
 
   private poseForMissileTarget(id: number | null): { x: number; y: number } | null {
@@ -517,7 +582,7 @@ export class Game {
           view.previousY,
           view.x,
           view.y,
-          VIPER_SHOT_RADIUS_UNITS,
+          this.loadout.playerShotRadius,
           raider.x,
           raider.y,
           RAIDER_RADIUS_UNITS,
@@ -525,16 +590,27 @@ export class Game {
         if (!hit) continue;
 
         hitRaider = true;
-        shot.kill();
         if (raider.takeHit()) {
           events.push({ type: 'RaiderDestroyed', id: raider.id, x: raider.x, y: raider.y });
           if (!this.resurrectionShip?.isDestroyed) {
-            this.downloads.push(new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y));
+            this.downloads.push(
+              new Download(
+                raider.identityId,
+                raider.deaths + 1,
+                raider.x,
+                raider.y,
+                this.loadout.downloadSeconds,
+              ),
+            );
           }
           this.raiders.splice(index, 1);
           this.kills += 1;
+          index -= 1;
         }
-        break;
+        if (!shot.tryPierce()) {
+          shot.kill();
+          break;
+        }
       }
       if (hitRaider) continue;
       const ship = this.resurrectionShip;
@@ -544,7 +620,7 @@ export class Game {
         view.previousY,
         view.x,
         view.y,
-        VIPER_SHOT_RADIUS_UNITS,
+        this.loadout.playerShotRadius,
         ship.x,
         ship.y,
         RESURRECTION_SHIP_RADIUS_UNITS,
@@ -618,7 +694,15 @@ export class Game {
       if (hitRaider?.takeHit(MISSILE_RAIDER_DAMAGE)) {
         events.push({ type: 'RaiderDestroyed', id: hitRaider.id, x: hitRaider.x, y: hitRaider.y });
         if (!this.resurrectionShip?.isDestroyed) {
-          this.downloads.push(new Download(hitRaider.identityId, hitRaider.deaths + 1, hitRaider.x, hitRaider.y));
+          this.downloads.push(
+            new Download(
+              hitRaider.identityId,
+              hitRaider.deaths + 1,
+              hitRaider.x,
+              hitRaider.y,
+              this.loadout.downloadSeconds,
+            ),
+          );
         }
         const index = this.raiders.indexOf(hitRaider);
         if (index >= 0) this.raiders.splice(index, 1);
@@ -645,7 +729,7 @@ export class Game {
         RAIDER_SHOT_RADIUS_UNITS,
         this.viper.x,
         this.viper.y,
-        VIPER_RADIUS_UNITS,
+        this.loadout.viperRadius,
       );
       if (!hit) continue;
 
@@ -653,6 +737,11 @@ export class Game {
       // ASSUMPTION: The Speech eats rounds that hit the Viper so they do not become fleet strays.
       if (speechActive) continue;
       if (this.viper.takeHit()) {
+        if (this.loadout.tryCylonSave()) {
+          this.viper.absorbDownload(CYLON_SAVE_INVULN_SECONDS);
+          events.push({ type: 'ViperDownloaded', x: this.viper.x, y: this.viper.y });
+          return;
+        }
         events.push({ type: 'ViperEjected', x: this.viper.x, y: this.viper.y });
         return;
       }
@@ -731,7 +820,9 @@ export class Game {
     }
     if (this.resurrectionShip?.isDestroyed) {
       for (const raider of this.raiders) {
-        this.downloads.push(new Download(raider.identityId, raider.deaths, raider.x, raider.y));
+        this.downloads.push(
+          new Download(raider.identityId, raider.deaths, raider.x, raider.y, this.loadout.downloadSeconds),
+        );
       }
     }
     this.raiders.length = 0;

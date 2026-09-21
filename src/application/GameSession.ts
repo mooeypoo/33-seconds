@@ -113,11 +113,24 @@ export class GameSession {
 
   /**
    * Leaves Recovering. There is no timer on this (PRD 5.1). Ignored unless a run is going and
-   * the domain is actually recovering, so Pause cannot skip a cycle.
+   * the domain is actually recovering, so Pause cannot skip a cycle. Play uses pickUpgrade;
+   * tests that only need the next cycle still call this.
    */
   continueFromJump(): void {
     if (this.phase !== 'running') return;
     this.pendingEvents.push(...this.game.continueFromJump());
+  }
+
+  /** Picks a Recovering card and starts the next cycle. The pick is Continue (PRD 5.1). */
+  pickUpgrade(cardId: string): void {
+    if (this.phase !== 'running') return;
+    this.pendingEvents.push(...this.game.pickUpgrade(cardId));
+  }
+
+  /** One free reroll of the Recovering table. */
+  rerollOffer(): void {
+    if (this.phase !== 'running') return;
+    this.pendingEvents.push(...this.game.rerollOffer());
   }
 
   /** Leaves the win or lose screen for the title. The next Launch starts a new run. */

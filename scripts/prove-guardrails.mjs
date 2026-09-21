@@ -17,8 +17,8 @@ const SABOTAGE = [
   {
     what: 'domain imports Phaser',
     file: 'src/domain/game.ts',
-    find: "import { Viper, VIPER_HALF_HEIGHT_UNITS, VIPER_RADIUS_UNITS } from './combat/viper';",
-    replace: "import Phaser from 'phaser';\nimport { Viper, VIPER_HALF_HEIGHT_UNITS, VIPER_RADIUS_UNITS } from './combat/viper';",
+    find: "import { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';",
+    replace: "import Phaser from 'phaser';\nimport { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';",
     mustFail: 'npm run check:arch',
   },
   {
@@ -52,7 +52,7 @@ const SABOTAGE = [
   {
     what: 'the Viper is no longer kept inside the play area',
     file: 'src/domain/combat/viper.ts',
-    find: '    this.clampIntoWorld();',
+    find: '    this.clampIntoWorld(sizeScale);',
     replace: '    // sabotage: no clamp',
     mustFail: 'npm run test',
   },
@@ -199,8 +199,8 @@ const SABOTAGE = [
     {
       what: 'a destroyed resurrection ship still queues downloads',
       file: 'src/domain/game.ts',
-      find: '          if (!this.resurrectionShip?.isDestroyed) {\n            this.downloads.push(new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y));\n          }',
-      replace: '          this.downloads.push(new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y));',
+      find: '          if (!this.resurrectionShip?.isDestroyed) {\n            this.downloads.push(\n              new Download(\n                raider.identityId,\n                raider.deaths + 1,\n                raider.x,\n                raider.y,\n                this.loadout.downloadSeconds,\n              ),\n            );\n          }',
+      replace: '          this.downloads.push(\n              new Download(\n                raider.identityId,\n                raider.deaths + 1,\n                raider.x,\n                raider.y,\n                this.loadout.downloadSeconds,\n              ),\n            );',
       mustFail: 'npm run test',
     },
     {
@@ -257,6 +257,20 @@ const SABOTAGE = [
       file: 'src/domain/combat/speech.ts',
       find: '    this.remainingSeconds = SPEECH_DURATION_SECONDS;',
       replace: '    // sabotage: tryStart lies',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'a Recovering pick does not stack',
+      file: 'src/domain/progression/loadout.ts',
+      find: '    this.stacks.set(id, next);',
+      replace: '    // sabotage: the table is decorative',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'Ask Baltar Again is free forever',
+      file: 'src/domain/progression/loadout.ts',
+      find: '    this.offered = drawOffer(rng, this.stacks, this.offered);\n    this.rerollAvailable = false;',
+      replace: '    this.offered = drawOffer(rng, this.stacks, this.offered);\n    this.rerollAvailable = true;',
       mustFail: 'npm run test',
     },
     {

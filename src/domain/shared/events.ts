@@ -106,6 +106,21 @@ export interface SpeechEnded {
   readonly type: 'SpeechEnded';
 }
 
+export interface UpgradePicked {
+  readonly type: 'UpgradePicked';
+  readonly cardId: string;
+}
+
+export interface UpgradeRerolled {
+  readonly type: 'UpgradeRerolled';
+}
+
+export interface ViperDownloaded {
+  readonly type: 'ViperDownloaded';
+  readonly x: number;
+  readonly y: number;
+}
+
 export interface RunLost {
   readonly type: 'RunLost';
 }
@@ -119,6 +134,7 @@ export type DomainEvent =
   | ShotsCleared
   | ViperEjected
   | ViperRecovered
+  | ViperDownloaded
   | FleetHit
   | FleetRepaired
   | ResurrectionShipArrived
@@ -127,5 +143,7 @@ export type DomainEvent =
   | MissileFired
   | SpeechStarted
   | SpeechEnded
+  | UpgradePicked
+  | UpgradeRerolled
   | RunWon
   | RunLost;

@@ -33,12 +33,18 @@ export class Download {
   readonly y: number;
   private remainingSeconds: number;
 
-  constructor(identityId: number, deaths: number, x: number, y: number) {
+  constructor(
+    identityId: number,
+    deaths: number,
+    x: number,
+    y: number,
+    durationSeconds = RESURRECTION_DOWNLOAD_SECONDS,
+  ) {
     this.identityId = identityId;
     this.deaths = deaths;
     this.x = x;
     this.y = y;
-    this.remainingSeconds = RESURRECTION_DOWNLOAD_SECONDS;
+    this.remainingSeconds = durationSeconds;
   }
 
   advance(tickSeconds: number): void {

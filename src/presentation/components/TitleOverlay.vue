@@ -12,7 +12,8 @@ const emit = defineEmits<{ start: [] }>();
 
     <p class="hint">
       Move with WASD, the arrow keys, or by dragging anywhere. Missiles with Space or the button.
-      The Speech with E or the other button. Pause with Esc, P, or the button.
+      The Speech with E or the other button. At each jump, pick a card. Pause with Esc, P, or the
+      button.
     </p>
     <p class="disclaimer">
       Unofficial fan project. Not affiliated with or endorsed by the show's rights holders or anyone

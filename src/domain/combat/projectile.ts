@@ -43,6 +43,7 @@ export class Projectile {
   private ownerValue: ProjectileOwner = 'player';
   private stray = false;
   private live = false;
+  private pierceRemaining = 0;
 
   get id(): number {
     return this.idValue;
@@ -63,6 +64,7 @@ export class Projectile {
     velocityX: number,
     velocityY: number,
     owner: ProjectileOwner = 'player',
+    pierceRemaining = 0,
   ): void {
     this.idValue = id;
     this.positionX = x;
@@ -74,6 +76,14 @@ export class Projectile {
     this.ownerValue = owner;
     this.stray = false;
     this.live = true;
+    this.pierceRemaining = pierceRemaining;
+  }
+
+  /** True when this round can keep going after a hit (*Overcompensating Cannon*). */
+  tryPierce(): boolean {
+    if (this.pierceRemaining <= 0) return false;
+    this.pierceRemaining -= 1;
+    return true;
   }
 
   kill(): void {

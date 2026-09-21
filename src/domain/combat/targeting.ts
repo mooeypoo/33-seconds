@@ -25,12 +25,19 @@ export interface MissileLock {
 
 /**
  * Nearest hostile inside the forward cone. Ties break by lowest id (PRD 8.2, ADR-0001 D13).
+ * `preferId` wins when that body is on the field (*Personal Vendetta* and the factory).
  */
 export function pickMissileLock(
   originX: number,
   originY: number,
   candidates: readonly LockCandidate[],
+  preferId: number | null = null,
 ): MissileLock | null {
+  if (preferId !== null) {
+    const preferred = candidates.find((candidate) => candidate.id === preferId);
+    if (preferred) return { id: preferred.id, x: preferred.x, y: preferred.y };
+  }
+
   let best: LockCandidate | null = null;
   let bestDistance = Infinity;
 
