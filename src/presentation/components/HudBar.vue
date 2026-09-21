@@ -41,7 +41,9 @@ const stats = hudStore.state;
             ? '—'
             : stats.stats.shipShielded
               ? 'shielded'
-              : `${String(stats.stats.shipHp)}/${String(stats.stats.shipHpMax)}`
+              : `${String(stats.stats.shipHp)}/${String(stats.stats.shipHpMax)} ${
+                  stats.stats.shipBaysOpen ? 'bays' : 'sealed'
+                }`
       }}</span>
       ·
       <span data-testid="resurrections">{{ stats.stats.resurrectionsActive ? 'loop' : 'offline' }}</span>

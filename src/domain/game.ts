@@ -185,6 +185,7 @@ export class Game {
     }
 
     if (this.cycle.isInCombat) {
+      this.resurrectionShip?.advanceBays(TICK_SECONDS);
       this.fillTheSwarm(events);
       this.assignAttackTokens();
       this.assignStrafeTokens();
@@ -631,7 +632,7 @@ export class Game {
       );
       if (!hitsShip) continue;
       shot.kill();
-      if (ship.takeHit()) {
+      if (ship.takeHit(this.loadout.shipDamage(1, ship.baysOpen))) {
         events.push({ type: 'ResurrectionShipDestroyed', x: ship.x, y: ship.y });
       }
     }
@@ -761,7 +762,7 @@ export class Game {
         if (index >= 0) this.raiders.splice(index, 1);
         this.kills += 1;
       }
-      if (hitShip && ship?.takeHit(MISSILE_SHIP_DAMAGE)) {
+      if (hitShip && ship?.takeHit(this.loadout.shipDamage(MISSILE_SHIP_DAMAGE, ship.baysOpen))) {
         events.push({ type: 'ResurrectionShipDestroyed', x: ship.x, y: ship.y });
       }
     }

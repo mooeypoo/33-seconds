@@ -10,6 +10,7 @@ import {
   FLAK_INTERCEPT_EXTRA_STACK,
   FLAK_INTERCEPT_FIRST_STACK,
   FLAK_INTERCEPT_MAX,
+  HANGAR_SLAM_DAMAGE_PER_STACK,
   SPOILERS_DELAY_SECONDS_PER_STACK,
   CANNON_PIERCE_PER_STACK,
   CANNON_RADIUS_PER_STACK,
@@ -125,6 +126,12 @@ export class Loadout {
       FLAK_INTERCEPT_MAX,
       FLAK_INTERCEPT_FIRST_STACK + FLAK_INTERCEPT_EXTRA_STACK * (stacks - 1),
     );
+  }
+
+  /** Gun and missile hits on the factory. 1 unless *Hangar Door Slam* and the bays are open. */
+  shipDamage(base: number, baysOpen: boolean): number {
+    if (!baysOpen) return base;
+    return base * (1 + HANGAR_SLAM_DAMAGE_PER_STACK * this.stacksOf('hangar-door-slam'));
   }
 
   get cylonEye(): boolean {

@@ -55,7 +55,7 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 | `fleet_ship_a/b/c` | 16 x 10 | 1 each | P1 | Civilian ships along the fleet edge, three silly silhouettes |
 | `fleet_pip` | 8 x 6 | 2 (ok, damaged) | P1 | HUD version of the fleet ships |
 | `galactica_silhouette` | about 200 x 60 | 1 | P1 | Dark, slow parallax in the background. Original design. |
-| `resurrection_ship` | 64 x 48 | 3 (damage states) plus a wreck | P1 | Chunky and ominous, clearly *not* a copy of anything. After it dies, the wreck must read as a dead factory, not a parked target. |
+| `resurrection_ship` | 64 x 48 | 3 (damage states) plus a wreck | P1 | Chunky and ominous, clearly *not* a copy of anything. After it dies, the wreck must read as a dead factory, not a parked target. Hangar doors: split when open (red well visible), meet when sealed. HUD also says `bays` / `sealed`. |
 | `ghost_blip` | 8 x 8 | 2 | P1 | Dradis-style download marker. Loop-on: filling bar plus the word. Loop-off: leftover blips go grey and stay that way. *Spoilers*: a still plus / cross on the blip so it reads as a target, and it sits at the return column until pickup. Colour is never the only cue; keep a word (`loop` / `offline` or downloading / done). |
 | `returned_marker` | 6 x 6 | 3 (x1, x2, x3 scratch) | P1 | Small overlay above Returned Raiders |
 | `raptor` | 14 x 12 | 2 | P2 | Escort card |
@@ -153,3 +153,7 @@ Without the card, a ghost is a download bar on the corpse. With *Spoilers*, the 
 ## 12. Flak (graphics pass)
 
 Without *Flak Enthusiast*, strays that cross the line hit. With it, Galactica eats a seeded fraction: a still puff at the stray (olive + orange, never white) and a short muzzle on the middle hull. Play uses placeholder rectangles and a 140 ms fade (pause-frozen, skipped when reduced-motion). Real `flak_burst` replaces the puff. Colour is never the only cue (PRD 9, 15).
+
+## 13. Hangar bays (graphics pass)
+
+While the resurrection ship is exposed, the hangar doors cycle: **4 s open, 4 s sealed**. Open is a split (red well visible). Sealed is doors meeting (well hidden). HUD says `bays` or `sealed`. Shielded stays `shielded` with doors hidden under the bubble. Play uses sliding placeholder doors. Real ship frames should carry an open and a sealed bay. Colour is never the only cue (PRD 9, 15). Path, panic, and escape FTL still wait.

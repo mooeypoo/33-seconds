@@ -39,6 +39,13 @@ const DRIFT_MAX_SPEED_UNITS_PER_SECOND = 8;
 const DRIFT_MIN_LEG_UNITS = 5;
 
 /**
+ * How long the hangar doors stay open, then sealed, while the ship can be hurt (PRD 10.2).
+ * ASSUMPTION: 4 s / 4 s until play. Starts open when the shield drops. Combat ticks only.
+ */
+export const BAY_OPEN_SECONDS = 4;
+export const BAY_SEALED_SECONDS = 4;
+
+/**
  * The resurrection ship. HP persists across jumps. Destroying it stops new downloads (PRD 5.2, 6).
  * ASSUMPTION: a slow, seeded wander is station-keeping, not a path. Following the fleet still
  * means it survives the jump.
@@ -55,6 +62,7 @@ export class ResurrectionShip {
   private targetX = RESURRECTION_SHIP_SPAWN_X_UNITS;
   private speedUnitsPerSecond = DRIFT_MIN_SPEED_UNITS_PER_SECOND;
   private needsTarget = true;
+  private bayElapsedSeconds = 0;
 
   constructor(hitPoints: number = RESURRECTION_SHIP_HIT_POINTS, shielded = false) {
     this.hull = hitPoints;
@@ -82,11 +90,30 @@ export class ResurrectionShip {
     return this.shielded && this.hull > 0;
   }
 
-  /** Drops the shield. Returns true the tick it first goes down. */
+  /**
+   * Open while unshielded and in the first half of the 8 s cycle. Sealed while shielded, dead, or
+   * in the second half. HUD also names it, so colour is not the only cue.
+   */
+  get baysOpen(): boolean {
+    if (this.hull <= 0 || this.shielded) return false;
+    const cycle = this.bayElapsedSeconds % (BAY_OPEN_SECONDS + BAY_SEALED_SECONDS);
+    return cycle < BAY_OPEN_SECONDS;
+  }
+
+  /** Drops the shield. Returns true the tick it first goes down. Bays start open. */
   expose(): boolean {
     if (!this.shielded) return false;
     this.shielded = false;
+    this.bayElapsedSeconds = 0;
     return true;
+  }
+
+  /**
+   * Open / sealed cycle. Combat only, so Recovering does not walk the doors (PRD 5.1).
+   */
+  advanceBays(tickSeconds: number): void {
+    if (this.hull <= 0 || this.shielded) return;
+    this.bayElapsedSeconds += tickSeconds;
   }
 
   /**
@@ -126,6 +153,7 @@ export class ResurrectionShip {
       hpMax: this.maxHull,
       destroyed: this.isDestroyed,
       shielded: this.isShielded,
+      baysOpen: this.baysOpen,
     };
   }
 

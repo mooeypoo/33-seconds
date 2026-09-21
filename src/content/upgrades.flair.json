@@ -50,6 +50,16 @@
     }
   },
   {
+    "id": "hangar-door-slam",
+    "title": "Hangar Door Slam",
+    "joke": "PLACEHOLDER: Kick them while the doors are open.",
+    "plain": "+30% damage to the resurrection ship while its bays are open, per stack.",
+    "advice": {
+      "baltar": "PLACEHOLDER: Wait for the gap. Then be unkind.",
+      "roslin": "PLACEHOLDER: The factory is busiest when it is receiving. That is when you hit it."
+    }
+  },
+  {
     "id": "overcompensating-cannon",
     "title": "Overcompensating Cannon",
     "joke": "PLACEHOLDER: The round is late. The round is huge.",

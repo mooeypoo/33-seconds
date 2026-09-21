@@ -112,6 +112,8 @@ export interface ResurrectionShipView {
   readonly hpMax: number;
   readonly destroyed: boolean;
   readonly shielded: boolean;
+  /** Hangar doors. False while shielded or destroyed. */
+  readonly baysOpen: boolean;
 }
 
 export interface GameView {

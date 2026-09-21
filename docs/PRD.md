@@ -37,7 +37,7 @@ Read this every session. The rest of the document is detail.
 - Cycle 1 teaches the loop. On cycle 2 the **resurrection ship** arrives **shielded** (visible, cannot be hurt). On cycle 4 the shield drops. Chip away at its persistent HP. Destroy it to stop the resurrections, then clear the remaining Raiders to win. It stations high on the right and drifts a little, slowly. Both cycle numbers are tunables.
 - You **lose** only when **Fleet Integrity** reaches zero. Strafing runs and stray bullets hurt the fleet. There is a per-cycle damage cap and a partial repair at each jump. Your Viper being destroyed costs time, not the run.
 - **Missiles** (3 per cycle) hit the first hostile thing they touch. Lock is the nearest hostile in a forward cone. Space, a large on-screen button, or a second finger fires one. **The Speech** (E or a button): 4 s of hover and invulnerability, ready again every 3 jumps.
-- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). Nine starter cards are live; grow to 12. One free reroll: Ask Baltar Again.
+- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). Ten starter cards are live; grow to 12. One free reroll: Ask Baltar Again.
 - **Comfort rules:** no shake, wobble, or flashing. Color is never the only cue. Pause works anywhere.
 - **Comms portraits and jokes** are data written later. Use clearly labeled placeholders first.
 - Two difficulty tiers: **Civilian Ship** and **Viper Pilot**.
@@ -119,7 +119,7 @@ A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 | 1 | Survival and build-up. Teaches the resurrection loop. |
 | 2 | The resurrection ship jumps in high on the right, **shielded**. A still glass bubble plus the word "shielded" is the tell. Shots splash on the shield and do no HP. It keeps station with a slow, seeded side-to-side wander (small range, not a beat). A real path waits. Arrive cycle, expose cycle, HP, and wander are tunables for a later fairness / hardship pass. |
 | 3 | Still shielded. The loop keeps teaching while the ship is a landmark. |
-| about 4 | The shield drops. Fly toward it, chip away at **60 HP** that persist across jumps. Path, bay states, panic, and its own FTL wait. |
+| about 4 | The shield drops. Fly toward it, chip away at **60 HP** that persist across jumps. **Live now:** hangar bays cycle 4 s open / 4 s sealed while it can be hurt (HUD `bays` / `sealed`; doors split or meet). Path, panic, and its own FTL wait. |
 | 4+ | Clear escorts, chip away while the swarm harasses you. Progress shows at 75%, 50%, and 25% (bays go dark, launch rate drops, the ship "panics"). Weakening it makes later cycles easier. `[Later]` |
 | Final 25% | The ship spools its own FTL on a 33-second countdown. Kill it before it jumps. If it escapes, it returns next cycle with a little HP restored (amount is tunable). `[Later]` |
 | Kill | Slow motion, music drop, Dradis ghost blips go grey permanently. **No more resurrections.** Existing Raiders keep fighting. **Live now:** new downloads stop; pending ones still finish; live Raiders at a jump come back as that last wave. HUD switches from `loop` to `offline` (a kill no longer grows a download bar). Grey-out of leftover blips, the wreck, and slow-mo wait for the graphics pass. Jumping is not a shortcut to a clear sky. |
@@ -309,7 +309,7 @@ Rarities are initial proposals. **MVP** marks the launch set of 12.
 |---|---|---|---|
 | *Your Call Is Important to Us* | Resurrection takes +2 s per stack. Ghost blips show a tiny hold-music icon. | Common | MVP |
 | *Spoilers* | Ghost blips sit on the return column. Shooting a blip delays that download 3 s per stack. | Uncommon | MVP |
-| *Hangar Door Slam* | +30% damage to the resurrection ship while its bays are open. | Uncommon | MVP |
+| *Hangar Door Slam* | +30% damage to the resurrection ship while its bays are open, per stack. | Uncommon | MVP |
 | *Factory Reset* | MVP effect: 15% chance per stack that a killed Raider fails to download and does not return. (When traits ship, this becomes "a returning Raider forgets its trait.") | Uncommon | Later |
 
 **Fleet**
@@ -322,7 +322,7 @@ Rarities are initial proposals. **MVP** marks the launch set of 12.
 | *Raptor Escort* | A Raptor patrols the fleet line and soaks strays. After 3 hits it returns to hangar and comes back next cycle. | Uncommon | MVP |
 | *Imaginary Six* | See below. | Questionable | MVP |
 
-**Live now:** nine starter cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, placeholder flair in JSON. Picking a card starts the next cycle. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. *Flak Enthusiast* is Galactica eating strays (40% then +15% per extra stack); without it every stray still hits. Advice portraits, Hangar Door Slam, Raptor, Imaginary Six, and Later cards wait.
+**Live now:** ten starter cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, placeholder flair in JSON. Picking a card starts the next cycle. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. *Flak Enthusiast* is Galactica eating strays (40% then +15% per extra stack); without it every stray still hits. *Hangar Door Slam* is +30% factory damage while bays are open. Advice portraits, Raptor, Imaginary Six, and Later cards wait.
 
 ### 10.3 *Imaginary Six* (Questionable, one copy) `[Tunable]`
 
@@ -585,3 +585,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | *Continuity of Government* is in the live starter set: fleet cycle-damage cap −10% per stack. Spoilers, Hangar Door Slam, flak, Raptor, Imaginary Six still wait on their systems. | Grow the table with cards whose rules already exist. |
 | 2026-09-21 | *Spoilers*: with the card, ghost blips sit on the return column (spawn height, death X) and a gun hit delays that download 3 s per stack. The killing round does not also delay. Missiles ignore ghosts. Jump still finishes transit. Placeholder plus on the blip; real art later. | Queue sniper: see the future, spend gun time to hold it. |
 | 2026-09-21 | *Flak Enthusiast*: first stack intercepts 40% of strays (seeded, scenario stream only when the card is held). Extra stacks +15%, cap 85%. Strafes still land. Without the card every stray still hits. Placeholder puffs; real `flak_burst` later. Hangar Door Slam, Raptor, Imaginary Six wait. | Galactica's guns are a card, not a silent 40% on every run. |
+| 2026-09-21 | Hangar bays: 4 s open / 4 s sealed while the resurrection ship is exposed. Starts open when the shield drops. Combat ticks only. HUD `bays` / `sealed`; doors split or meet. *Hangar Door Slam* is +30% factory damage per stack while open. Path, panic, escape FTL wait. Raptor and Imaginary Six remain. | The queue-sniper card needs a door you can see. |

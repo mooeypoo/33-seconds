@@ -288,6 +288,20 @@ const SABOTAGE = [
       mustFail: 'npm run test',
     },
     {
+      what: 'hangar bays never cycle',
+      file: 'src/domain/swarm/resurrectionShip.ts',
+      find: '    this.bayElapsedSeconds += tickSeconds;',
+      replace: '    // sabotage: the doors are painted on',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'Hangar Door Slam does not add damage',
+      file: 'src/domain/progression/loadout.ts',
+      find: '    return base * (1 + HANGAR_SLAM_DAMAGE_PER_STACK * this.stacksOf(\'hangar-door-slam\'));',
+      replace: '    return base;',
+      mustFail: 'npm run test',
+    },
+    {
       what: 'the loop catches up without a limit',
       file: 'src/application/GameSession.ts',
       find: '    const ticksToRun = Math.min(dueTicks, MAX_CATCH_UP_TICKS);',

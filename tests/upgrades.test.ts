@@ -3,7 +3,7 @@ import { createGame } from '../src/domain/game';
 import { VIPER_FIRE_INTERVAL_SECONDS } from '../src/domain/combat/projectile';
 import { VIPER_HULL_HIT_POINTS, VIPER_RADIUS_UNITS } from '../src/domain/combat/viper';
 import { RESURRECTION_SHIP_LOCK_ID } from '../src/domain/combat/missile';
-import { CALL_WAITING_SECONDS_PER_STACK, CONTINUITY_CAP_PER_STACK, FLAK_INTERCEPT_EXTRA_STACK, FLAK_INTERCEPT_FIRST_STACK, FLAK_INTERCEPT_MAX, SPOILERS_DELAY_SECONDS_PER_STACK } from '../src/domain/progression/catalog';
+import { CALL_WAITING_SECONDS_PER_STACK, CONTINUITY_CAP_PER_STACK, FLAK_INTERCEPT_EXTRA_STACK, FLAK_INTERCEPT_FIRST_STACK, FLAK_INTERCEPT_MAX, HANGAR_SLAM_DAMAGE_PER_STACK, SPOILERS_DELAY_SECONDS_PER_STACK } from '../src/domain/progression/catalog';
 import { FLEET_CYCLE_DAMAGE_CAP, Fleet } from '../src/domain/fleet/integrity';
 import { Loadout } from '../src/domain/progression/loadout';
 import { RESURRECTION_DOWNLOAD_SECONDS } from '../src/domain/swarm/resurrection';
@@ -331,5 +331,30 @@ describe('starter card effects', () => {
       const events = game.tick(park);
       expect(events.some((event) => event.type === 'FlakIntercepted')).toBe(false);
     }
+  });
+
+  it('Hangar Door Slam hurts the factory more while bays are open', () => {
+    const options = {
+      seed: 1,
+      raidersFire: false,
+      resurrectionShipArrivesCycle: 1,
+      resurrectionShipVulnerableCycle: 1,
+      resurrectionShipHitPoints: 60,
+    } as const;
+    const plain = createGame(options);
+    const slam = createGame({ ...options, startingCards: ['hangar-door-slam'] });
+    plain.tick(IDLE_INTENT);
+    slam.tick(IDLE_INTENT);
+    expect(slam.view.resurrectionShip?.baysOpen).toBe(true);
+
+    const shipX = () => plain.view.resurrectionShip?.x ?? slam.view.resurrectionShip?.x ?? 0;
+    for (let i = 0; i < ticksFor(3); i++) {
+      const x = shipX();
+      holdUnder(plain, x);
+      holdUnder(slam, x);
+    }
+    expect(slam.view.resurrectionShip?.hp ?? 60).toBeLessThan(plain.view.resurrectionShip?.hp ?? 60);
+    expect(new Loadout(['hangar-door-slam']).shipDamage(1, true)).toBeCloseTo(1 + HANGAR_SLAM_DAMAGE_PER_STACK);
+    expect(new Loadout(['hangar-door-slam']).shipDamage(1, false)).toBe(1);
   });
 });

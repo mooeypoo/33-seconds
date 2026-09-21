@@ -6,6 +6,9 @@ import { IDLE_INTENT } from '../src/domain/shared/intent';
 import { TICKS_PER_SECOND } from '../src/domain/shared/time';
 import { WORLD_HEIGHT_UNITS } from '../src/domain/shared/world';
 import {
+  BAY_OPEN_SECONDS,
+  BAY_SEALED_SECONDS,
+  ResurrectionShip,
   RESURRECTION_SHIP_DRIFT_RANGE_UNITS,
   RESURRECTION_SHIP_SPAWN_X_UNITS,
   RESURRECTION_SHIP_SPAWN_Y_UNITS,
@@ -120,6 +123,7 @@ describe('the resurrection ship', () => {
     const arrived = game.tick(IDLE_INTENT);
     expect(arrived.some((event) => event.type === 'ResurrectionShipArrived')).toBe(true);
     expect(game.view.resurrectionShip?.shielded).toBe(true);
+    expect(game.view.resurrectionShip?.baysOpen).toBe(false);
     expect(game.view.resurrectionShip?.hp).toBe(8);
 
     const shipX = game.view.resurrectionShip?.x ?? RESURRECTION_SHIP_SPAWN_X_UNITS;
@@ -131,6 +135,7 @@ describe('the resurrection ship', () => {
     const exposed = [...game.continueFromJump()];
     expect(exposed.some((event) => event.type === 'ResurrectionShipExposed')).toBe(true);
     expect(game.view.resurrectionShip?.shielded).toBe(false);
+    expect(game.view.resurrectionShip?.baysOpen).toBe(true);
 
     for (let i = 0; i < ticksFor(4); i++) {
       tickToward(game, shipX);
@@ -226,5 +231,27 @@ describe('the resurrection ship', () => {
     expect(sawWin).toBe(true);
     expect(game.view.raiders).toHaveLength(0);
     expect(game.view.ghosts).toHaveLength(0);
+  });
+});
+
+describe('hangar bays', () => {
+  it('start open when the shield drops, then seal, then open again', () => {
+    const ship = new ResurrectionShip(60, true);
+    expect(ship.baysOpen).toBe(false);
+    expect(ship.expose()).toBe(true);
+    expect(ship.baysOpen).toBe(true);
+    ship.advanceBays(BAY_OPEN_SECONDS);
+    expect(ship.baysOpen).toBe(false);
+    ship.advanceBays(BAY_SEALED_SECONDS);
+    expect(ship.baysOpen).toBe(true);
+  });
+
+  it('do not walk during Recovering', () => {
+    const game = shipGame(60);
+    runToRecovering(game);
+    const open = game.view.resurrectionShip?.baysOpen;
+    expect(open).toBe(true);
+    for (let i = 0; i < ticksFor(5); i++) game.tick(IDLE_INTENT);
+    expect(game.view.resurrectionShip?.baysOpen).toBe(open);
   });
 });
