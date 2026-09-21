@@ -2,8 +2,10 @@ import { VIPER_MAX_SPEED_UNITS_PER_SECOND, VIPER_RADIUS_UNITS } from '../combat/
 import { VIPER_FIRE_INTERVAL_SECONDS, VIPER_SHOT_RADIUS_UNITS, VIPER_SHOT_SPEED_UNITS_PER_SECOND } from '../combat/projectile';
 import { MISSILE_SPEED_UNITS_PER_SECOND } from '../combat/missile';
 import { RESURRECTION_DOWNLOAD_SECONDS } from '../swarm/resurrection';
+import { FLEET_CYCLE_DAMAGE_CAP } from '../fleet/integrity';
 import type { RandomStream } from '../shared/random';
 import {
+  CONTINUITY_CAP_PER_STACK,
   CALL_WAITING_SECONDS_PER_STACK,
   CANNON_PIERCE_PER_STACK,
   CANNON_RADIUS_PER_STACK,
@@ -98,6 +100,10 @@ export class Loadout {
 
   get downloadSeconds(): number {
     return RESURRECTION_DOWNLOAD_SECONDS + CALL_WAITING_SECONDS_PER_STACK * this.stacksOf('your-call-is-important-to-us');
+  }
+
+  get fleetCycleDamageCap(): number {
+    return FLEET_CYCLE_DAMAGE_CAP * Math.pow(CONTINUITY_CAP_PER_STACK, this.stacksOf('continuity-of-government'));
   }
 
   get cylonEye(): boolean {

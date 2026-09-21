@@ -1,13 +1,14 @@
 /**
  * Starter upgrade set (PRD 10.2). Effects are modifiers, not flags. Text lives in JSON (D8).
  *
- * ASSUMPTION: these six are the ones whose systems already exist. Hangar Door Slam, Spoilers,
+ * ASSUMPTION: these seven are the ones whose systems already exist. Hangar Door Slam, Spoilers,
  * flak, Raptor, and Imaginary Six wait with the features they need.
  */
 export type CardId =
   | 'accidentally-wide'
   | 'anyone-could-be-a-cylon'
   | 'bootleg-hooch'
+  | 'continuity-of-government'
   | 'overcompensating-cannon'
   | 'personal-vendetta'
   | 'your-call-is-important-to-us';
@@ -22,6 +23,7 @@ export interface CardDefinition {
 export const STARTER_CARDS: readonly CardDefinition[] = [
   { id: 'accidentally-wide', rarity: 'common' },
   { id: 'your-call-is-important-to-us', rarity: 'common' },
+  { id: 'continuity-of-government', rarity: 'common' },
   { id: 'anyone-could-be-a-cylon', rarity: 'uncommon' },
   { id: 'bootleg-hooch', rarity: 'uncommon' },
   { id: 'overcompensating-cannon', rarity: 'uncommon' },
@@ -67,3 +69,6 @@ export const VENDETTA_MISSILE_SPEED_PER_STACK = 0.8;
 
 /** *Anyone Could Be a Cylon*: cover after a save. One save per stack per cycle. */
 export const CYLON_SAVE_INVULN_SECONDS = 1.5;
+
+/** *Continuity of Government*: fleet cycle-damage cap multiplier per stack. */
+export const CONTINUITY_CAP_PER_STACK = 0.9;

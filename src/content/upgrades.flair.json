@@ -30,6 +30,16 @@
     }
   },
   {
+    "id": "continuity-of-government",
+    "title": "Continuity of Government",
+    "joke": "PLACEHOLDER: Roslin's favorite. The quota is the quota.",
+    "plain": "Fleet damage cap −10% per stack.",
+    "advice": {
+      "baltar": "PLACEHOLDER: Less damage in one 33. I can live with a quota.",
+      "roslin": "PLACEHOLDER: The civilians cannot take a worse 33 than this. Hold that line."
+    }
+  },
+  {
     "id": "overcompensating-cannon",
     "title": "Overcompensating Cannon",
     "joke": "PLACEHOLDER: The round is late. The round is huge.",

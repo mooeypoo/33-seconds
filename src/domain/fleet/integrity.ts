@@ -101,17 +101,17 @@ export class Fleet {
    * actually taken (0 when the cap or the floor is already spent). `x` picks which hull shows the
    * hit; omitted shots land on the centre ship.
    */
-  takeStray(x: number = WORLD_WIDTH_UNITS / 2): number {
-    return this.takeDamage(FLEET_DAMAGE_PER_STRAY, x);
+  takeStray(x: number = WORLD_WIDTH_UNITS / 2, cycleCap = FLEET_CYCLE_DAMAGE_CAP): number {
+    return this.takeDamage(FLEET_DAMAGE_PER_STRAY, x, cycleCap);
   }
 
   /** A body that reached the line. Same cap and floor as a stray. */
-  takeStrafe(x: number): number {
-    return this.takeDamage(FLEET_DAMAGE_PER_STRAFE, x);
+  takeStrafe(x: number, cycleCap = FLEET_CYCLE_DAMAGE_CAP): number {
+    return this.takeDamage(FLEET_DAMAGE_PER_STRAFE, x, cycleCap);
   }
 
-  private takeDamage(amount: number, x: number): number {
-    const room = Math.min(amount, FLEET_CYCLE_DAMAGE_CAP - this.damageThisCycle, this.integrity);
+  private takeDamage(amount: number, x: number, cycleCap: number): number {
+    const room = Math.min(amount, cycleCap - this.damageThisCycle, this.integrity);
     if (room <= 0) return 0;
     this.integrity -= room;
     this.damageThisCycle += room;

@@ -538,7 +538,7 @@ export class Game {
     for (const raider of this.raiders) {
       raider.advance(TICK_SECONDS);
       if (raider.isStrafing && raider.crossedFleetLine(FLEET_LINE_Y_UNITS)) {
-        const damage = this.fleet.takeStrafe(raider.x);
+        const damage = this.fleet.takeStrafe(raider.x, this.loadout.fleetCycleDamageCap);
         if (damage > 0) {
           const fleet = this.fleet.view;
           events.push({
@@ -753,7 +753,7 @@ export class Game {
       if (!shot.alive || !shot.crossedFleetLine(FLEET_LINE_Y_UNITS)) continue;
       const x = shot.toView().x;
       shot.kill();
-      const damage = this.fleet.takeStray(x);
+      const damage = this.fleet.takeStray(x, this.loadout.fleetCycleDamageCap);
       if (damage > 0) {
         const fleet = this.fleet.view;
         events.push({

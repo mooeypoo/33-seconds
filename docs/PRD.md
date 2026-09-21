@@ -37,7 +37,7 @@ Read this every session. The rest of the document is detail.
 - Cycle 1 teaches the loop. On cycle 2 the **resurrection ship** arrives **shielded** (visible, cannot be hurt). On cycle 4 the shield drops. Chip away at its persistent HP. Destroy it to stop the resurrections, then clear the remaining Raiders to win. It stations high on the right and drifts a little, slowly. Both cycle numbers are tunables.
 - You **lose** only when **Fleet Integrity** reaches zero. Strafing runs and stray bullets hurt the fleet. There is a per-cycle damage cap and a partial repair at each jump. Your Viper being destroyed costs time, not the run.
 - **Missiles** (3 per cycle) hit the first hostile thing they touch. Lock is the nearest hostile in a forward cone. Space, a large on-screen button, or a second finger fires one. **The Speech** (E or a button): 4 s of hover and invulnerability, ready again every 3 jumps.
-- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). Six starter cards are live; grow to 12. One free reroll: Ask Baltar Again.
+- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). Seven starter cards are live; grow to 12. One free reroll: Ask Baltar Again.
 - **Comfort rules:** no shake, wobble, or flashing. Color is never the only cue. Pause works anywhere.
 - **Comms portraits and jokes** are data written later. Use clearly labeled placeholders first.
 - Two difficulty tiers: **Civilian Ship** and **Viper Pilot**.
@@ -316,13 +316,13 @@ Rarities are initial proposals. **MVP** marks the launch set of 12.
 
 | Card | Effect | Rarity | Set |
 |---|---|---|---|
-| *Continuity of Government* | Fleet damage cap -10%. Roslin's favorite. | Common | MVP |
+| *Continuity of Government* | Fleet damage cap −10% per stack. Roslin's favorite. | Common | MVP |
 | *Flak Enthusiast* | Galactica intercepts more strays, with visible flak bursts. | Common | MVP |
 | *Suspiciously Shiny Freighter* | A decoy that strafing runs target first. Small HP, regenerates. | Uncommon | Later |
 | *Raptor Escort* | A Raptor patrols the fleet line and soaks strays. After 3 hits it returns to hangar and comes back next cycle. | Uncommon | MVP |
 | *Imaginary Six* | See below. | Questionable | MVP |
 
-**Live now:** six starter cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, placeholder flair in JSON. Picking a card starts the next cycle. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). Advice portraits, the remaining MVP six, and Later cards wait.
+**Live now:** seven starter cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, placeholder flair in JSON. Picking a card starts the next cycle. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). Advice portraits, the remaining MVP five, and Later cards wait.
 
 ### 10.3 *Imaginary Six* (Questionable, one copy) `[Tunable]`
 
@@ -582,3 +582,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | The Speech: 4 s hover and invulnerability, E or a button, ready at launch then every 3 jumps. Placeholder comms. Incoming rounds that hit the Viper are eaten. Firmware Update and the loadout pick wait. | M4's special is a panic button, not a second gun. |
 | 2026-09-21 | Recovering: pick 1 of 3 from six starter cards. One free reroll. Picking a card is Continue. Effects: Accidentally Wide, Bootleg Hooch, Your Call Is Important to Us, Overcompensating Cannon, Personal Vendetta, Anyone Could Be a Cylon. Remaining catalog, portraits, and comms scenes wait. | M4's variety is a table, not a second gun. |
 | 2026-09-21 | Eject vs download: default death leaves the board (~3 s, HUD `ejected`, placeholder seat until pickup). *Anyone Could Be a Cylon* stays on station (red-eye, `two transponders`). Real ejection-seat art waits for the graphics pass. Colour is never the only cue. | A second life that looks like eject is not a card. |
+| 2026-09-21 | *Continuity of Government* is in the live starter set: fleet cycle-damage cap −10% per stack. Spoilers, Hangar Door Slam, flak, Raptor, Imaginary Six still wait on their systems. | Grow the table with cards whose rules already exist. |

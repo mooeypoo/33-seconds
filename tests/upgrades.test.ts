@@ -3,7 +3,9 @@ import { createGame } from '../src/domain/game';
 import { VIPER_FIRE_INTERVAL_SECONDS } from '../src/domain/combat/projectile';
 import { VIPER_HULL_HIT_POINTS, VIPER_RADIUS_UNITS } from '../src/domain/combat/viper';
 import { RESURRECTION_SHIP_LOCK_ID } from '../src/domain/combat/missile';
-import { CALL_WAITING_SECONDS_PER_STACK } from '../src/domain/progression/catalog';
+import { CALL_WAITING_SECONDS_PER_STACK, CONTINUITY_CAP_PER_STACK } from '../src/domain/progression/catalog';
+import { FLEET_CYCLE_DAMAGE_CAP, Fleet } from '../src/domain/fleet/integrity';
+import { Loadout } from '../src/domain/progression/loadout';
 import { RESURRECTION_DOWNLOAD_SECONDS } from '../src/domain/swarm/resurrection';
 import type { DomainEvent } from '../src/domain/shared/events';
 import { IDLE_INTENT, type InputIntent } from '../src/domain/shared/intent';
@@ -194,5 +196,19 @@ describe('starter card effects', () => {
       expect(events.some((event) => event.type === 'ViperEjected')).toBe(false);
     }
     expect(downloaded).toBe(true);
+  });
+
+  it('Continuity of Government tightens the fleet cycle cap', () => {
+    const one = new Loadout(['continuity-of-government']);
+    const two = new Loadout(['continuity-of-government', 'continuity-of-government']);
+    const fleet = new Fleet();
+    const cap = FLEET_CYCLE_DAMAGE_CAP * CONTINUITY_CAP_PER_STACK;
+    let applied = 0;
+    for (let i = 0; i < FLEET_CYCLE_DAMAGE_CAP + 20; i++) {
+      applied += fleet.takeStray(135, one.fleetCycleDamageCap);
+    }
+    expect(applied).toBeCloseTo(cap);
+    expect(applied).toBeLessThan(FLEET_CYCLE_DAMAGE_CAP);
+    expect(two.fleetCycleDamageCap).toBeCloseTo(FLEET_CYCLE_DAMAGE_CAP * CONTINUITY_CAP_PER_STACK ** 2);
   });
 });
