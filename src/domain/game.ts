@@ -806,6 +806,12 @@ export class Game {
       if (!shot.alive || !shot.crossedFleetLine(FLEET_LINE_Y_UNITS)) continue;
       const x = shot.toView().x;
       shot.kill();
+      const chance = this.loadout.flakInterceptChance;
+      // No roll when chance is 0, so a run without the card does not spend scenario RNG (D3).
+      if (chance > 0 && this.scenario.next() < chance) {
+        events.push({ type: 'FlakIntercepted', x, y: FLEET_LINE_Y_UNITS });
+        continue;
+      }
       const damage = this.fleet.takeStray(x, this.loadout.fleetCycleDamageCap);
       if (damage > 0) {
         const fleet = this.fleet.view;

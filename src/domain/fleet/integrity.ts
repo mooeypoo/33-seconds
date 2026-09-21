@@ -62,8 +62,8 @@ export function nearestCivilianShipIndex(x: number): number {
 
 /**
  * Fleet Integrity. Partial repair at the jump. A per-cycle cap so one bad 33 cannot end the run.
- * ASSUMPTION: Galactica's flak (40% of strays) waits; every stray that crosses the line hits,
- * so the first play of the pool is readable and deterministic.
+ * ASSUMPTION: Galactica's flak waits behind *Flak Enthusiast*. Without that card every stray that
+ * crosses the line hits, so the first play of the pool stays readable and deterministic.
  */
 export class Fleet {
   private integrity: number;

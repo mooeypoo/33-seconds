@@ -37,7 +37,7 @@ Read this every session. The rest of the document is detail.
 - Cycle 1 teaches the loop. On cycle 2 the **resurrection ship** arrives **shielded** (visible, cannot be hurt). On cycle 4 the shield drops. Chip away at its persistent HP. Destroy it to stop the resurrections, then clear the remaining Raiders to win. It stations high on the right and drifts a little, slowly. Both cycle numbers are tunables.
 - You **lose** only when **Fleet Integrity** reaches zero. Strafing runs and stray bullets hurt the fleet. There is a per-cycle damage cap and a partial repair at each jump. Your Viper being destroyed costs time, not the run.
 - **Missiles** (3 per cycle) hit the first hostile thing they touch. Lock is the nearest hostile in a forward cone. Space, a large on-screen button, or a second finger fires one. **The Speech** (E or a button): 4 s of hover and invulnerability, ready again every 3 jumps.
-- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). Eight starter cards are live; grow to 12. One free reroll: Ask Baltar Again.
+- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). Nine starter cards are live; grow to 12. One free reroll: Ask Baltar Again.
 - **Comfort rules:** no shake, wobble, or flashing. Color is never the only cue. Pause works anywhere.
 - **Comms portraits and jokes** are data written later. Use clearly labeled placeholders first.
 - Two difficulty tiers: **Civilian Ship** and **Viper Pilot**.
@@ -188,7 +188,7 @@ Two separate pools, on purpose:
 2. **Stray bullets.** A Raider bullet that misses your Viper keeps flying. If it crosses the fleet line (near the bottom edge) it hits a civilian ship.
    - Two bullet states: *Aimed* (red) and *Stray* (orange). A bullet becomes Stray once it passes you, so the consequence is visible before it lands.
    - Damage per hit starts at **1** of **100** integrity (1%).
-   - Galactica's flak (about 40% of strays) waits. Every stray that crosses the line hits, so the first play of the pool is readable.
+   - Galactica's flak waits behind *Flak Enthusiast*: first stack intercepts about **40%** of strays (seeded). Extra stacks add 15%. Without the card every stray that crosses the line still hits, so the pool stays readable. Strafes are not flak. Placeholder puffs at the stray and a muzzle on Galactica; real `flak_burst` later.
    - Standing between the swarm and the fleet catches strays. Your Viper hull resets each jump, so absorbing hits is cheap. That makes a bodyguard build viable.
 
 ### 7.2 Two fairness rules
@@ -211,7 +211,7 @@ Losing on Viper Pilot requires taking near-cap damage over and over, meaning ign
 ### 7.4 HUD and flavor
 - Fleet shown as **ten pips plus `n/max`** near the jump clock, and as **ten placeholder hulls** on the olive line. Colour is never the only cue.
 - A stray marks the nearest hull with an orange notch (not a flash). Hulls ding to match the pips as integrity drops. Pause-menu silly names (for example, "The Slightly Leaky Freighter") wait. No show ship names.
-- The slightly larger hull in the middle is Galactica visually only. Flak waits.
+- The slightly larger hull in the middle is Galactica. *Flak Enthusiast* gives it a muzzle puff when it eats a stray. Without that card it is visual only.
 - Reaching zero ends the run. A placeholder lose overlay; Retry returns to the title. Civilian Ship numbers cannot reach zero yet (PRD 7.2). Viper Pilot numbers and the epilogue wait.
 - The line is still a rigid row. A later pass can give the hulls a slight up/down and a little sideways idle (the same idea as the resurrection ship's station-keeping) so they do not feel stuck. Not enough to leave the bottom edge.
 - End-of-run stat: "Civilians endangered by your dodging: 47." `[Later]`
@@ -317,12 +317,12 @@ Rarities are initial proposals. **MVP** marks the launch set of 12.
 | Card | Effect | Rarity | Set |
 |---|---|---|---|
 | *Continuity of Government* | Fleet damage cap −10% per stack. Roslin's favorite. | Common | MVP |
-| *Flak Enthusiast* | Galactica intercepts more strays, with visible flak bursts. | Common | MVP |
+| *Flak Enthusiast* | Galactica intercepts 40% of strays, plus 15% per extra stack. Visible flak bursts. Strafes still land. | Common | MVP |
 | *Suspiciously Shiny Freighter* | A decoy that strafing runs target first. Small HP, regenerates. | Uncommon | Later |
 | *Raptor Escort* | A Raptor patrols the fleet line and soaks strays. After 3 hits it returns to hangar and comes back next cycle. | Uncommon | MVP |
 | *Imaginary Six* | See below. | Questionable | MVP |
 
-**Live now:** eight starter cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, placeholder flair in JSON. Picking a card starts the next cycle. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. Advice portraits, Hangar Door Slam, flak, Raptor, Imaginary Six, and Later cards wait.
+**Live now:** nine starter cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, placeholder flair in JSON. Picking a card starts the next cycle. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. *Flak Enthusiast* is Galactica eating strays (40% then +15% per extra stack); without it every stray still hits. Advice portraits, Hangar Door Slam, Raptor, Imaginary Six, and Later cards wait.
 
 ### 10.3 *Imaginary Six* (Questionable, one copy) `[Tunable]`
 
@@ -584,3 +584,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | Eject vs download: default death leaves the board (~3 s, HUD `ejected`, placeholder seat until pickup). *Anyone Could Be a Cylon* stays on station (red-eye, `two transponders`). Real ejection-seat art waits for the graphics pass. Colour is never the only cue. | A second life that looks like eject is not a card. |
 | 2026-09-21 | *Continuity of Government* is in the live starter set: fleet cycle-damage cap −10% per stack. Spoilers, Hangar Door Slam, flak, Raptor, Imaginary Six still wait on their systems. | Grow the table with cards whose rules already exist. |
 | 2026-09-21 | *Spoilers*: with the card, ghost blips sit on the return column (spawn height, death X) and a gun hit delays that download 3 s per stack. The killing round does not also delay. Missiles ignore ghosts. Jump still finishes transit. Placeholder plus on the blip; real art later. | Queue sniper: see the future, spend gun time to hold it. |
+| 2026-09-21 | *Flak Enthusiast*: first stack intercepts 40% of strays (seeded, scenario stream only when the card is held). Extra stacks +15%, cap 85%. Strafes still land. Without the card every stray still hits. Placeholder puffs; real `flak_burst` later. Hangar Door Slam, Raptor, Imaginary Six wait. | Galactica's guns are a card, not a silent 40% on every run. |

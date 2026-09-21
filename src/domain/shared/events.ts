@@ -129,6 +129,12 @@ export interface GhostDelayed {
   readonly y: number;
 }
 
+export interface FlakIntercepted {
+  readonly type: 'FlakIntercepted';
+  readonly x: number;
+  readonly y: number;
+}
+
 export interface RunLost {
   readonly type: 'RunLost';
 }
@@ -144,6 +150,7 @@ export type DomainEvent =
   | ViperRecovered
   | ViperDownloaded
   | GhostDelayed
+  | FlakIntercepted
   | FleetHit
   | FleetRepaired
   | ResurrectionShipArrived

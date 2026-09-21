@@ -48,6 +48,7 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 | `bullet_aimed` | 3 x 5 | 1 | P0 | Red |
 | `bullet_stray` | 3 x 7 | 1 | P0 | Orange, longer trail |
 | `explosion_small` | 16 x 16 | 6 | P0 | No white flash frames. Warm colors only. |
+| `flak_burst` | 12 x 12 | 3 | P2 | *Flak Enthusiast* puff at the stray. Warm olive/orange, never white, never Cylon red. Not a flash. A muzzle on Galactica is the second cue. |
 | `raider_heavy` | 24 x 24 | 2 | P1 | Bigger arrowhead, visible bays |
 | `missile` | 5 x 9 | 2 (flame) | P1 | |
 | `missile_pickup` | 8 x 8 | 1 | P1 | |
@@ -148,3 +149,7 @@ If both look like "the Viper popped and came back," the card is invisible. Do no
 ## 11. Spoilers (graphics pass)
 
 Without the card, a ghost is a download bar on the corpse. With *Spoilers*, the same blip sits on the **return column** (spawn height, death X) and is a target: a still plus / cross through the diamond, Dradis green, never Cylon red. A hit rewinds the bar. Play uses a placeholder plus and a one-beat scale (pause-frozen, skipped when reduced-motion). Real `ghost_blip` frames can carry the plus. Colour is never the only cue (PRD 9, 15).
+
+## 12. Flak (graphics pass)
+
+Without *Flak Enthusiast*, strays that cross the line hit. With it, Galactica eats a seeded fraction: a still puff at the stray (olive + orange, never white) and a short muzzle on the middle hull. Play uses placeholder rectangles and a 140 ms fade (pause-frozen, skipped when reduced-motion). Real `flak_burst` replaces the puff. Colour is never the only cue (PRD 9, 15).

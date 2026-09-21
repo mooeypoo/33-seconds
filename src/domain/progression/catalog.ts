@@ -1,14 +1,15 @@
 /**
  * Starter upgrade set (PRD 10.2). Effects are modifiers, not flags. Text lives in JSON (D8).
  *
- * ASSUMPTION: these eight are the ones whose systems already exist. Hangar Door Slam, flak,
- * Raptor, and Imaginary Six wait with the features they need.
+ * ASSUMPTION: these nine are the ones whose systems already exist. Hangar Door Slam, Raptor,
+ * and Imaginary Six wait with the features they need.
  */
 export type CardId =
   | 'accidentally-wide'
   | 'anyone-could-be-a-cylon'
   | 'bootleg-hooch'
   | 'continuity-of-government'
+  | 'flak-enthusiast'
   | 'overcompensating-cannon'
   | 'personal-vendetta'
   | 'spoilers'
@@ -25,6 +26,7 @@ export const STARTER_CARDS: readonly CardDefinition[] = [
   { id: 'accidentally-wide', rarity: 'common' },
   { id: 'your-call-is-important-to-us', rarity: 'common' },
   { id: 'continuity-of-government', rarity: 'common' },
+  { id: 'flak-enthusiast', rarity: 'common' },
   { id: 'spoilers', rarity: 'uncommon' },
   { id: 'anyone-could-be-a-cylon', rarity: 'uncommon' },
   { id: 'bootleg-hooch', rarity: 'uncommon' },
@@ -77,3 +79,12 @@ export const CONTINUITY_CAP_PER_STACK = 0.9;
 
 /** *Spoilers*: extra download seconds per shot on a ghost, per stack (PRD 10.2). */
 export const SPOILERS_DELAY_SECONDS_PER_STACK = 3;
+
+/**
+ * *Flak Enthusiast*: first stack is the PRD 7.1 40% intercept. Extra stacks add 15%, capped so the
+ * fleet can still be hurt. ASSUMPTION: without the card every stray still hits, so the pool stays
+ * readable. Strafes are not flak.
+ */
+export const FLAK_INTERCEPT_FIRST_STACK = 0.4;
+export const FLAK_INTERCEPT_EXTRA_STACK = 0.15;
+export const FLAK_INTERCEPT_MAX = 0.85;

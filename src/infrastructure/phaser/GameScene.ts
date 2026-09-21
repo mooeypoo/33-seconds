@@ -54,7 +54,7 @@ export class GameScene extends Phaser.Scene {
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.presenters = [
-      new FleetPresenter(this),
+      new FleetPresenter(this, prefersReducedMotion),
       new ViperPresenter(this),
       new ProjectilePresenter(this),
       new MissilePresenter(this),

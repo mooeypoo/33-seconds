@@ -40,6 +40,16 @@
     }
   },
   {
+    "id": "flak-enthusiast",
+    "title": "Flak Enthusiast",
+    "joke": "PLACEHOLDER: Galactica has opinions about incoming mail.",
+    "plain": "Galactica intercepts 40% of strays, plus 15% per extra stack. Strafes still land.",
+    "advice": {
+      "baltar": "PLACEHOLDER: Fewer holes in the civilians. I can live with a loud sky.",
+      "roslin": "PLACEHOLDER: Let the guns work. You cover what they miss."
+    }
+  },
+  {
     "id": "overcompensating-cannon",
     "title": "Overcompensating Cannon",
     "joke": "PLACEHOLDER: The round is late. The round is huge.",

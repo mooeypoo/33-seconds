@@ -3,7 +3,7 @@ import { createGame } from '../src/domain/game';
 import { VIPER_FIRE_INTERVAL_SECONDS } from '../src/domain/combat/projectile';
 import { VIPER_HULL_HIT_POINTS, VIPER_RADIUS_UNITS } from '../src/domain/combat/viper';
 import { RESURRECTION_SHIP_LOCK_ID } from '../src/domain/combat/missile';
-import { CALL_WAITING_SECONDS_PER_STACK, CONTINUITY_CAP_PER_STACK, SPOILERS_DELAY_SECONDS_PER_STACK } from '../src/domain/progression/catalog';
+import { CALL_WAITING_SECONDS_PER_STACK, CONTINUITY_CAP_PER_STACK, FLAK_INTERCEPT_EXTRA_STACK, FLAK_INTERCEPT_FIRST_STACK, FLAK_INTERCEPT_MAX, SPOILERS_DELAY_SECONDS_PER_STACK } from '../src/domain/progression/catalog';
 import { FLEET_CYCLE_DAMAGE_CAP, Fleet } from '../src/domain/fleet/integrity';
 import { Loadout } from '../src/domain/progression/loadout';
 import { RESURRECTION_DOWNLOAD_SECONDS } from '../src/domain/swarm/resurrection';
@@ -297,5 +297,39 @@ describe('starter card effects', () => {
       }
     }
     expect(delayed).toBe(true);
+  });
+
+  it('Flak Enthusiast rolls a 40% intercept on the first stack', () => {
+    expect(new Loadout().flakInterceptChance).toBe(0);
+    expect(new Loadout(['flak-enthusiast']).flakInterceptChance).toBe(FLAK_INTERCEPT_FIRST_STACK);
+    expect(
+      new Loadout(['flak-enthusiast', 'flak-enthusiast']).flakInterceptChance,
+    ).toBeCloseTo(FLAK_INTERCEPT_FIRST_STACK + FLAK_INTERCEPT_EXTRA_STACK);
+    expect(
+      new Loadout(['flak-enthusiast', 'flak-enthusiast', 'flak-enthusiast']).flakInterceptChance,
+    ).toBeCloseTo(Math.min(FLAK_INTERCEPT_MAX, FLAK_INTERCEPT_FIRST_STACK + 2 * FLAK_INTERCEPT_EXTRA_STACK));
+  });
+
+  it('Flak Enthusiast eats some strays and still lets others through', () => {
+    const game = createGame({ seed: 1, startingCards: ['flak-enthusiast'] });
+    const park = { ...IDLE_INTENT, moveX: -1, moveY: 0 };
+    let intercepted = 0;
+    let hit = 0;
+    for (let i = 0; i < ticksFor(20); i++) {
+      const events = game.tick(park);
+      intercepted += events.filter((event) => event.type === 'FlakIntercepted').length;
+      hit += events.filter((event) => event.type === 'FleetHit' && event.kind === 'stray').length;
+    }
+    expect(intercepted).toBeGreaterThan(0);
+    expect(hit).toBeGreaterThan(0);
+  });
+
+  it('does not intercept strays without Flak Enthusiast', () => {
+    const game = createGame({ seed: 1 });
+    const park = { ...IDLE_INTENT, moveX: -1, moveY: 0 };
+    for (let i = 0; i < ticksFor(12); i++) {
+      const events = game.tick(park);
+      expect(events.some((event) => event.type === 'FlakIntercepted')).toBe(false);
+    }
   });
 });

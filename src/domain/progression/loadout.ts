@@ -7,6 +7,9 @@ import type { RandomStream } from '../shared/random';
 import {
   CONTINUITY_CAP_PER_STACK,
   CALL_WAITING_SECONDS_PER_STACK,
+  FLAK_INTERCEPT_EXTRA_STACK,
+  FLAK_INTERCEPT_FIRST_STACK,
+  FLAK_INTERCEPT_MAX,
   SPOILERS_DELAY_SECONDS_PER_STACK,
   CANNON_PIERCE_PER_STACK,
   CANNON_RADIUS_PER_STACK,
@@ -113,6 +116,15 @@ export class Loadout {
 
   get ghostsAreShootable(): boolean {
     return this.ghostDelaySeconds > 0;
+  }
+
+  get flakInterceptChance(): number {
+    const stacks = this.stacksOf('flak-enthusiast');
+    if (stacks <= 0) return 0;
+    return Math.min(
+      FLAK_INTERCEPT_MAX,
+      FLAK_INTERCEPT_FIRST_STACK + FLAK_INTERCEPT_EXTRA_STACK * (stacks - 1),
+    );
   }
 
   get cylonEye(): boolean {

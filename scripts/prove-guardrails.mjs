@@ -281,6 +281,13 @@ const SABOTAGE = [
       mustFail: 'npm run test',
     },
     {
+      what: 'Flak Enthusiast never intercepts a stray',
+      file: 'src/domain/game.ts',
+      find: '      if (chance > 0 && this.scenario.next() < chance) {\n        events.push({ type: \'FlakIntercepted\', x, y: FLEET_LINE_Y_UNITS });\n        continue;\n      }',
+      replace: '      // sabotage: Galactica is decorative',
+      mustFail: 'npm run test',
+    },
+    {
       what: 'the loop catches up without a limit',
       file: 'src/application/GameSession.ts',
       find: '    const ticksToRun = Math.min(dueTicks, MAX_CATCH_UP_TICKS);',
