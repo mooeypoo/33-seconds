@@ -261,4 +261,145 @@ describe('Banter', () => {
     expect(comms.mention('ImaginarySixActive', quiet)).toBe(true);
     expect(comms.line).toEqual({ speakerName: 'Tigh', text: 'Who?' });
   });
+
+  it('reports a fleet hit, a return, and the factory going down', () => {
+    const lines: BanterLine[] = [
+      {
+        id: 'gaeta-fleet-hit-01',
+        speaker: 'gaeta',
+        trigger: 'FleetHit',
+        text: 'Logged.',
+        weight: 1,
+        cooldownSeconds: 20,
+        priority: 'normal',
+        chance: 1,
+        poolId: 'hit',
+      },
+      {
+        id: 'starbuck-raider-resurrected-01',
+        speaker: 'starbuck',
+        trigger: 'RaiderResurrected',
+        text: 'Back.',
+        weight: 1,
+        cooldownSeconds: 15,
+        priority: 'flavor',
+        chance: 1,
+        poolId: 'back',
+      },
+      {
+        id: 'adama-resurrection-ship-destroyed-01',
+        speaker: 'adama',
+        trigger: 'ResurrectionShipDestroyed',
+        text: 'Down.',
+        weight: 1,
+        cooldownSeconds: 30,
+        priority: 'normal',
+        chance: 1,
+        poolId: 'down',
+      },
+    ];
+    const comms = new Banter(stream(0), lines);
+    const hit: DomainEvent = { type: 'FleetHit', damage: 1, integrity: 99, x: 1, shipId: 0, kind: 'stray' };
+    comms.observe([hit], quiet);
+    expect(comms.line).toEqual({ speakerName: 'Gaeta', text: 'Logged.' });
+
+    comms.advance(20);
+    const spawned: DomainEvent = {
+      type: 'RaiderSpawned',
+      id: 2,
+      identityId: 2,
+      x: 0,
+      y: 0,
+      returned: false,
+      deaths: 0,
+    };
+    comms.observe([spawned], quiet);
+    expect(comms.line).toBeNull();
+    comms.observe([{ ...spawned, returned: true, deaths: 1 }], quiet);
+    expect(comms.line).toEqual({ speakerName: 'Starbuck', text: 'Back.' });
+
+    comms.advance(20);
+    const destroyed: DomainEvent = { type: 'ResurrectionShipDestroyed', x: 0, y: 0 };
+    comms.observe([destroyed], quiet);
+    expect(comms.line).toEqual({ speakerName: 'Adama', text: 'Down.' });
+  });
+
+  it('lets a hull warning replace a joke, and a later spool call replace the earlier one', () => {
+    const lines: BanterLine[] = [
+      {
+        id: 'starbuck-missile-01',
+        speaker: 'starbuck',
+        trigger: 'MissileLaunched',
+        text: 'Catch.',
+        weight: 1,
+        cooldownSeconds: 15,
+        priority: 'flavor',
+        chance: 1,
+        poolId: 'missile',
+      },
+      {
+        id: 'tigh-hull-low-01',
+        speaker: 'tigh',
+        trigger: 'HullLow',
+        text: 'Thin.',
+        weight: 1,
+        cooldownSeconds: 25,
+        priority: 'normal',
+        chance: 1,
+        poolId: 'hull',
+      },
+      {
+        id: 'gaeta-ftl-spool-progress-01',
+        speaker: 'gaeta',
+        trigger: 'FtlSpoolProgress',
+        text: 'Eight.',
+        weight: 1,
+        cooldownSeconds: 10,
+        priority: 'critical',
+        chance: 1,
+        poolId: 'spool-a',
+      },
+      {
+        id: 'gaeta-ftl-spool-progress-02',
+        speaker: 'gaeta',
+        trigger: 'FtlSpoolProgress',
+        text: 'Five.',
+        weight: 1,
+        cooldownSeconds: 10,
+        priority: 'critical',
+        chance: 1,
+        poolId: 'spool-b',
+      },
+    ];
+    const comms = new Banter(stream(0), lines);
+    comms.observe([missile], quiet);
+    expect(comms.mention('HullLow', quiet)).toBe(true);
+    expect(comms.line?.text).toBe('Thin.');
+    expect(comms.mention('HullLow', quiet)).toBe(false);
+
+    comms.advance(30);
+    comms.observe([spool], { ...quiet, spoolPercent: 0 });
+    expect(comms.line?.text).toBe('Eight.');
+    expect(comms.mention('FtlSpoolProgress', { ...quiet, secondsRemaining: 5, spoolPercent: 40 })).toBe(true);
+    expect(comms.line?.text).toBe('Five.');
+  });
+
+  it('says the factory percent, not the spool percent', () => {
+    const lines: BanterLine[] = [
+      {
+        id: 'gaeta-resurrection-ship-milestone-01',
+        speaker: 'gaeta',
+        trigger: 'ResurrectionShipMilestone',
+        text: 'At {percent}.',
+        weight: 1,
+        cooldownSeconds: 15,
+        priority: 'normal',
+        chance: 1,
+        poolId: 'mark',
+      },
+    ];
+    const comms = new Banter(stream(0), lines);
+    expect(comms.mention('ResurrectionShipMilestone', { ...quiet, spoolPercent: 10, shipPercent: 75 })).toBe(true);
+    expect(comms.line?.text).toBe('At 75.');
+  });
 });

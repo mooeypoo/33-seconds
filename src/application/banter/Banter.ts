@@ -21,6 +21,8 @@ export interface BanterContext {
   readonly shipTotal?: number;
   /** Card ids on the Recovering table. An offer line plays only when its card is here. */
   readonly offeredCardIds?: readonly string[];
+  /** Resurrection-ship hull remaining, 0–100. Milestone lines use this for `{percent}`. */
+  readonly shipPercent?: number;
 }
 
 /** XOR'd with the run seed so a joke never consumes the scenario stream (ADR-0001 D3). */
@@ -44,6 +46,7 @@ function priorityRank(priority: BanterPriority): number {
 
 interface ShownLine {
   readonly id: string;
+  readonly trigger: BanterTrigger;
   readonly priority: BanterPriority;
   readonly line: CommsLine;
   remainingSeconds: number;
@@ -95,21 +98,22 @@ export class Banter {
   }
 
   /**
-   * A derived aside, such as someone noticing Imaginary Six. It waits for an empty strip, so it
-   * never talks over Adama or a spool call.
+   * A derived line. A louder one can replace what is showing. The same trigger can replace itself,
+   * so a later spool call updates the countdown. Anything else waits.
    */
   mention(trigger: BanterTrigger, context: BanterContext): boolean {
-    if (this.shown !== null) return false;
     const crisis = context.hull <= 1;
+    const ready = this.lines.filter((line) => {
+      if (line.trigger !== trigger) return false;
+      if (line.priority === 'flavor' && crisis) return false;
+      return (this.readyAtSeconds.get(line.id) ?? 0) <= this.elapsedSeconds;
+    });
+    const best = ready.reduce((rank, line) => Math.max(rank, priorityRank(line.priority)), 0);
+    if (best === 0) return false;
+    if (this.shown !== null && !replaces(best, this.shown, trigger)) return false;
+
     const poolOpen = new Map<string, boolean>();
-    const candidates: BanterLine[] = [];
-    for (const line of this.lines) {
-      if (line.trigger !== trigger) continue;
-      if (line.priority === 'flavor' && crisis) continue;
-      if ((this.readyAtSeconds.get(line.id) ?? 0) > this.elapsedSeconds) continue;
-      if (!this.poolIsOpen(line, poolOpen)) continue;
-      candidates.push(line);
-    }
+    const candidates = ready.filter((line) => this.poolIsOpen(line, poolOpen));
     const chosen = this.pickHighest(candidates);
     if (chosen === null) return false;
     this.show(chosen, context);
@@ -117,9 +121,10 @@ export class Banter {
   }
 
   private show(chosen: BanterLine, context: BanterContext): void {
-    const text = fillPlaceholders(chosen.text, context);
+    const text = fillPlaceholders(chosen.text, context, chosen.trigger);
     this.shown = {
       id: chosen.id,
+      trigger: chosen.trigger,
       priority: chosen.priority,
       line: { speakerName: speakerName(chosen.speaker), text },
       remainingSeconds: commsDurationSeconds(text),
@@ -157,10 +162,17 @@ export class Banter {
   }
 }
 
-function fillPlaceholders(text: string, context: BanterContext): string {
+function replaces(best: number, shown: ShownLine, trigger: BanterTrigger): boolean {
+  const rank = priorityRank(shown.priority);
+  if (best > rank) return true;
+  return best === rank && shown.trigger === trigger;
+}
+
+function fillPlaceholders(text: string, context: BanterContext, trigger: BanterTrigger): string {
+  const percent = trigger === 'ResurrectionShipMilestone' ? (context.shipPercent ?? 0) : (context.spoolPercent ?? 0);
   return text
     .replaceAll('{seconds}', String(Math.max(0, Math.ceil(context.secondsRemaining))))
-    .replaceAll('{percent}', String(context.spoolPercent ?? 0))
+    .replaceAll('{percent}', String(percent))
     .replaceAll('{count}', String(context.readyShips ?? 0))
     .replaceAll('{total}', String(context.shipTotal ?? 0));
 }
@@ -189,6 +201,12 @@ function triggersFor(event: DomainEvent): readonly BanterTrigger[] {
       return ['FleetLost'];
     case 'MissileFired':
       return ['MissileLaunched'];
+    case 'FleetHit':
+      return ['FleetHit'];
+    case 'ResurrectionShipDestroyed':
+      return ['ResurrectionShipDestroyed'];
+    case 'RaiderSpawned':
+      return event.returned ? ['RaiderResurrected'] : [];
     default:
       return [];
   }

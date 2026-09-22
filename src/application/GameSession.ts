@@ -1,6 +1,7 @@
 import { DEFAULT_PLAY_TIER, profileFor } from '../balance/tiers';
 import { Banter, banterSeed, type BanterContext, type CommsLine } from './banter/Banter';
 import { BANTER_LINES } from './banter/lines';
+import { BanterCues, type Cue, type CueSnapshot } from './banter/cues';
 import { ScenePlayer } from './banter/recoveringScene';
 import type { TierId } from '../domain/balance/profile';
 import { createGame, DEFAULT_RUN_SEED, type Game, type GameOptions } from '../domain/game';
@@ -70,6 +71,7 @@ export class GameSession {
   private heldCardId: string | null = null;
   private sixRemarkOwed = false;
   private sixWasPresent = false;
+  private readonly cues = new BanterCues();
 
   constructor(input: InputPort, options: GameOptions = {}) {
     this.input = input;
@@ -277,6 +279,7 @@ export class GameSession {
     this.heldCardId = null;
     this.sixRemarkOwed = false;
     this.sixWasPresent = false;
+    this.cues.reset();
   }
 
   /** Comms follows the game clock: this is only called from a frame that was running. */
@@ -300,12 +303,34 @@ export class GameSession {
     }
 
     this.banter.observe(events, context);
+    if (!this.scene.active) this.playCues(events, view, context, deltaSeconds);
     this.banter.advance(deltaSeconds);
     const justLeftTheScene = this.scene.active && this.scene.advance(deltaSeconds);
     if (justLeftTheScene) this.commitHeldPick();
     // The arriving line is in next frame's events. Let it speak before anyone asks about Six.
     if (!this.scene.active && !justLeftTheScene) this.maybeMentionSix(context);
     if (commsKey(this.status.comms) !== before) this.publish();
+  }
+
+  /**
+   * Derived lines. Only the one still on the strip is accepted, so a louder line in the same
+   * frame does not eat a quieter moment.
+   */
+  private playCues(
+    events: readonly DomainEvent[],
+    view: GameView,
+    context: BanterContext,
+    deltaSeconds: number,
+  ): void {
+    let spoken: Cue | null = null;
+    for (const cue of this.cues.note(events, cueSnapshot(view), deltaSeconds)) {
+      const heard =
+        cue.shipPercent === undefined
+          ? this.banter.mention(cue.trigger, context)
+          : this.banter.mention(cue.trigger, { ...context, shipPercent: cue.shipPercent });
+      if (heard) spoken = cue;
+    }
+    if (spoken) this.cues.accept(spoken);
   }
 
   /** The next cycle, once the scene has had its say and a card is waiting. */
@@ -333,6 +358,27 @@ export class GameSession {
     const status = this.status;
     for (const listener of this.listeners) listener(status);
   }
+}
+
+function cueSnapshot(view: GameView): CueSnapshot {
+  const ship = view.resurrectionShip;
+  return {
+    phase: view.cycle.phase,
+    secondsRemaining: view.cycle.secondsRemaining,
+    hull: view.viper.hp,
+    viperX: view.viper.x,
+    viperY: view.viper.y,
+    shots: view.projectiles.map((shot) => ({
+      id: shot.id,
+      x: shot.x,
+      y: shot.y,
+      previousX: shot.previousX,
+      previousY: shot.previousY,
+      owner: shot.owner,
+    })),
+    shipHp: ship !== null && !ship.destroyed ? ship.hp : null,
+    shipHpMax: ship?.hpMax ?? null,
+  };
 }
 
 function commsKey(line: CommsLine | null): string {
