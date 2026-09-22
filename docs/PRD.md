@@ -464,7 +464,7 @@ Shift is deliberately not used for the special. On Windows, pressing it five tim
 
 - **Internal resolution about 270 px on the short side**, upscaled with nearest-neighbor. Particles and explosions share the same pixel grid.
 - **Palette of 16-24 colors.** Gunmetal grays and olive for the fleet, Dradis green for the HUD, and a single hot red reserved for Cylons.
-- **Silhouettes carry the fandom:** a wedge-shaped Viper with twin engine glow, an arrowhead Raider with a sweeping red eye, a heavy Raider variant, a chunky original-design resurrection ship, and Galactica as a slow parallax silhouette in the background, so you are always visibly defending something.
+- **Silhouettes carry the fandom:** an original shallow-crescent Viper with twin engine glow (a similitude, not a traced show ship), an arrowhead Raider with a sweeping red eye, a heavy Raider variant, a chunky original-design resurrection ship, and Galactica as a slow parallax silhouette in the background, so you are always visibly defending something.
 - About 25 small sprites for gameplay. Portraits are 32 x 32 with mouth-closed, mouth-open, and blink frames plus one signature expression, 36 frames in total for 9 portraits (see [`art/ART-DIRECTION.md`](art/ART-DIRECTION.md) for the full asset list).
 - Portraits are drawn by **costume and silhouette**, not actor likeness.
 - Tools: Aseprite, LibreSprite, or Piskel for art. ZzFX or jsfxr for effects. BeepBox for original chiptune loops.
@@ -633,3 +633,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-22 | Recovering plays a 2–4 beat scene for a clean, rough, or wrecked cycle, and the next cycle waits until that scene and the pick are both done. Once each time Imaginary Six appears, someone asks who the pilot is talking to. | The calm between jumps is a conversation, and the wingman is noticed. |
 | 2026-09-22 | Comms now speaks on a fleet hit, a Raider's return, the factory's death and its 75/50/25 marks, a three-kill cluster, a close miss, low hull, and a 12-second kill drought. Spool is also called at 5 seconds and at 2. Heavy-Raider lines stay quiet. | The lines that were written can play, because the fight already has those moments. |
 | 2026-09-22 | The title shows its written pitch, disclaimer, and one quote per visit. The Recovering scene sits at the top of that screen. | The words that were already written should be where a player reads them. |
+| 2026-09-22 | The Viper silhouette is an original shallow crescent, wingtips hooked slightly forward. It is a similitude, not a traced show ship. | A wedge did not carry the ship people picture. |

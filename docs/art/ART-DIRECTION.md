@@ -41,9 +41,9 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 
 | Asset id | Size (px) | Frames | Priority | Notes |
 |---|---|---|---|---|
-| `viper` | 16 x 16 | neutral x2 (engine flicker), bank_left, bank_right | P0 | Wedge silhouette, twin engine glow. Olive and gunmetal. |
+| `viper` | 16 x 16 on screen, drawn at 64 x 64 | neutral x2 (engine flicker), bank_left, bank_right | P0 | Original shallow crescent, wingtips hooked slightly forward, twin engine glow. Olive and gunmetal. A similitude, not a traced show ship. |
 | `pilot_eject` | 12 x 16 | 1 (still) | P2 | Ejection seat / chute at the last Viper pose until pickup. Not a flash. Never used for *Anyone Could Be a Cylon* (that death keeps the hull and a red-eye). HUD also says `ejected`. |
-| `raider` | 12 x 12 | 4 (eye positions) | P0 | Arrowhead. The **only** thing in the game that uses hot red. |
+| `raider` | 12 x 12 on screen, drawn at 48 x 48 | 3 (eye center, left, right) | P0 | Arrowhead. The **only** thing in the game that uses hot red. The eye moves 4 pixels in the 48 x 48 picture so the shift survives the shrink. |
 | `bullet_player` | 3 x 5 | 1 | P0 | Dradis green |
 | `bullet_aimed` | 3 x 5 | 1 | P0 | Red |
 | `bullet_stray` | 3 x 7 | 1 | P0 | Orange, longer trail |
@@ -96,7 +96,7 @@ Rules:
 
 ## 5. File rules
 
-- **Format:** PNG, 8-bit with transparency, at **1x** size. Never pre-scale.
+- **Format:** PNG, 8-bit with transparency. Draw the first pack at **4×** the on-screen size (a Raider is 48 × 48, shown at 12 × 12). The game nearest-neighbors it down. Filtering, blur, and a shift smaller than those 4 pixels do not survive.
 - **No anti-aliasing and no soft edges.** Every pixel is fully opaque or fully transparent, and uses a palette color.
 - **Tool:** Aseprite, LibreSprite, Pixelorama, or Piskel (works in the browser). Keep source files (`.aseprite`, `.pxo`, and so on) in `art-src/`. They are not shipped.
 - **Sprite sheets:** one PNG per group (for example `ships.png`) plus the JSON data file your tool exports. Aseprite's JSON export (Hash format) is commonly used with Pixi. The renderer spike will confirm it.
