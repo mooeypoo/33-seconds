@@ -1,6 +1,6 @@
 # Sprite files
 
-The first picture pass. One PNG per frame, at the size below, after you scale the generated image down with nearest-neighbor and snap it to the palette in [ART-DIRECTION.md](ART-DIRECTION.md). Drop each file at the path in the table. The rest of the asset table (fleet, resurrection ship, icons, title logo) waits.
+The first picture pass. One PNG per frame, at the size below. A generated hero can be scaled down with nearest-neighbor and snapped to the palette in [ART-DIRECTION.md](ART-DIRECTION.md). Matching variants are painted from that hero; a first try at generating the variants is in [GENERATION-NOTES.md](GENERATION-NOTES.md). Drop each file at the path in the table. The rest of the asset table (fleet, resurrection ship, icons, title logo) waits.
 
 Items are the ships, shots, and the explosion. Characters are the comms portraits: costume and silhouette, never a real person's face. Hot red belongs to the Raider and to `bullet_aimed` only.
 
