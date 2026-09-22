@@ -51,6 +51,8 @@ export interface BanterLine {
   readonly chance: number;
   /** Lines expanded from one pool share this, so the chance roll happens once. */
   readonly poolId: string;
+  /** Set when the line may play only if this card is in the current offer. */
+  readonly upgradeId?: string;
 }
 
 const SPEAKER_NAMES: Record<BanterSpeaker, string> = {
@@ -110,6 +112,7 @@ export function parseBanterLine(raw: unknown): BanterLine | null {
     priority: record.priority,
     chance,
     poolId: typeof record.poolId === 'string' && record.poolId.length > 0 ? record.poolId : record.id,
+    ...(typeof record.upgradeId === 'string' && record.upgradeId.length > 0 ? { upgradeId: record.upgradeId } : {}),
   };
 }
 
@@ -138,6 +141,8 @@ export function parseBanterSource(raw: unknown): BanterLine[] {
     if (typeof chance !== 'number' || chance < 0 || chance > 1) return;
     if (!Array.isArray(record.lines)) return;
     const poolId = `${speaker}:${record.trigger}:${String(poolIndex)}`;
+    const upgradeId = upgradeIdFrom(record.when);
+    if (record.when !== undefined && upgradeId === null && !isEmptyWhen(record.when)) return;
     for (const entry of record.lines) {
       if (entry === null || typeof entry !== 'object') continue;
       const line = entry as Record<string, unknown>;
@@ -152,11 +157,23 @@ export function parseBanterSource(raw: unknown): BanterLine[] {
         priority: record.priority,
         chance,
         poolId,
+        ...(upgradeId === null ? {} : { upgradeId }),
       });
       if (parsed !== null) lines.push(parsed);
     }
   });
   return lines;
+}
+
+/** `when.upgrade` is the only condition the offer line uses. Anything else in `when` drops the pool. */
+function upgradeIdFrom(when: unknown): string | null {
+  if (when === undefined || when === null || typeof when !== 'object') return null;
+  const upgrade = (when as Record<string, unknown>).upgrade;
+  return typeof upgrade === 'string' && upgrade.length > 0 ? upgrade : null;
+}
+
+function isEmptyWhen(when: unknown): boolean {
+  return when !== null && typeof when === 'object' && Object.keys(when).length === 0;
 }
 
 /** Lines shipped with the game. Invalid entries are dropped at load. */

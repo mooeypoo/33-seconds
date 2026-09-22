@@ -21,7 +21,12 @@ const initial = computed(() => props.comms.speakerName.slice(0, 1));
 
 <style scoped>
 .comms {
-  /* In the HUD band, above the instruments, so the swarm stays readable (PRD 12.2). */
+  /* Top band, above menus, so the swarm and the card table both leave it readable (PRD 12.2). */
+  position: absolute;
+  z-index: 4;
+  top: max(8px, env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+  right: max(8px, env(safe-area-inset-right));
   margin: 0;
   pointer-events: none;
   display: flex;

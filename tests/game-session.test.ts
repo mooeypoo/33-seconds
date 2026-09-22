@@ -9,6 +9,7 @@ import {
 import type { InputPort } from '../src/application/ports/InputPort';
 import type { InputIntent } from '../src/domain/shared/intent';
 import { IDLE_INTENT } from '../src/domain/shared/intent';
+import { BANTER_LINES } from '../src/application/banter/lines';
 import { TICK_SECONDS, TICKS_PER_SECOND } from '../src/domain/shared/time';
 
 /** A stand-in for the keyboard and stick adapters, so we can watch what the session asks of them. */
@@ -330,6 +331,16 @@ describe('pause', () => {
     session.advance(ONE_FRAME_AT_60HZ);
 
     expect(session.view.cycle.phase).toBe('recovering');
+  });
+
+  it('speaks about a card that is on the table when the hand is dealt', () => {
+    session.start();
+    runFrames(TICKS_PER_SECOND * 35);
+
+    const ids: readonly string[] = session.view.upgradeOffer?.cardIds ?? [];
+    const spoken = BANTER_LINES.find((line) => line.text === session.status.comms?.text);
+    expect(spoken?.upgradeId === undefined ? false : ids.includes(spoken.upgradeId)).toBe(true);
+    expect(session.status.comms?.speakerName === 'Baltar' || session.status.comms?.speakerName === 'Roslin').toBe(true);
   });
 });
 

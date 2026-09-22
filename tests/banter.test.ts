@@ -31,6 +31,8 @@ const missile: DomainEvent = { type: 'MissileFired', id: 1, x: 0, y: 0 };
 const spool: DomainEvent = { type: 'CyclePhaseChanged', phase: 'spooling', cycleIndex: 1 };
 const arrived: DomainEvent = { type: 'CyclePhaseChanged', phase: 'arriving', cycleIndex: 1 };
 const speech: DomainEvent = { type: 'SpeechStarted' };
+const recovering: DomainEvent = { type: 'CyclePhaseChanged', phase: 'recovering', cycleIndex: 1 };
+const rerolled: DomainEvent = { type: 'UpgradeRerolled' };
 
 describe('parseBanterLine', () => {
   it('drops markup, unknown speakers, and lines that do not fit the bubble', () => {
@@ -174,5 +176,51 @@ describe('Banter', () => {
     comms.advance(20);
     comms.observe([missile], quiet);
     expect(comms.line?.text).toBe('Catch.');
+  });
+
+  it('talks about a card on the table, and a new hand replaces that line', () => {
+    const lines: BanterLine[] = [
+      {
+        id: 'baltar-upgrade-offered-01',
+        speaker: 'baltar',
+        trigger: 'UpgradeOffered',
+        text: 'Wide.',
+        weight: 1,
+        cooldownSeconds: 20,
+        priority: 'normal',
+        chance: 1,
+        poolId: 'wide',
+        upgradeId: 'accidentally-wide',
+      },
+      {
+        id: 'roslin-upgrade-offered-11',
+        speaker: 'roslin',
+        trigger: 'UpgradeOffered',
+        text: 'Hold.',
+        weight: 1,
+        cooldownSeconds: 20,
+        priority: 'normal',
+        chance: 1,
+        poolId: 'hold',
+        upgradeId: 'your-call-is-important-to-us',
+      },
+      {
+        id: 'tyrol-cycle-recovering-01',
+        speaker: 'tyrol',
+        trigger: 'CycleRecovering',
+        text: 'Patch.',
+        weight: 1,
+        cooldownSeconds: 20,
+        priority: 'flavor',
+        chance: 1,
+        poolId: 'tyrol',
+      },
+    ];
+    const comms = new Banter(stream(0), lines);
+    comms.observe([recovering], { ...quiet, offeredCardIds: ['accidentally-wide'] });
+    expect(comms.line).toEqual({ speakerName: 'Baltar', text: 'Wide.' });
+
+    comms.observe([rerolled], { ...quiet, offeredCardIds: ['your-call-is-important-to-us'] });
+    expect(comms.line).toEqual({ speakerName: 'Roslin', text: 'Hold.' });
   });
 });

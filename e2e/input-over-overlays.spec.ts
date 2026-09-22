@@ -80,6 +80,15 @@ test.describe('steering works wherever the finger lands', () => {
     await expect(page.getByText('Drag anywhere to fly')).toBeHidden();
   });
 
+  test('the pick names both advisors and still speaks', async ({ page }) => {
+    test.setTimeout(90_000);
+    await startRun(page);
+    await expect(page.getByText('Pick one. No timer.')).toBeVisible({ timeout: 70_000 });
+    await expect(page.getByText('Baltar.').first()).toBeVisible();
+    await expect(page.getByText('Roslin.').first()).toBeVisible();
+    await expect(page.getByTestId('comms')).toContainText(/Baltar|Roslin/);
+  });
+
   test('a drag that starts on a comms line still steers', async ({ page }) => {
     await startRun(page);
     const comms = page.getByTestId('comms');

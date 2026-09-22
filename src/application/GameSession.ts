@@ -257,6 +257,7 @@ export class GameSession {
       spoolPercent: Math.round(view.cycle.spoolProgress * 100),
       readyShips: ships.filter((ship) => ship.healthy).length,
       shipTotal: ships.length,
+      offeredCardIds: view.upgradeOffer?.cardIds ?? [],
     });
     this.banter.advance(deltaSeconds);
     if ((this.banter.line?.text ?? null) !== before) this.publish();

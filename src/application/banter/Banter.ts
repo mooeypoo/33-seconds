@@ -18,6 +18,8 @@ export interface BanterContext {
   readonly readyShips?: number;
   /** Civilian hulls on the line. Dualla's `{total}`. Omitted means 0. */
   readonly shipTotal?: number;
+  /** Card ids on the Recovering table. An offer line plays only when its card is here. */
+  readonly offeredCardIds?: readonly string[];
 }
 
 /** XOR'd with the run seed so a joke never consumes the scenario stream (ADR-0001 D3). */
@@ -69,20 +71,24 @@ export class Banter {
     const poolOpen = new Map<string, boolean>();
     const candidates: BanterLine[] = [];
     for (const event of events) {
-      const trigger = triggerFor(event);
-      if (trigger === null) continue;
-      for (const line of this.lines) {
-        if (line.trigger !== trigger) continue;
-        if (line.priority === 'flavor' && crisis) continue;
-        if ((this.readyAtSeconds.get(line.id) ?? 0) > this.elapsedSeconds) continue;
-        if (!this.poolIsOpen(line, poolOpen)) continue;
-        candidates.push(line);
+      for (const trigger of triggersFor(event)) {
+        for (const line of this.lines) {
+          if (line.trigger !== trigger) continue;
+          if (line.priority === 'flavor' && crisis) continue;
+          if ((this.readyAtSeconds.get(line.id) ?? 0) > this.elapsedSeconds) continue;
+          if (!this.poolIsOpen(line, poolOpen)) continue;
+          if (!offerMatches(line, context.offeredCardIds)) continue;
+          candidates.push(line);
+        }
       }
     }
 
     const chosen = this.pickHighest(candidates);
     if (chosen === null) return;
-    if (this.shown !== null && priorityRank(chosen.priority) <= priorityRank(this.shown.priority)) return;
+    // A new hand replaces whatever was still on the strip. The jump is over.
+    if (chosen.trigger !== 'UpgradeOffered') {
+      if (this.shown !== null && priorityRank(chosen.priority) <= priorityRank(this.shown.priority)) return;
+    }
 
     const text = fillPlaceholders(chosen.text, context);
     this.shown = {
@@ -132,25 +138,32 @@ function fillPlaceholders(text: string, context: BanterContext): string {
     .replaceAll('{total}', String(context.shipTotal ?? 0));
 }
 
-function triggerFor(event: DomainEvent): BanterTrigger | null {
+function offerMatches(line: BanterLine, offered: readonly string[] | undefined): boolean {
+  if (line.upgradeId === undefined) return true;
+  return (offered ?? []).includes(line.upgradeId);
+}
+
+function triggersFor(event: DomainEvent): readonly BanterTrigger[] {
   switch (event.type) {
     case 'CyclePhaseChanged':
-      if (event.phase === 'arriving') return 'CycleStarted';
-      if (event.phase === 'spooling') return 'FtlSpoolProgress';
-      if (event.phase === 'recovering') return 'CycleRecovering';
-      return null;
+      if (event.phase === 'arriving') return ['CycleStarted'];
+      if (event.phase === 'spooling') return ['FtlSpoolProgress'];
+      if (event.phase === 'recovering') return ['CycleRecovering', 'UpgradeOffered'];
+      return [];
+    case 'UpgradeRerolled':
+      return ['UpgradeOffered'];
     case 'ResurrectionShipArrived':
-      return 'ResurrectionShipArrived';
+      return ['ResurrectionShipArrived'];
     case 'SpeechStarted':
-      return 'SpecialUsed';
+      return ['SpecialUsed'];
     case 'RunWon':
-      return 'RunWon';
+      return ['RunWon'];
     case 'RunLost':
-      return 'FleetLost';
+      return ['FleetLost'];
     case 'MissileFired':
-      return 'MissileLaunched';
+      return ['MissileLaunched'];
     default:
-      return null;
+      return [];
   }
 }
 

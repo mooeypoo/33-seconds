@@ -16,6 +16,7 @@ interface CardFlair {
   readonly title: string;
   readonly joke: string;
   readonly plain: string;
+  readonly advice?: { readonly baltar?: string; readonly roslin?: string };
 }
 
 const FLAIR = flair as CardFlair[];
@@ -49,7 +50,7 @@ function reroll(): void {
   <div class="recovering">
     <div class="panel" data-ui>
       <h2>Jump complete</h2>
-      <p class="lead">Pick one. No timer. PLACEHOLDER comms scene waits.</p>
+      <p class="lead">Pick one. No timer.</p>
 
       <div class="cards">
         <button
@@ -64,6 +65,8 @@ function reroll(): void {
           <em class="title">{{ card.title }}</em>
           <span class="joke">{{ card.joke }}</span>
           <span class="plain">{{ card.plain }}</span>
+          <span v-if="card.advice?.baltar" class="advice"><span class="who">Baltar.</span> {{ card.advice.baltar }}</span>
+          <span v-if="card.advice?.roslin" class="advice"><span class="who">Roslin.</span> {{ card.advice.roslin }}</span>
         </button>
       </div>
 
@@ -89,7 +92,7 @@ function reroll(): void {
   place-items: center;
   pointer-events: none;
   background: rgb(8 12 16 / 55%);
-  padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
+  padding: max(64px, calc(env(safe-area-inset-top) + 56px)) max(8px, env(safe-area-inset-right))
     max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
 }
 
@@ -155,6 +158,16 @@ h2 {
 .plain {
   font-size: 13px;
   line-height: 1.35;
+}
+
+.advice {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #24343f;
+}
+
+.who {
+  font-weight: 700;
 }
 
 .reroll {

@@ -32,91 +32,91 @@
   {
     "id": "continuity-of-government",
     "title": "Continuity of Government",
-    "joke": "PLACEHOLDER: Roslin's favorite. The quota is the quota.",
+    "joke": "The quota survived the meeting. So does the fleet.",
     "plain": "Fleet damage cap −10% per stack.",
     "advice": {
-      "baltar": "PLACEHOLDER: Less damage in one 33. I can live with a quota.",
-      "roslin": "PLACEHOLDER: The civilians cannot take a worse 33 than this. Hold that line."
+      "baltar": "A lower ceiling on the damage, and another copy lowers it again. I adore a ceiling.",
+      "roslin": "Each copy caps how much the fleet can lose in one cycle. That is the policy."
     }
   },
   {
     "id": "flak-enthusiast",
     "title": "Flak Enthusiast",
-    "joke": "PLACEHOLDER: Galactica has opinions about incoming mail.",
+    "joke": "Galactica opened the mail. She did not enjoy it.",
     "plain": "Galactica intercepts 40% of strays, plus 15% per extra stack. Strafes still land.",
     "advice": {
-      "baltar": "PLACEHOLDER: Fewer holes in the civilians. I can live with a loud sky.",
-      "roslin": "PLACEHOLDER: Let the guns work. You cover what they miss."
+      "baltar": "Some of the little ones never arrive. The ones that dive still do. I will be indoors.",
+      "roslin": "The guns take a share of the strays, more with each copy. You still catch the dive."
     }
   },
   {
     "id": "hangar-door-slam",
     "title": "Hangar Door Slam",
-    "joke": "PLACEHOLDER: Kick them while the doors are open.",
+    "joke": "The doors are a suggestion. Your timing is the point.",
     "plain": "+30% damage to the resurrection ship while its bays are open, per stack.",
     "advice": {
-      "baltar": "PLACEHOLDER: Wait for the gap. Then be unkind.",
-      "roslin": "PLACEHOLDER: The factory is busiest when it is receiving. That is when you hit it."
+      "baltar": "They only pay you while the bays are open. Another copy pays more.",
+      "roslin": "Hit the factory in the open half of its cycle. Each copy hits harder then."
     }
   },
   {
     "id": "imaginary-six",
     "title": "Imaginary Six",
-    "joke": "PLACEHOLDER: An ally only you can see.",
+    "joke": "She flies your wing. The rest of the fleet will have questions.",
     "plain": "A wingman only you can see. She cuts down strafes and stray rounds in range. Others will ask who you are talking to.",
     "advice": {
-      "baltar": "PLACEHOLDER: I am not seeing anyone. That is probably fine.",
-      "roslin": "PLACEHOLDER: If she is watching the civilians, I will not ask twice."
+      "baltar": "I see no one, and the strays are thinner. I have decided not to look.",
+      "roslin": "She takes strafes and strays near you. Let the others ask. You keep the fleet."
     }
   },
   {
     "id": "raptor-escort",
     "title": "Raptor Escort",
-    "joke": "PLACEHOLDER: They volunteered. Do not make it a habit.",
+    "joke": "They volunteered for the mail. Three holes, and they remember the hangar.",
     "plain": "A Raptor patrols the fleet line and soaks strays. After 3 hits it hangars until the next cycle.",
     "advice": {
-      "baltar": "PLACEHOLDER: Someone else catching the mail. I like this person.",
-      "roslin": "PLACEHOLDER: They will not stay up forever. Cover them when they peel off."
+      "baltar": "Someone else is standing in the way. After three hits they go inside.",
+      "roslin": "They soak strays until three hits, then the hangar until the next jump. Cover that gap."
     }
   },
   {
     "id": "overcompensating-cannon",
     "title": "Overcompensating Cannon",
-    "joke": "PLACEHOLDER: The round is late. The round is huge.",
+    "joke": "The shot left late. It intends to be remembered.",
     "plain": "Slower, bigger shots that pierce two extra Raiders per stack.",
     "advice": {
-      "baltar": "PLACEHOLDER: One shot, several problems. I love efficiency.",
-      "roslin": "PLACEHOLDER: Lead the shot. It will not hurry for you."
+      "baltar": "Slower, wider, and it keeps going. Each copy adds two more Raiders.",
+      "roslin": "Lead it. Each copy punches through two more, and it will not speed up."
     }
   },
   {
     "id": "personal-vendetta",
     "title": "Personal Vendetta",
-    "joke": "PLACEHOLDER: The missile has opinions about the factory.",
+    "joke": "The missile has chosen a ship and will not be reasoned with.",
     "plain": "Missiles lock the resurrection ship whenever it is on screen. -20% missile speed. Escorts still intercept.",
     "advice": {
-      "baltar": "PLACEHOLDER: Ignore the small ones. The factory is the point. Mostly.",
-      "roslin": "PLACEHOLDER: Escorts will still eat the round. Position anyway."
+      "baltar": "It wants the factory, and it is slower about it. Escorts can still eat it.",
+      "roslin": "Your missiles lock the factory while it is up. Slower, and escorts still intercept."
     }
   },
   {
     "id": "your-call-is-important-to-us",
     "title": "Your Call Is Important to Us",
-    "joke": "PLACEHOLDER: Please continue to hold. Your resurrection is very important to us.",
+    "joke": "Your resurrection is important to us. Please hold.",
     "plain": "Resurrection takes +2 seconds per stack.",
     "advice": {
-      "baltar": "PLACEHOLDER: Time. Beautiful, stalling time.",
-      "roslin": "PLACEHOLDER: A slower queue is a quieter sky. Take it."
+      "baltar": "Two more seconds on hold, per copy. I have never loved a queue more.",
+      "roslin": "Each copy delays their return by two seconds. Spend that quiet."
     }
   },
   {
     "id": "spoilers",
     "title": "Spoilers",
-    "joke": "PLACEHOLDER: You already know how this download ends.",
+    "joke": "You have already read the part where they come back.",
     "plain": "Ghost blips sit on the return column. Shooting one delays that download 3 seconds per stack.",
     "advice": {
-      "baltar": "PLACEHOLDER: Shoot the future. I love a spoiler.",
-      "roslin": "PLACEHOLDER: Every second they wait is a second the fleet does not."
+      "baltar": "Shoot the ghost and the download waits. Three seconds a copy. I love being early.",
+      "roslin": "The blip sits where it will return. A hit holds it there, longer with each copy."
     }
   }
 ]

@@ -13,7 +13,6 @@ const stats = hudStore.state;
 
 <template>
   <div class="hud">
-    <slot />
     <div class="instruments">
     <!--
       Debug readout for the platform check (ADR-0001 D4), and how the end-to-end tests observe the
