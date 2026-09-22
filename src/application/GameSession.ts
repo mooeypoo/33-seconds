@@ -249,9 +249,14 @@ export class GameSession {
   private noteBanter(events: readonly DomainEvent[], deltaSeconds: number): void {
     const before = this.banter.line?.text ?? null;
     const view = this.game.view;
+    const ships = view.fleet.ships;
+    // ASSUMPTION: Dualla's "ready" count is healthy civilian hulls. There is no separate FTL checklist yet.
     this.banter.observe(events, {
       secondsRemaining: view.cycle.secondsRemaining,
       hull: view.viper.hp,
+      spoolPercent: Math.round(view.cycle.spoolProgress * 100),
+      readyShips: ships.filter((ship) => ship.healthy).length,
+      shipTotal: ships.length,
     });
     this.banter.advance(deltaSeconds);
     if ((this.banter.line?.text ?? null) !== before) this.publish();

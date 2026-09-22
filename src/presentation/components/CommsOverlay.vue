@@ -21,23 +21,18 @@ const initial = computed(() => props.comms.speakerName.slice(0, 1));
 
 <style scoped>
 .comms {
-  position: absolute;
-  top: max(108px, calc(env(safe-area-inset-top) + 100px));
-  left: max(12px, env(safe-area-inset-left));
-  /* Stay off the mute and pause column. */
-  max-width: min(68%, 280px);
+  /* In the HUD band, above the instruments, so the swarm stays readable (PRD 12.2). */
   margin: 0;
   pointer-events: none;
   display: flex;
   gap: 8px;
   align-items: flex-start;
-  padding: 8px;
+  padding: 6px 8px;
   color: #e8d8cf;
-  background: rgb(8 12 16 / 82%);
-  border: 1px solid #3a4a44;
-  border-radius: 6px;
+  background: rgb(8 12 16 / 88%);
+  border-left: 3px solid #c4b08a;
   font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.35;
 }
 

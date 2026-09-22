@@ -2,31 +2,31 @@
   {
     "id": "accidentally-wide",
     "title": "Accidentally Wide",
-    "joke": "PLACEHOLDER: Tyrol swears the spec said slim.",
+    "joke": "Tyrol swears the spec said 'slim.' The metal disagreed.",
     "plain": "Viper is 25% chunkier: more hurtbox, more intercepted strays.",
     "advice": {
-      "baltar": "PLACEHOLDER: Bigger target, yes, but also a bigger wall. I like walls.",
-      "roslin": "PLACEHOLDER: You will catch more fire. That is the point."
+      "baltar": "I am now a larger target. I did not ask for this responsibility.",
+      "roslin": "More surface area catching fire than civilians. That's a fleet-first trade."
     }
   },
   {
     "id": "anyone-could-be-a-cylon",
     "title": "Anyone Could Be a Cylon",
-    "joke": "PLACEHOLDER: Gaeta reports two transponders. One pilot.",
+    "joke": "Gaeta reports two transponders. One pilot. He's chosen not to ask.",
     "plain": "Once per cycle per stack, a lethal hit downloads you into a fresh Viper with 1.5 s cover.",
     "advice": {
-      "baltar": "PLACEHOLDER: Very theoretical. Very safe. Don't overthink the eye.",
-      "roslin": "PLACEHOLDER: A second chance is still a chance. The eye is the cost."
+      "baltar": "Die once, come back once. I'd call that a fair trade, wouldn't you?",
+      "roslin": "A lethal hit becomes a fresh start, once a cycle. Don't waste the reprieve."
     }
   },
   {
     "id": "bootleg-hooch",
     "title": "Bootleg Hooch (Unlabeled)",
-    "joke": "PLACEHOLDER: Starbuck found a bottle. The gun found a tempo.",
+    "joke": "Tyrol's private stash. The gun found a rhythm; your legs did not.",
     "plain": "+35% fire rate, -20% movement speed.",
     "advice": {
-      "baltar": "PLACEHOLDER: Shoot faster, think slower. I can work with that.",
-      "roslin": "PLACEHOLDER: You will not outrun what you pick a fight with."
+      "baltar": "Faster trigger, slower feet. I've made worse trades for less alcohol.",
+      "roslin": "Firepower up, mobility down. Pick your moments, not your enemies."
     }
   },
   {

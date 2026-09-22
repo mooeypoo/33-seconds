@@ -1,47 +1,105 @@
-[
-  {
-    "id": "adama-cycle-started-01",
-    "speaker": "adama",
-    "trigger": "CycleStarted",
-    "text": "PLACEHOLDER: Another 33. Hold the line.",
-    "weight": 1,
-    "cooldownSeconds": 20,
-    "priority": "normal"
-  },
-  {
-    "id": "adama-ship-arrived-01",
-    "speaker": "adama",
-    "trigger": "ResurrectionShipArrived",
-    "text": "PLACEHOLDER: The resurrection ship is on the board.",
-    "weight": 1,
-    "cooldownSeconds": 30,
-    "priority": "normal"
-  },
-  {
-    "id": "adama-special-used-01",
-    "speaker": "adama",
-    "trigger": "SpecialUsed",
-    "text": "PLACEHOLDER: Hold. They will not fire.",
-    "weight": 1,
-    "cooldownSeconds": 20,
-    "priority": "normal"
-  },
-  {
-    "id": "adama-run-won-01",
-    "speaker": "adama",
-    "trigger": "RunWon",
-    "text": "PLACEHOLDER: The loop is offline. Take the jump.",
-    "weight": 1,
-    "cooldownSeconds": 30,
-    "priority": "normal"
-  },
-  {
-    "id": "adama-fleet-lost-01",
-    "speaker": "adama",
-    "trigger": "FleetLost",
-    "text": "PLACEHOLDER: The fleet did not make this jump.",
-    "weight": 1,
-    "cooldownSeconds": 30,
-    "priority": "normal"
-  }
-]
+{
+  "speaker": "adama",
+  "pools": [
+    {
+      "trigger": "BigRaiderEntered",
+      "priority": "normal",
+      "cooldownSeconds": 30,
+      "lines": [
+        { "id": "adama-big-raider-entered-01", "text": "Big one inbound. Take it down!" },
+        { "id": "adama-big-raider-entered-02", "text": "That's not a standard Raider. Watch yourselves." },
+        { "id": "adama-big-raider-entered-03", "text": "Heavy contact. All Vipers, converge." },
+        { "id": "adama-big-raider-entered-04", "text": "That one's got teeth. Take it seriously." }
+      ]
+    },
+    {
+      "trigger": "CycleStarted",
+      "priority": "normal",
+      "cooldownSeconds": 25,
+      "lines": [
+        { "id": "adama-cycle-started-01", "text": "Thirty-three seconds. Hold the line.", "weight": 3 },
+        { "id": "adama-cycle-started-02", "text": "Vipers away. Make it count.", "weight": 2 },
+        { "id": "adama-cycle-started-03", "text": "Thirty-three again. Let's beat the number this time." },
+        { "id": "adama-cycle-started-04", "text": "Analog and proud of it. Jump." },
+        { "id": "adama-cycle-started-05", "text": "Right on schedule. Vipers, launch." },
+        { "id": "adama-cycle-started-06", "text": "Another jump, another chance to earn it." },
+        { "id": "adama-cycle-started-07", "text": "Steady wings. Watch the fleet, not the glory." }
+      ]
+    },
+    {
+      "trigger": "ResurrectionShipMilestone",
+      "priority": "normal",
+      "cooldownSeconds": 15,
+      "lines": [
+        { "id": "adama-resurrection-ship-milestone-01", "text": "It's cracking. Keep the pressure on." },
+        { "id": "adama-resurrection-ship-milestone-02", "text": "She's hurting. Good hunting, Starbuck." },
+        { "id": "adama-resurrection-ship-milestone-03", "text": "Every hit counts. Don't let up now." }
+      ]
+    },
+    {
+      "trigger": "ResurrectionShipArrived",
+      "priority": "normal",
+      "cooldownSeconds": 30,
+      "lines": [
+        { "id": "adama-resurrection-ship-arrived-01", "text": "Resurrection ship on the board. End it." },
+        { "id": "adama-resurrection-ship-arrived-02", "text": "There's their lifeline. Cut it." },
+        { "id": "adama-resurrection-ship-arrived-03", "text": "Factory's here. Kill it before it works." },
+        { "id": "adama-resurrection-ship-arrived-04", "text": "Focus fire. That ship doesn't get to help them." },
+        { "id": "adama-resurrection-ship-arrived-05", "text": "One target. Make it count." }
+      ]
+    },
+    {
+      "trigger": "ResurrectionShipDestroyed",
+      "priority": "normal",
+      "cooldownSeconds": 30,
+      "lines": [
+        { "id": "adama-resurrection-ship-destroyed-01", "text": "One less door back for them." },
+        { "id": "adama-resurrection-ship-destroyed-02", "text": "Factory's down. Adama, out." },
+        { "id": "adama-resurrection-ship-destroyed-03", "text": "That's one less trick up their sleeve." },
+        { "id": "adama-resurrection-ship-destroyed-04", "text": "Good hit. Don't get comfortable." }
+      ]
+    },
+    {
+      "trigger": "RunWon",
+      "priority": "normal",
+      "cooldownSeconds": 600,
+      "lines": [
+        { "id": "adama-run-won-01", "text": "The fleet's alive. So say we all." },
+        { "id": "adama-run-won-02", "text": "Everyone made it. That's the whole mission." },
+        { "id": "adama-run-won-03", "text": "We're still here. That's a good day." }
+      ]
+    },
+    {
+      "trigger": "SpecialUsed",
+      "priority": "normal",
+      "cooldownSeconds": 40,
+      "lines": [
+        { "id": "adama-special-used-01", "text": "This is why we fight. Everybody, hold on." },
+        { "id": "adama-special-used-02", "text": "Give them everything we've got." },
+        { "id": "adama-special-used-03", "text": "For the fleet. All of it." },
+        { "id": "adama-special-used-04", "text": "No half measures today." },
+        { "id": "adama-special-used-05", "text": "This is what we trained for. Go." }
+      ]
+    },
+    {
+      "trigger": "FleetLost",
+      "priority": "normal",
+      "cooldownSeconds": 600,
+      "lines": [
+        { "id": "adama-fleet-lost-01", "text": "We lost the fleet today. I won't forget it." },
+        { "id": "adama-fleet-lost-02", "text": "Every ship counted, and we still fell short." },
+        { "id": "adama-fleet-lost-03", "text": "This one's on me. Rest now." }
+      ]
+    },
+    {
+      "trigger": "ImaginarySixActive",
+      "priority": "flavor",
+      "cooldownSeconds": 25,
+      "lines": [
+        { "id": "adama-imaginary-six-active-01", "text": "Something on comms, Lieutenant?" },
+        { "id": "adama-imaginary-six-active-02", "text": "Keep the channel clear. Who's that?" },
+        { "id": "adama-imaginary-six-active-03", "text": "You're talking to yourself again." }
+      ]
+    }
+  ]
+}

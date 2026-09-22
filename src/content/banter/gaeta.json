@@ -1,11 +1,52 @@
-[
-  {
-    "id": "gaeta-ftl-spool-01",
-    "speaker": "gaeta",
-    "trigger": "FtlSpoolProgress",
-    "text": "PLACEHOLDER: Spooling. Jump in {seconds}.",
-    "weight": 1,
-    "cooldownSeconds": 20,
-    "priority": "critical"
-  }
-]
+{
+  "speaker": "gaeta",
+  "pools": [
+    {
+      "trigger": "FtlSpoolProgress",
+      "priority": "critical",
+      "cooldownSeconds": 10,
+      "lines": [
+        { "id": "gaeta-ftl-spool-progress-01", "text": "Spool at {percent} percent. Course is clean.", "weight": 2 },
+        { "id": "gaeta-ftl-spool-progress-02", "text": "Jump solution plotted. {seconds} to go.", "weight": 2 },
+        { "id": "gaeta-ftl-spool-progress-03", "text": "Spooling steady. No surprises yet." },
+        { "id": "gaeta-ftl-spool-progress-04", "text": "Spool holding at {percent} percent." },
+        { "id": "gaeta-ftl-spool-progress-05", "text": "{seconds} seconds to jump. Numbers don't lie." },
+        { "id": "gaeta-ftl-spool-progress-06", "text": "Course plotted. Awaiting your order, sir." },
+        { "id": "gaeta-ftl-spool-progress-07", "text": "Spool nominal. I checked twice." },
+        { "id": "gaeta-ftl-spool-progress-08", "text": "{percent} percent and climbing steadily." },
+        { "id": "gaeta-ftl-spool-progress-09", "text": "Spool nominal. Also, I skipped lunch." }
+      ]
+    },
+    {
+      "trigger": "FleetHit",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "lines": [
+        { "id": "gaeta-fleet-hit-01", "text": "Civilian hull breach reported. Logging it." },
+        { "id": "gaeta-fleet-hit-02", "text": "Stray round, aft quarter. Noted." },
+        { "id": "gaeta-fleet-hit-03", "text": "Fleet took a hit. Damage report incoming." },
+        { "id": "gaeta-fleet-hit-04", "text": "Confirmed impact. Logging the time." }
+      ]
+    },
+    {
+      "trigger": "ResurrectionShipMilestone",
+      "priority": "normal",
+      "cooldownSeconds": 15,
+      "lines": [
+        { "id": "gaeta-resurrection-ship-milestone-01", "text": "Resurrection ship integrity at {percent} percent." },
+        { "id": "gaeta-resurrection-ship-milestone-02", "text": "Confirmed: {percent} percent structural integrity remaining." },
+        { "id": "gaeta-resurrection-ship-milestone-03", "text": "Down to {percent} percent. Recommend continued fire." }
+      ]
+    },
+    {
+      "trigger": "ImaginarySixActive",
+      "priority": "flavor",
+      "cooldownSeconds": 25,
+      "lines": [
+        { "id": "gaeta-imaginary-six-active-01", "text": "I'm not reading a second transponder. Just you." },
+        { "id": "gaeta-imaginary-six-active-02", "text": "No incoming signal on my end. Curious." },
+        { "id": "gaeta-imaginary-six-active-03", "text": "Confirmed: you're alone up there. Allegedly." }
+      ]
+    }
+  ]
+}

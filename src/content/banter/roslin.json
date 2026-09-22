@@ -1,0 +1,136 @@
+{
+  "speaker": "roslin",
+  "pools": [
+    {
+      "trigger": "ResurrectionShipArrived",
+      "priority": "normal",
+      "cooldownSeconds": 30,
+      "lines": [
+        { "id": "roslin-resurrection-ship-arrived-01", "text": "Destroy the ship, and we buy real time." },
+        { "id": "roslin-resurrection-ship-arrived-02", "text": "Take it down before it multiplies the problem." },
+        { "id": "roslin-resurrection-ship-arrived-03", "text": "One factory. One priority." },
+        { "id": "roslin-resurrection-ship-arrived-04", "text": "I taught grade school. This is somehow calmer." },
+        { "id": "roslin-resurrection-ship-arrived-05", "text": "Every ship we down without it is a mercy." },
+        { "id": "roslin-resurrection-ship-arrived-06", "text": "Send the Vipers. This one doesn't get to finish." }
+      ]
+    },
+    {
+      "trigger": "RunWon",
+      "priority": "normal",
+      "cooldownSeconds": 600,
+      "lines": [
+        { "id": "roslin-run-won-01", "text": "We live to jump again. That's the whole plan." },
+        { "id": "roslin-run-won-02", "text": "The fleet holds. That's the only vote that matters." },
+        { "id": "roslin-run-won-03", "text": "Not bad, for the forty-third in line." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "accidentally-wide" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-01", "text": "More of you to hit means less fleet exposed. Fair trade." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "anyone-could-be-a-cylon" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-02", "text": "A second chance costs an eye. Spend it wisely." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "bootleg-hooch" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-03", "text": "Speed for accuracy. You will not outrun trouble now." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "continuity-of-government" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-04", "text": "The fleet absorbs less. That is the whole point of government." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "flak-enthusiast" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-05", "text": "Let the guns handle what they can. Cover what they can't." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "hangar-door-slam" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-06", "text": "Strike while it's vulnerable. That's not luck, that's timing." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "imaginary-six" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-07", "text": "If she's protecting the fleet, I won't ask who she is." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "raptor-escort" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-08", "text": "They'll peel off eventually. Watch for it." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "overcompensating-cannon" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-09", "text": "Lead your shots. It will not wait for you." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "personal-vendetta" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-10", "text": "Escorts will still catch some. Position for the rest." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "your-call-is-important-to-us" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-11", "text": "Every extra second is a quieter sky. Take it." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "spoilers" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-12", "text": "Knowing the next move is worth more than another gun." }
+      ]
+    }
+  ]
+}

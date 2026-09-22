@@ -1,0 +1,141 @@
+{
+  "speaker": "baltar",
+  "pools": [
+    {
+      "trigger": "FleetHit",
+      "priority": "flavor",
+      "cooldownSeconds": 25,
+      "lines": [
+        { "id": "baltar-fleet-hit-01", "text": "We're hit? We're hit. Is it bad? Don't answer." },
+        { "id": "baltar-fleet-hit-02", "text": "Is that smoke? That's probably fine." },
+        { "id": "baltar-fleet-hit-03", "text": "I did not sign up for structural damage." },
+        { "id": "baltar-fleet-hit-04", "text": "My Cylon detector would never see THIS coming." },
+        { "id": "baltar-fleet-hit-05", "text": "Frak. Frak. Also, frak." },
+        { "id": "baltar-fleet-hit-06", "text": "I demand a committee!" },
+        { "id": "baltar-fleet-hit-07", "text": "It's not me, I swear! I didn't do it!" },
+        { "id": "baltar-fleet-hit-08", "text": "I demand a proper investigation!!" }
+      ]
+    },
+    {
+      "trigger": "ResurrectionShipArrived",
+      "priority": "normal",
+      "cooldownSeconds": 30,
+      "lines": [
+        { "id": "baltar-resurrection-ship-arrived-01", "text": "That thing again. Has anyone tried asking nicely?" },
+        { "id": "baltar-resurrection-ship-arrived-02", "text": "Oh, it's back. Wonderful. Just wonderful." },
+        { "id": "baltar-resurrection-ship-arrived-03", "text": "Has anyone considered diplomacy? No? Fine." },
+        { "id": "baltar-resurrection-ship-arrived-04", "text": "In my professional opinion, we should leave. Immediately." },
+        { "id": "baltar-resurrection-ship-arrived-05", "text": "Statistically, everyone panics. I'm just early." },
+        { "id": "baltar-resurrection-ship-arrived-06", "text": "Could we vote on ignoring it?" }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "accidentally-wide" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-01", "text": "I become a bigger target. Fantastic design choice." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "anyone-could-be-a-cylon" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-02", "text": "Die, come back, no paperwork. I could use that policy." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "bootleg-hooch" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-03", "text": "Faster trigger, slower ship. Sounds like most of my mornings." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "continuity-of-government" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-04", "text": "Ten percent less panic per stack. I'll take it." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "flak-enthusiast" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-05", "text": "Galactica catches the small stuff. I remain unconvinced about the rest." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "hangar-door-slam" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-06", "text": "Hit them while the doors are open. Rude, but effective." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "imaginary-six" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-07", "text": "An invisible ally? I have... complicated feelings about that." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "raptor-escort" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-08", "text": "Someone else catching fire for once. I approve." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "overcompensating-cannon" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-09", "text": "Slow and enormous. I relate to this weapon on a personal level." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "personal-vendetta" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-10", "text": "The missile has a grudge. I understand grudges." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "your-call-is-important-to-us" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-11", "text": "A slower queue. Somewhere, a Cylon is on hold music." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "spoilers" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-12", "text": "Knowing where they land? I do love being right in advance." }
+      ]
+    }
+  ]
+}

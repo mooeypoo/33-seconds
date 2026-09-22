@@ -41,7 +41,9 @@ onUnmounted(() => {
   <!-- Overlays sit above the canvas and are transparent to pointer input unless marked data-ui. -->
   <div ref="canvasHost" class="canvas-host" aria-hidden="true" />
 
-  <HudBar :phase="status.phase" @pause="session.pause('player')" />
+  <HudBar :phase="status.phase" @pause="session.pause('player')">
+    <CommsOverlay v-if="status.comms" :comms="status.comms" />
+  </HudBar>
 
   <MissileButton
     v-if="status.phase === 'running' && cyclePhase !== 'recovering' && cyclePhase !== 'jumping'"
@@ -72,7 +74,6 @@ onUnmounted(() => {
     @abandon="session.abandonRun()"
   />
 
-  <CommsOverlay v-if="status.comms" :comms="status.comms" />
 </template>
 
 <style scoped>

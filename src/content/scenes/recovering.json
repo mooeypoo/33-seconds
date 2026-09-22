@@ -1,0 +1,36 @@
+[
+  {
+    "id": "scene-recover-clean-01",
+    "trigger": "CycleRecovering",
+    "when": { "damageBand": ["clean"] },
+    "weight": 1,
+    "beats": [
+      { "speaker": "tyrol", "text": "Not a scratch. I'm almost disappointed." },
+      { "speaker": "adama", "text": "Take the win, Chief." },
+      { "speaker": "dualla", "text": "Next jump in thirty-three." }
+    ]
+  },
+  {
+    "id": "scene-recover-rough-01",
+    "trigger": "CycleRecovering",
+    "when": { "damageBand": ["rough"] },
+    "weight": 1,
+    "beats": [
+      { "speaker": "tyrol", "text": "Patching what I can. Give me the thirty-three." },
+      { "speaker": "tigh", "text": "Vipers held. Barely counts as good news." },
+      { "speaker": "dualla", "text": "Fleet's regrouping. Jump's coming." }
+    ]
+  },
+  {
+    "id": "scene-recover-wrecked-01",
+    "trigger": "CycleRecovering",
+    "when": { "damageBand": ["wrecked"] },
+    "weight": 1,
+    "beats": [
+      { "speaker": "tyrol", "text": "This is not patching. This is prayer." },
+      { "speaker": "adama", "text": "Do what you can, Chief. That's all I ask." },
+      { "speaker": "gaeta", "text": "Sure hope you count right, Starbuck." },
+      { "speaker": "dualla", "text": "Thirty-three seconds. Brace." }
+    ]
+  }
+]

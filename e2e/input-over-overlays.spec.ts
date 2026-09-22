@@ -84,7 +84,7 @@ test.describe('steering works wherever the finger lands', () => {
     await startRun(page);
     const comms = page.getByTestId('comms');
     await expect(comms).toBeVisible();
-    await expect(comms).toContainText('Adama');
+    await expect(comms).toContainText(/Adama|Starbuck/);
 
     const before = await viperPosition(page);
     const box = (await comms.boundingBox())!;

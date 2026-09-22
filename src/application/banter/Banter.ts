@@ -12,6 +12,12 @@ export interface CommsLine {
 export interface BanterContext {
   readonly secondsRemaining: number;
   readonly hull: number;
+  /** 0–100. Spool lines use this for `{percent}`. Omitted means 0. */
+  readonly spoolPercent?: number;
+  /** Healthy civilian hulls. Dualla's `{count}`. Omitted means 0. */
+  readonly readyShips?: number;
+  /** Civilian hulls on the line. Dualla's `{total}`. Omitted means 0. */
+  readonly shipTotal?: number;
 }
 
 /** XOR'd with the run seed so a joke never consumes the scenario stream (ADR-0001 D3). */
@@ -60,6 +66,7 @@ export class Banter {
 
   observe(events: readonly DomainEvent[], context: BanterContext): void {
     const crisis = context.hull <= 1 || events.some((event) => event.type === 'ResurrectionShipArrived');
+    const poolOpen = new Map<string, boolean>();
     const candidates: BanterLine[] = [];
     for (const event of events) {
       const trigger = triggerFor(event);
@@ -68,6 +75,7 @@ export class Banter {
         if (line.trigger !== trigger) continue;
         if (line.priority === 'flavor' && crisis) continue;
         if ((this.readyAtSeconds.get(line.id) ?? 0) > this.elapsedSeconds) continue;
+        if (!this.poolIsOpen(line, poolOpen)) continue;
         candidates.push(line);
       }
     }
@@ -76,7 +84,7 @@ export class Banter {
     if (chosen === null) return;
     if (this.shown !== null && priorityRank(chosen.priority) <= priorityRank(this.shown.priority)) return;
 
-    const text = chosen.text.replaceAll('{seconds}', String(Math.max(0, Math.ceil(context.secondsRemaining))));
+    const text = fillPlaceholders(chosen.text, context);
     this.shown = {
       id: chosen.id,
       priority: chosen.priority,
@@ -97,6 +105,15 @@ export class Banter {
     if (this.shown.remainingSeconds <= 0) this.shown = null;
   }
 
+  /** One roll per pool per observe. Chance 1 does not touch the stream. */
+  private poolIsOpen(line: BanterLine, poolOpen: Map<string, boolean>): boolean {
+    const known = poolOpen.get(line.poolId);
+    if (known !== undefined) return known;
+    const open = line.chance >= 1 || this.random.next() < line.chance;
+    poolOpen.set(line.poolId, open);
+    return open;
+  }
+
   private pickHighest(candidates: readonly BanterLine[]): BanterLine | null {
     const first = candidates[0];
     if (!first) return null;
@@ -105,6 +122,14 @@ export class Banter {
     const group = candidates.filter((line) => priorityRank(line.priority) === best);
     return pickWeighted(group, this.random);
   }
+}
+
+function fillPlaceholders(text: string, context: BanterContext): string {
+  return text
+    .replaceAll('{seconds}', String(Math.max(0, Math.ceil(context.secondsRemaining))))
+    .replaceAll('{percent}', String(context.spoolPercent ?? 0))
+    .replaceAll('{count}', String(context.readyShips ?? 0))
+    .replaceAll('{total}', String(context.shipTotal ?? 0));
 }
 
 function triggerFor(event: DomainEvent): BanterTrigger | null {

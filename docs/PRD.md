@@ -389,7 +389,16 @@ Gaeta and Dualla announce the same jump from two angles. The civilian count cree
 - The banter random stream is separate from gameplay, so choosing a joke never changes a seeded run.
 - Lines that share a moment live in one pool (same trigger, priority, and cooldown; the jokes are an array). A pool may set `chance` below 1 so that speaker is only sometimes eligible. The game still shows one line. Starbuck's cycle-start pool starts at 0.25, so Adama opens most cycles.
 
-**Live now:** one line at a time, from JSON, with a letter-block portrait and the speaker's name. Cycle start, FTL spool, the resurrection ship's arrival, a missile, Recovering, win, and loss. Critical spool text can replace a lower line. Flavor stays quiet at 1 hull. The line follows the game clock, so pause freezes it, and it never takes a touch. The running game still loads one object per line. Pools, `chance`, and Starbuck's cycle-start aside arrive with the content pack. Full roster, derived quips, the comms log, the duration setting, and Recovering scenes that gate the next cycle wait.
+**Live now:** one line at a time, from JSON pools, with a letter-block portrait and the speaker's name. The line is a strip in the top HUD band, above the instruments, so it can be read and a touch on it still steers. Cycle start (Adama, and sometimes Starbuck), FTL spool, the resurrection ship's arrival, a missile, Recovering, the Speech, win, and loss. `{seconds}`, `{percent}`, `{count}`, and `{total}` are filled when the line is chosen. Critical spool text can replace a lower line. Flavor stays quiet at 1 hull. The line follows the game clock, so pause freezes it. Derived quips (a kill streak, a close call, a fleet hit, ship milestones, card offers, "who are you talking to"), the comms log, the duration setting, and Recovering scenes that gate the next cycle wait.
+
+### 12.5 Wingman squad `[Later]`
+
+Not built. The player is the only Viper until this is promoted. Two choices stay tied together, because the lines and the ships are one decision:
+
+- **Solo.** Lines may keep talking to Starbuck, Kara, or Thrace as the pilot. Her own lines are a voice on the radio.
+- **Squad.** A few other pilots fly with you at the start of a run. They shoot little or not at all, wander on a seeded path, and block bullets. They are guards, not a second player. Each jump brings only some of them back, so the run gets harder as the guard thins out. Comms can name those pilots, not only Starbuck.
+
+Do not add the ships, and do not rewrite the name-calling lines, until one of these is chosen.
 
 ### 12.3 Recovering scenes
 8-12 seconds, 2-4 beats, two portraits trading lines. Tyrol anchors. Scene lines depend on how much the fleet and Viper were damaged: "Not a scratch on her. I'm suspicious" for a clean cycle, exasperation for a wrecked one.
@@ -550,7 +559,7 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 3 | Resurrection ship tuning | Start with HP sized so focused fire takes about 2 to 3 cycles, and it returns with about 10% of its max HP when it escapes. Tune by feel. |
 | 4 | Special recharge | The Speech recharges every 3rd jump. |
 | 5 | *Imaginary Six* balance | Weak beam at about half your gun's damage. Check how it stacks with flak and the Raptor in playtests. |
-| 6 | Playable pilot | Starbuck only (cosmetic). |
+| 6 | Playable pilot | Starbuck only (cosmetic). A wingman squad that blocks bullets, and lines that name those pilots, wait together (12.5). |
 | 7 | Endless tier | `[Later]` |
 | 8 | Leaderboard integrity | `[Later]`. Needs a short design note before any server code. Assume client scores can be forged. |
 | 9 | Daily seed | `[Later]`. Same seed means the same scenario (spawns and card offers), not a frame-identical replay. |
@@ -615,3 +624,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-22 | Soon: a shareable result. A link back to the site shows the run's points and details and offers another game. An image may accompany it. The result belongs in the link, not on a server. | So a finished run can be shown to someone else without collecting personal data. |
 | 2026-09-22 | Comms: one JSON line at a time (placeholder text, letter portrait plus name). Spool is critical. Flavor drops at 1 hull. Pause freezes the line. The pick still starts the next cycle; full Recovering scenes wait. | Personality starts as a line that cannot get in the way. |
 | 2026-09-22 | Writer files group jokes that share a trigger, priority, and cooldown into one pool. A pool may set `chance` below 1. Starbuck gets a couple of cycle-start lines at chance 0.25, so Adama still opens most cycles. The loader still reads one object per line until that pack replaces the placeholders. | So a writer sees one list per moment, and a cycle-start aside can stay rare. |
+| 2026-09-22 | Comms loads those pools, including `chance` and the four placeholders. The line sits in the top HUD band. **Later (12.5):** either the player is the only Viper and lines may name Starbuck, or a few non-firing wingmen guard the start of a run and the lines name them too. Not built. | The jokes can play, and the squad is one decision with the way people are addressed. |

@@ -13,6 +13,8 @@ const stats = hudStore.state;
 
 <template>
   <div class="hud">
+    <slot />
+    <div class="instruments">
     <!--
       Debug readout for the platform check (ADR-0001 D4), and how the end-to-end tests observe the
       simulation without a hook into the game. It goes away once the real HUD arrives.
@@ -90,6 +92,7 @@ const stats = hudStore.state;
         ⏸
       </button>
     </div>
+    </div>
   </div>
 </template>
 
@@ -100,14 +103,21 @@ const stats = hudStore.state;
   /* Transparent to pointer input, so a thumb landing here still steers (ADR-0001 D5). */
   pointer-events: none;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
   /* Keep out of the notch and the home bar. */
   padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0
     max(8px, env(safe-area-inset-left));
   font-family: ui-monospace, monospace;
   color: #7fd6a0;
+}
+
+.instruments {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
 }
 
 .debug {
