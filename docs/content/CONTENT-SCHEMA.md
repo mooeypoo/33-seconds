@@ -18,31 +18,60 @@ src/content/
 
 One file per speaker keeps each voice consistent and makes pull requests easy to review.
 
-## 2. Line
+## 2. Pools
+
+A speaker file is one voice and a list of pools. A pool is one moment: the same trigger, priority, and cooldown, with the jokes in an array. The game still shows one line. It expands each pool into one internal line per text, copying the shared fields, then picks among the lines that are eligible.
 
 ```json
 {
-  "id": "dualla-spool-03",
   "speaker": "dualla",
-  "trigger": "FtlSpoolProgress",
-  "text": "Fleet FTL spooling. Jump in {seconds}.",
-  "weight": 3,
-  "cooldownSeconds": 20,
-  "priority": "critical",
-  "when": { "spoolSecondsLeft": { "max": 8 } }
+  "pools": [
+    {
+      "trigger": "FtlSpoolProgress",
+      "priority": "critical",
+      "cooldownSeconds": 20,
+      "when": { "spoolSecondsLeft": { "max": 8 } },
+      "lines": [
+        {
+          "id": "dualla-ftl-spool-progress-01",
+          "text": "Fleet FTL spooling. Jump in {seconds}.",
+          "weight": 3
+        },
+        {
+          "id": "dualla-ftl-spool-progress-02",
+          "text": "Nine of twelve. The slow one is thinking about it.",
+          "weight": 1
+        }
+      ]
+    }
+  ]
 }
 ```
+
+Shared on the pool:
+
+| Field | Type | Rules |
+|---|---|---|
+| `trigger` | string | One of the triggers in section 4. |
+| `priority` | string | `critical` (jump countdown; always shown), `normal`, or `flavor` (dropped first, suppressed in crises). |
+| `cooldownSeconds` | number | Game seconds before a chosen line from this pool can repeat. The cooldown is still per line, not per pool: saying one joke does not retire the others. |
+| `chance` | number, optional | From 0 to 1. Before this pool can enter the draw, the banter stream rolls once. Omit it, or set `1`, and the pool is always eligible. Other pools for the same trigger roll on their own. A missed roll means this speaker stays quiet and someone else can still talk. |
+| `when` | object, optional | Conditions every line in the pool must pass. Section 3. Omit for "always eligible". |
+
+On each line:
 
 | Field | Type | Rules |
 |---|---|---|
 | `id` | string | Unique across all files. Format: `{speaker}-{trigger-kebab}-{nn}`. |
-| `speaker` | string | One of: `adama`, `starbuck`, `gaeta`, `dualla`, `tigh`, `baltar`, `roslin`, `tyrol`, `six`. |
-| `trigger` | string | One of the triggers in section 4. |
 | `text` | string | Plain text only. Up to **72 characters** (about two lines in the portrait bubble). No markup, HTML, or emoji. Placeholders allowed: `{seconds}`, `{count}`, `{total}`, `{percent}`. Each must be one the trigger provides. |
-| `weight` | number | Relative pick chance among eligible lines. Default 1. |
-| `cooldownSeconds` | number | Game seconds before *this line* can repeat. |
-| `priority` | string | `critical` (jump countdown; always shown), `normal`, or `flavor` (dropped first, suppressed in crises). |
-| `when` | object, optional | Conditions, from the small set in section 3. Omit for "always eligible". |
+| `weight` | number, optional | Relative pick chance among eligible lines. Default 1. Use this for a rarer joke inside a pool that already fired. Use `chance` when the speaker should sometimes say nothing. |
+| `when` | object, optional | Extra conditions for this line only. It must also pass the pool's `when`. |
+
+`speaker` is the file, not a field on every line. One of: `adama`, `starbuck`, `gaeta`, `dualla`, `tigh`, `baltar`, `roslin`, `tyrol`, `six`.
+
+Split a moment into two pools when the lines do not share priority, cooldown, chance, or the same `when`. A spool line for the last few seconds is its own pool.
+
+Placeholder files currently in `src/content/banter/` are still one object per line. The content pack replaces them with pools. Do not mix both shapes in one file.
 
 ## 3. Conditions (`when`)
 
@@ -63,7 +92,7 @@ The banter service listens for these. Some come straight from domain events, and
 
 | Trigger | Source | Speakers | Priority |
 |---|---|---|---|
-| `CycleStarted` | Domain event | Adama | normal |
+| `CycleStarted` | Domain event | Adama (always). Starbuck, a couple of lines, `chance` 0.25 | normal |
 | `FtlSpoolProgress` | Derived (spool clock) | Gaeta (Galactica), Dualla (fleet readiness) | critical |
 | `BigRaiderEntered` | Domain event | Adama | normal |
 | `ResurrectionShipArrived` | Domain event | Adama | normal |
@@ -133,7 +162,7 @@ Roughly 150 to 200 lines. Write in batches of about 20.
 | Speaker | Content | Target |
 |---|---|---|
 | Adama | Cycle start, big Raider, ship arrival, milestones, Speech, victory, defeat | about 25 |
-| Starbuck | Multi-kill, close call, resurrection, missile, hull | about 25 |
+| Starbuck | Occasional cycle start (`chance` 0.25), multi-kill, close call, resurrection, missile, hull | about 25 |
 | Gaeta | Spool progress at several thresholds, fleet-hit reports | about 17 |
 | Dualla | Readiness counts at several thresholds, status | about 13 |
 | Tigh | Low hull, kill drought, grumbles | about 8 |

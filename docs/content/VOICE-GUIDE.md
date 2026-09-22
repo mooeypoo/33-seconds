@@ -42,7 +42,7 @@ For each one: fill in the voice, then approve five sample lines. A line is good 
 - **Sample lines:** `[FILL IN]`
 
 ### Starbuck
-- **Job:** multi-kills, close calls, resurrection quips, missile launches.
+- **Job:** multi-kills, close calls, resurrection quips, missile launches, and a couple of cycle-start asides. Those asides use `chance` 0.25, so she opens a cycle sometimes and Adama still opens the rest.
 - **Voice:** `[FILL IN]` (Starting point: cocky, a bit reckless, funny when things go badly.)
 - **Habits:** `[FILL IN]`
 - **Never:** `[FILL IN]` (Note: she is drawn by costume and silhouette, and no line uses a real person's name or likeness.)

@@ -366,7 +366,7 @@ Small pixel portraits pop up to talk to you. They are the game's personality, an
 | Speaker | Role | Voice |
 |---|---|---|
 | **Adama** | Cycle start, big Raider entrance, resurrection ship arrival, victory | Stern, few words |
-| **Starbuck** | Multi-kills, close calls, resurrection quips | Cocky, a bit reckless |
+| **Starbuck** | Multi-kills, close calls, resurrection quips, and an occasional cycle-start aside | Cocky, a bit reckless |
 | **Gaeta** | Galactica FTL status: spool %, "solution plotted," "spool complete" | Precise, operational |
 | **Dualla** | Fleet FTL status and civilian readiness: "Nine of twelve ready." | Calm, relayed |
 | Tigh (cameo) | Low hull, long stretches without a kill, occasional grumbles about paperwork and Vipers | Gruff, terse |
@@ -387,18 +387,30 @@ Gaeta and Dualla announce the same jump from two angles. The civilian count cree
 - A **comms log** in the pause menu keeps the last 20 lines.
 - All comms timing runs on the game clock, so pause works.
 - The banter random stream is separate from gameplay, so choosing a joke never changes a seeded run.
+- Lines that share a moment live in one pool (same trigger, priority, and cooldown; the jokes are an array). A pool may set `chance` below 1 so that speaker is only sometimes eligible. The game still shows one line. Starbuck's cycle-start pool starts at 0.25, so Adama opens most cycles.
 
-**Live now:** one line at a time, from JSON, with a letter-block portrait and the speaker's name. Cycle start, FTL spool, the resurrection ship's arrival, a missile, Recovering, win, and loss. Critical spool text can replace a lower line. Flavor stays quiet at 1 hull. The line follows the game clock, so pause freezes it, and it never takes a touch. Full roster, derived quips, the comms log, the duration setting, and Recovering scenes that gate the next cycle wait.
+**Live now:** one line at a time, from JSON, with a letter-block portrait and the speaker's name. Cycle start, FTL spool, the resurrection ship's arrival, a missile, Recovering, win, and loss. Critical spool text can replace a lower line. Flavor stays quiet at 1 hull. The line follows the game clock, so pause freezes it, and it never takes a touch. The running game still loads one object per line. Pools, `chance`, and Starbuck's cycle-start aside arrive with the content pack. Full roster, derived quips, the comms log, the duration setting, and Recovering scenes that gate the next cycle wait.
 
 ### 12.3 Recovering scenes
 8-12 seconds, 2-4 beats, two portraits trading lines. Tyrol anchors. Scene lines depend on how much the fleet and Viper were damaged: "Not a scratch on her. I'm suspicious" for a clean cycle, exasperation for a wrecked one.
 
 ### 12.4 Content format
-Lines and scenes are data, not code. The authoritative format, trigger list, length limit, and coverage targets are in [`content/CONTENT-SCHEMA.md`](content/CONTENT-SCHEMA.md), and the voices are in [`content/VOICE-GUIDE.md`](content/VOICE-GUIDE.md). Example:
+Lines and scenes are data, not code. The authoritative format, trigger list, length limit, and coverage targets are in [`content/CONTENT-SCHEMA.md`](content/CONTENT-SCHEMA.md), and the voices are in [`content/VOICE-GUIDE.md`](content/VOICE-GUIDE.md). A speaker file groups jokes that share a moment:
 
 ```json
-{ "id": "dualla-spool-03", "speaker": "dualla", "trigger": "FtlSpoolProgress",
-  "text": "Fleet FTL spooling. Jump in {seconds}.", "weight": 3, "cooldownSeconds": 20, "priority": "critical" }
+{
+  "speaker": "dualla",
+  "pools": [
+    {
+      "trigger": "FtlSpoolProgress",
+      "priority": "critical",
+      "cooldownSeconds": 20,
+      "lines": [
+        { "id": "dualla-ftl-spool-progress-01", "text": "Fleet FTL spooling. Jump in {seconds}.", "weight": 3 }
+      ]
+    }
+  ]
+}
 ```
 
 ## 13. Controls and pause `[Core]`
@@ -602,3 +614,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-22 | **Abandon run** on the pause menu returns to the title and discards the run. Not available during the resume countdown. Retry-from-last-jump still waits. | A stuck or unwanted run needed a way back without pretending it was a loss. |
 | 2026-09-22 | Soon: a shareable result. A link back to the site shows the run's points and details and offers another game. An image may accompany it. The result belongs in the link, not on a server. | So a finished run can be shown to someone else without collecting personal data. |
 | 2026-09-22 | Comms: one JSON line at a time (placeholder text, letter portrait plus name). Spool is critical. Flavor drops at 1 hull. Pause freezes the line. The pick still starts the next cycle; full Recovering scenes wait. | Personality starts as a line that cannot get in the way. |
+| 2026-09-22 | Writer files group jokes that share a trigger, priority, and cooldown into one pool. A pool may set `chance` below 1. Starbuck gets a couple of cycle-start lines at chance 0.25, so Adama still opens most cycles. The loader still reads one object per line until that pack replaces the placeholders. | So a writer sees one list per moment, and a cycle-start aside can stay rare. |
