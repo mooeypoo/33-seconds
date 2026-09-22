@@ -4,6 +4,7 @@ import type { GameSession } from '../../application/GameSession';
 import { VIPER_HULL_HIT_POINTS } from '../../domain/combat/viper';
 import { WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../../domain/shared/world';
 import type { Presenter } from './Presenter';
+import { ExplosionPresenter } from './contexts/combat/ExplosionPresenter';
 import { MissilePresenter } from './contexts/combat/MissilePresenter';
 import { ProjectilePresenter } from './contexts/combat/ProjectilePresenter';
 import { ImaginarySixPresenter } from './contexts/combat/ImaginarySixPresenter';
@@ -14,6 +15,7 @@ import { RaptorPresenter } from './contexts/fleet/RaptorPresenter';
 import { RaiderPresenter } from './contexts/swarm/RaiderPresenter';
 import { ResurrectionShipPresenter } from './contexts/swarm/ResurrectionShipPresenter';
 import { PALETTE } from './shared/palette';
+import { loadSpriteImages } from './sprites';
 
 /** How often the debug readout updates. Often enough to be useful, rarely enough to stay readable. */
 const STATS_INTERVAL_SECONDS = 0.25;
@@ -38,6 +40,8 @@ export class GameScene extends Phaser.Scene {
   private readonly reportStats: (stats: FrameStats) => void;
   private readonly reducedEffects: boolean;
   private presenters: Presenter[] = [];
+  private spritesReady = false;
+  private closed = false;
 
   private secondsSinceStatsReport = 0;
 
@@ -55,6 +59,21 @@ export class GameScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.closed = true;
+    });
+    void this.mount().catch((error: unknown) => {
+      console.error(error);
+    });
+  }
+
+  private async mount(): Promise<void> {
+    const images = await loadSpriteImages();
+    if (this.closed) return;
+    for (const sprite of images) {
+      if (!this.textures.exists(sprite.key)) this.textures.addImage(sprite.key, sprite.image);
+    }
+
     this.cameras.main.setBackgroundColor(PALETTE.space);
     // A thin frame, so the edges of the play area are visible while there is nothing else on screen.
     this.add
@@ -69,12 +88,15 @@ export class GameScene extends Phaser.Scene {
       new ProjectilePresenter(this),
       new MissilePresenter(this),
       new RaiderPresenter(this, this.reducedEffects),
+      new ExplosionPresenter(this, this.reducedEffects),
       new ResurrectionShipPresenter(this),
       new StickPresenter(this, this.stick, this.reducedEffects),
     ];
+    this.spritesReady = true;
   }
 
   override update(_time: number, deltaMilliseconds: number): void {
+    if (!this.spritesReady) return;
     const deltaSeconds = deltaMilliseconds / 1000;
     const frozen = this.session.isFrozen;
 

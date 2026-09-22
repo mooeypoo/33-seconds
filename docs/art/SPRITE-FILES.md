@@ -1,6 +1,6 @@
 # Sprite files
 
-The first picture pass. Draw each frame at 4× the size the game shows, so the picture has room in it. The game nearest-neighbors that file down to the small size. On a phone it is still that small, because the whole playfield is one 270×480 picture. A generated hero can be snapped to the 4× size and to the palette in [ART-DIRECTION.md](ART-DIRECTION.md). Matching variants are painted from that hero; a first try at generating the variants is in [GENERATION-NOTES.md](GENERATION-NOTES.md). Drop each file at the path in the table. The rest of the asset table (fleet, resurrection ship, icons, title logo) waits.
+The first picture pass. Draw each frame at 4× the size the game shows, so the picture has room in it. The game nearest-neighbors that file down to the small size. On a phone it is still that small, because the whole playfield is one 270×480 picture. A generated hero is a **square** image at the 4× size, on a **solid magenta (`#FF00FF`) background** so it keys out cleanly, then snapped to the palette in [ART-DIRECTION.md](ART-DIRECTION.md). Matching variants are painted from that hero; a first try at generating the variants is in [GENERATION-NOTES.md](GENERATION-NOTES.md). Drop each file at the path in the table. The rest of the asset table (fleet, resurrection ship, icons, title logo) waits.
 
 Items are the ships, shots, and the explosion. Characters are the comms portraits: costume and silhouette, never a real person's face. Hot red belongs to the Raider and to `bullet_aimed` only.
 
@@ -8,26 +8,26 @@ Items are the ships, shots, and the explosion. Characters are the comms portrait
 
 | Folder | File | Drawn at | Shown as | What it shows |
 |---|---|---|---|---|
-| `assets/ships/` | `viper_neutral.png` | 64 × 64 | 16 × 16 | An original starfighter facing straight up. A shallow crescent, wingtips hooked slightly forward, twin engines with a short olive glow, olive and gunmetal. A similitude of a crescent fighter, not a traced show ship. |
+| `assets/ships/` | `viper_neutral.png` | 64 × 64 | 16 × 16 | An original starfighter facing straight up. An angular wedge, not a crescent — tapers hard from a flat back to a sharp nose, with a raised center spine, a small cockpit bump, and a small fin at each wingtip. Olive and gunmetal hull, white-yellow twin engine glow. A similitude, not a traced show ship. |
 | `assets/ships/` | `viper_bank_left.png` | 64 × 64 | 16 × 16 | The same starfighter, banked slightly to its left, engines unchanged. |
 | `assets/ships/` | `viper_bank_right.png` | 64 × 64 | 16 × 16 | The same starfighter, banked slightly to its right, engines unchanged. |
 | `assets/ships/` | `viper_flicker.png` | 64 × 64 | 16 × 16 | The same starfighter in the neutral pose, engines one step brighter. |
-| `assets/ships/` | `raider_eye_center.png` | 48 × 48 | 12 × 12 | A small arrowhead fighter facing straight down, one sweeping eye, hot red and dark red only on this craft. |
+| `assets/ships/` | `raider_eye_center.png` | 48 × 48 | 12 × 12 | A small fighter facing straight down, hull shaped like an upside-down crescent or boomerang — wingtips sweeping forward and out, curving back to a point at the center-rear. One sweeping eye, hot red and dark red only on this craft. |
 | `assets/ships/` | `raider_eye_left.png` | 48 × 48 | 12 × 12 | The same fighter, eye shifted left by 4 pixels. |
 | `assets/ships/` | `raider_eye_right.png` | 48 × 48 | 12 × 12 | The same fighter, eye shifted right by 4 pixels. |
 | `assets/projectiles/` | `bullet_player.png` | 12 × 20 | 3 × 5 | A short Dradis-green shot. A few pixels; draw it by hand. |
 | `assets/projectiles/` | `bullet_aimed.png` | 12 × 20 | 3 × 5 | A short red shot. A few pixels; draw it by hand. |
 | `assets/projectiles/` | `bullet_stray.png` | 12 × 28 | 3 × 7 | A longer orange shot. A few pixels; draw it by hand. |
-| `assets/effects/` | `explosion_small_1.png` | 64 × 64 | 16 × 16 | The first cell of the burst: a small warm spark, olive, orange, and gunmetal. No white. |
-| `assets/effects/` | `explosion_small_2.png` | 64 × 64 | 16 × 16 | The burst a little wider. |
-| `assets/effects/` | `explosion_small_3.png` | 64 × 64 | 16 × 16 | The burst at its widest. |
-| `assets/effects/` | `explosion_small_4.png` | 64 × 64 | 16 × 16 | The burst starting to break apart. |
-| `assets/effects/` | `explosion_small_5.png` | 64 × 64 | 16 × 16 | A few warm embers left. |
-| `assets/effects/` | `explosion_small_6.png` | 64 × 64 | 16 × 16 | The last faint embers before it is gone. |
+| `assets/effects/` | `explosion_small_1.png` | 64 × 64 | 16 × 16 | A small bright core with just one or two short spikes of flame — the burst just starting, no debris yet. |
+| `assets/effects/` | `explosion_small_2.png` | 64 × 64 | 16 × 16 | The burst growing: more jagged flame spikes, core still bright, a piece or two of debris just starting to separate. |
+| `assets/effects/` | `explosion_small_3.png` | 64 × 64 | 16 × 16 | The burst at its widest and jagged: this is the hero frame (see below). Spiky orange/yellow flame rays with a couple of small gunmetal debris chunks flying free at the edges. |
+| `assets/effects/` | `explosion_small_4.png` | 64 × 64 | 16 × 16 | The burst starting to break apart: the rays separate into distinct embers, debris chunks drift further out. |
+| `assets/effects/` | `explosion_small_5.png` | 64 × 64 | 16 × 16 | A few scattered warm embers and one or two drifting debris chunks, core mostly gone. |
+| `assets/effects/` | `explosion_small_6.png` | 64 × 64 | 16 × 16 | The last one or two faint embers before it is gone. |
 
 The Raider's eye is three frames: center, left, right. The shift is 4 pixels in the 48 × 48 picture, which is 1 pixel after the shrink. A smaller shift disappears. A slit frame is optional and is not part of the sweep.
 
-Generate the explosion as one horizontal strip of 6 equal cells, then slice it into these six files.
+Generate only `explosion_small_3` (the widest, most jagged frame — see the hero prompt in [GENERATION-NOTES.md](GENERATION-NOTES.md)), then hand-paint the other five in Aseprite/Piskel by growing into it (frames 1–2) and breaking it apart (frames 4–6). Generating all six as one strip is exactly the kind of multi-frame request that came out inconsistent last time — see GENERATION-NOTES.md.
 
 ## Characters
 

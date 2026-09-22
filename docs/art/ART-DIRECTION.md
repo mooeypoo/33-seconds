@@ -41,13 +41,13 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 
 | Asset id | Size (px) | Frames | Priority | Notes |
 |---|---|---|---|---|
-| `viper` | 16 x 16 on screen, drawn at 64 x 64 | neutral x2 (engine flicker), bank_left, bank_right | P0 | Original shallow crescent, wingtips hooked slightly forward, twin engine glow. Olive and gunmetal. A similitude, not a traced show ship. |
+| `viper` | 16 x 16 on screen, drawn at 64 x 64 | neutral x2 (engine flicker), bank_left, bank_right | P0 | Angular wedge, not a crescent: tapers from a wide flat back to a sharp nose, hard straight edges. A raised center spine with a small cockpit bump, plus a small fin at each wingtip for detail. Olive and gunmetal hull, white-yellow twin engine glow. A similitude, not a traced show ship. |
 | `pilot_eject` | 12 x 16 | 1 (still) | P2 | Ejection seat / chute at the last Viper pose until pickup. Not a flash. Never used for *Anyone Could Be a Cylon* (that death keeps the hull and a red-eye). HUD also says `ejected`. |
-| `raider` | 12 x 12 on screen, drawn at 48 x 48 | 3 (eye center, left, right) | P0 | Arrowhead. The **only** thing in the game that uses hot red. The eye moves 4 pixels in the 48 x 48 picture so the shift survives the shrink. |
+| `raider` | 12 x 12 on screen, drawn at 48 x 48 | 3 (eye center, left, right) | P0 | Upside-down crescent, boomerang-shaped: two wingtips sweep forward and out, curving back to a narrower point at the center-rear. The **only** thing in the game that uses hot red. The eye moves 4 pixels in the 48 x 48 picture so the shift survives the shrink. |
 | `bullet_player` | 3 x 5 | 1 | P0 | Dradis green |
 | `bullet_aimed` | 3 x 5 | 1 | P0 | Red |
 | `bullet_stray` | 3 x 7 | 1 | P0 | Orange, longer trail |
-| `explosion_small` | 16 x 16 | 6 | P0 | No white flash frames. Warm colors only. |
+| `explosion_small` | 16 x 16 | 6 | P0 | A jagged, arcade-style burst with a few small debris chunks flying free — not a smooth circle or soft glow. Orange, warning yellow, and gunmetal debris only. No white flash frames, and no use of the new engine-glow white-yellow — that color stays on the Viper's own thrust. |
 | `flak_burst` | 12 x 12 | 3 | P2 | *Flak Enthusiast* puff at the stray. Warm olive/orange, never white, never Cylon red. Not a flash. A muzzle on Galactica is the second cue. |
 | `raider_heavy` | 24 x 24 | 2 | P1 | Bigger arrowhead, visible bays |
 | `missile` | 5 x 9 | 2 (flame) | P1 | |
@@ -74,7 +74,7 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 
 Your palette locks the whole look together. Every pixel in every file must use only these colors. Adjust freely, but keep the roles: it is the *roles* that make the game readable.
 
-**Starter palette (22 colors, 2 slots reserved for portrait skin and hair tones that you pick):**
+**Starter palette (23 colors, 2 slots reserved for portrait skin and hair tones that you pick):**
 
 | Role | Colors (hex) |
 |---|---|
@@ -82,6 +82,7 @@ Your palette locks the whole look together. Every pixel in every file must use o
 | Stars | `#5c6b82`, `#d5dde8` |
 | Gunmetal (fleet, hulls) | `#2b323c`, `#46505e`, `#77838f`, `#b3bbc5` |
 | Olive (Viper, uniforms) | `#39442a`, `#5a6a38`, `#8a9b58` |
+| Engine glow (thrust only) | `#fff3d6`, `#ffc457` |
 | Dradis green (HUD, player shots) | `#0f3626`, `#1c8459`, `#4fe19a`, `#b8ffdc` |
 | **Cylon red (reserved for Cylons only)** | `#55101a`, `#c4161f`, `#ff4747` |
 | Stray and warning orange | `#d9731a`, `#ffc457` |
@@ -90,14 +91,17 @@ Your palette locks the whole look together. Every pixel in every file must use o
 
 Rules:
 - **Red means Cylon.** Nothing else uses red.
+- **Engine glow is white-yellow (`#fff3d6`, `#ffc457`), not Dradis green.** Dradis green stays reserved for HUD/sensor elements and the player's own shots — keep it off the Viper's hull and engines so the "Dradis" color reads as one consistent signal.
 - Red and orange can look alike to some players, so **never rely on color alone**: strays also have a longer trail, and inert Raiders also have an hourglass. Test the game with a color-blindness simulator.
 - Aim for at least 4.5:1 contrast for anything the player must read.
 - Put the palette in a file the tools can read (a `.gpl` or `.hex` file from your art tool). The agent will add a script that checks every PNG against it.
 
 ## 5. File rules
 
-- **Format:** PNG, 8-bit with transparency. Draw the first pack at **4×** the on-screen size (a Raider is 48 × 48, shown at 12 × 12). The game nearest-neighbors it down. Filtering, blur, and a shift smaller than those 4 pixels do not survive.
+- **Format:** PNG, 8-bit with transparency. Draw the first pack at **4×** the on-screen size (a Raider is 48 × 48, shown at 12 × 12), on a **square canvas**. The game nearest-neighbors it down. Filtering, blur, and a shift smaller than those 4 pixels do not survive.
 - **No anti-aliasing and no soft edges.** Every pixel is fully opaque or fully transparent, and uses a palette color.
+- **Generated heroes: solid magenta background (`#FF00FF`), always.** It is not in the palette, so it keys out cleanly without risk of eating a real hull or glow color. Check accepted output for a magenta fringe or color bleed at the edges before keying — clean it up by hand if the model left soft pixels there.
+- **Keep detail bold, not fine.** A hero is drawn 4× final size so there is room for a cockpit bump, a fin, a color break — but hairline details vanish at the on-screen size. Ask for a small number of chunky, high-contrast details rather than intricate linework, and check the result actually still reads at the final on-screen size before accepting it.
 - **Tool:** Aseprite, LibreSprite, Pixelorama, or Piskel (works in the browser). Keep source files (`.aseprite`, `.pxo`, and so on) in `art-src/`. They are not shipped.
 - **Sprite sheets:** one PNG per group (for example `ships.png`) plus the JSON data file your tool exports. Aseprite's JSON export (Hash format) is commonly used with Pixi. The renderer spike will confirm it.
 - **Frames:** name animation tags in your tool (`neutral`, `bank_left`, `bank_right`, `eye`, `flicker`) and keep the same tag names as the asset list.
