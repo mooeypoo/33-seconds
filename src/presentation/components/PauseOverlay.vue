@@ -30,7 +30,7 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
       <h2 class="heading">{{ reasonText }}</h2>
       <p class="note">Nothing is running: the clock, the swarm, and every effect are frozen.</p>
       <button class="resume" type="button" @click="emit('resume')">Resume</button>
-      <p class="note small">Settings, the comms log, and the complaints board arrive later.</p>
+      <p class="note small">Settings, mute, abandon run, the comms log, and the complaints board arrive later.</p>
     </template>
   </div>
 </template>

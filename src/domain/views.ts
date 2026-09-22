@@ -3,6 +3,7 @@
  * Nothing outside the domain may mutate these, and the domain does not copy whole aggregates
  * per frame: each view is a small plain object of numbers.
  */
+import type { TierId } from './balance/profile';
 import type { CardId } from './progression/catalog';
 
 export interface ViperView {
@@ -148,6 +149,7 @@ export interface GameView {
   readonly raiders: readonly RaiderView[];
   readonly ghosts: readonly GhostView[];
   readonly fleet: FleetView;
+  readonly tier: TierId;
   readonly raptors: readonly RaptorView[];
   readonly imaginarySix: ImaginarySixView | null;
   readonly resurrectionShip: ResurrectionShipView | null;

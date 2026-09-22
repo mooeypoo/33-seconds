@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Status** | Living document (see below) |
-| **Last changed** | 2026-09-21 (see the changelog at the end) |
+| **Last changed** | 2026-09-22 (see the changelog at the end) |
 | **Owner** | Moriel |
 | **Related** | [Architecture guidelines (ADR-0001)](adr/0001-architecture.md), [AGENTS.md](../AGENTS.md) |
 
@@ -40,7 +40,7 @@ Read this every session. The rest of the document is detail.
 - At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). The twelve MVP cards are live. One free reroll: Ask Baltar Again.
 - **Comfort rules:** no shake, wobble, or flashing. Color is never the only cue. Pause works anywhere.
 - **Comms portraits and jokes** are data written later. Use clearly labeled placeholders first.
-- Two difficulty tiers: **Civilian Ship** and **Viper Pilot**.
+- Two difficulty tiers: **Civilian Run** (easier fleet math, same fight) and **Viper Pilot** (the default Launch). Ignoring the fleet on Viper Pilot can lose the run.
 
 ---
 
@@ -69,7 +69,7 @@ The game plays in a browser on desktop and phone, is free, and is a fan project.
 
 ### Success looks like (validate in playtests, no telemetry required)
 - Median run length 6-8 minutes.
-- A first-time player wins on Civilian Ship tier within a few attempts.
+- A first-time player wins on Civilian Run within a few attempts.
 - Average players win Viper Pilot tier roughly 40-60% of the time (guess, to be tuned).
 - Nobody reports motion discomfort. Nobody reports "I didn't know why I died."
 - 60 fps on a reference mid-range phone, degrading gracefully instead of stuttering.
@@ -128,8 +128,8 @@ A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 ### 5.3 Winning and losing `[Core]`
 
 - **Win:** destroy the resurrection ship, then clear the remaining Raiders. A placeholder overlay says so; Continue returns to the title and Launch starts a new run.
-- **Lose:** Fleet Integrity reaches zero. (Your Viper cannot end the run. Being destroyed costs time, not the game. See 8.1.) A placeholder overlay says so; Retry returns to the title. Retry-from-last-jump waits for the Civilian Ship tier. **Live now:** Civilian Ship numbers cannot reach zero (cap 35, repair 60%). The overlay is real; Viper Pilot numbers will make it reachable.
-- On loss, a short epilogue scene plays, then retry. On Civilian Ship tier, retry offers "from the last jump."
+- **Lose:** Fleet Integrity reaches zero. (Your Viper cannot end the run. Being destroyed costs time, not the game. See 8.1.) A placeholder overlay says so; Retry returns to the title. Retry-from-last-jump waits. **Live now:** Civilian Run still cannot reach zero (cap 35, repair 60%). Viper Pilot (the Launch default) can: cap 45, repair 40%, lost on the fifth full-cap cycle. HUD says `Pilot` or `Civilian`.
+- On loss, a short epilogue scene plays, then retry. On Civilian Run, retry offers "from the last jump."
 
 ## 6. Resurrection `[Core]`
 
@@ -153,7 +153,7 @@ Tiers decide how much of this a player sees:
 
 | Tier | Returned Raiders |
 |---|---|
-| Civilian Ship | Marker only |
+| Civilian Run | Marker only |
 | Viper Pilot | Marker + Vengeful |
 | Starbuck | Plus one trait per Raider |
 | All of This Has Happened Before | Up to 3 traits, endless |
@@ -193,8 +193,8 @@ Two separate pools, on purpose:
    - Standing between the swarm and the fleet catches strays. Your Viper hull resets each jump, so absorbing hits is cheap. That makes a bodyguard build viable.
 
 ### 7.2 Two fairness rules
-1. **Per-cycle damage cap.** No single cycle can take more than **35** integrity (Civilian Ship's 35% until tiers exist).
-2. **Partial repair on jump.** The fleet regains **60%** of its *missing* integrity, so heavy damage heals faster in absolute terms.
+1. **Per-cycle damage cap.** No single cycle can take more than the tier's cap: **35** on Civilian Run, **45** on Viper Pilot.
+2. **Partial repair on jump.** The fleet regains a fraction of its *missing* integrity: **60%** on Civilian Run, **40%** on Viper Pilot. Heavy damage still heals faster in absolute terms.
 
 ### 7.3 Tuning math `[Tunable]`
 If the fleet takes maximum damage `D` every cycle and repairs fraction `r` of what is missing at each jump, its lowest point settles at `100% x (1 - D / r)`.
@@ -203,7 +203,7 @@ If the fleet takes maximum damage `D` every cycle and repairs fraction `r` of wh
 
 | Tier | Damage cap | Repair rate | Worst case (max damage every cycle) |
 |---|---|---|---|
-| Civilian Ship | 35% | 60% | Never falls. Lowest point about 42%. |
+| Civilian Run | 35% | 60% | Never falls. Lowest point about 42%. |
 | Viper Pilot | 45% | 40% | Fleet lost in cycle 5. |
 | Starbuck | 50% | 25% | Fleet lost in cycle 3. |
 
@@ -213,7 +213,7 @@ Losing on Viper Pilot requires taking near-cap damage over and over, meaning ign
 - Fleet shown as **ten pips plus `n/max`** near the jump clock, and as **ten placeholder hulls** on the olive line. Colour is never the only cue.
 - A stray marks the nearest hull with an orange notch (not a flash). Hulls ding to match the pips as integrity drops. Pause-menu silly names (for example, "The Slightly Leaky Freighter") wait. No show ship names.
 - The slightly larger hull in the middle is Galactica. *Flak Enthusiast* gives it a muzzle puff when it eats a stray. Without that card it is visual only.
-- Reaching zero ends the run. A placeholder lose overlay; Retry returns to the title. Civilian Ship numbers cannot reach zero yet (PRD 7.2). Viper Pilot numbers and the epilogue wait.
+- Reaching zero ends the run. A placeholder lose overlay; Retry returns to the title. Civilian Run still cannot reach zero (PRD 7.3). Viper Pilot can. The epilogue and retry-from-last-jump wait.
 - The line is still a rigid row. A later pass can give the hulls a slight up/down and a little sideways idle (the same idea as the resurrection ship's station-keeping) so they do not feel stuck. Not enough to leave the bottom edge.
 - End-of-run stat: "Civilians endangered by your dodging: 47." `[Later]`
 
@@ -346,14 +346,16 @@ Named tiers, with a mutator system planned for later.
 
 | Tier | Feel | In MVP |
 |---|---|---|
-| Civilian Ship | Easier numbers, marker-only Returned Raiders, retry from last jump | Yes |
+| Civilian Run | Easier fleet numbers, same fight. Marker-only Returned Raiders, retry from last jump | Yes |
 | Viper Pilot | Default | Yes |
 | Starbuck | Reckless, one trait per returned Raider | Later |
 | All of This Has Happened Before | Endless, up to 3 traits, no win | Later |
 
 **Mutators (later):** No Dradis, Silent Space, Everyone's a Cylon, Adama's Watching, Sleepless (no calm between jumps).
 
-Tiers change numbers in one typed profile (see ADR-0001, D9), never rules.
+Tiers change numbers in one typed profile (see ADR-0001, D9), never rules. **Live now:** only fleet cap and repair differ, in TypeScript at `src/balance/tiers.ts`. **Soon:** one JSON object per difficulty (typed, validated on load) so hit, hull, Director, and repair numbers can move without a code change. Do that before adding a third tier. **Later:** after a win, invite a return on a harder profile without making Civilian Run feel like practice.
+
+**Player-facing names:** Civilian Run (easier fleet, same fight, not a tutorial). Viper Pilot (default Launch). Code ids stay `civilian-ship` / `viper-pilot`.
 
 ## 12. Comms `[Tunable]`
 
@@ -428,6 +430,7 @@ Shift is deliberately not used for the special. On Windows, pressing it five tim
 - Triggers: pause button, Esc or P, and **auto-pause** when the tab is hidden, the window loses focus, the orientation changes, or a pointer is cancelled (a notification or an edge swipe).
 - Resume with a 3-2-1 countdown, which also clears any stuck keys or phantom stick.
 - The pause menu shows settings, the comms log, mute, and (later) the Cylon Complaints Board.
+- **Abandon run** (back to title, discard the current run) lives on that pause menu. Not this pass. Distinct from Civilian Run's retry-from-last-jump, which is a lose-screen offer. Win and lose already return to title.
 - Everything time-based follows the game clock, including comms, cooldowns, the FTL ring, and audio, so nothing keeps running while paused.
 
 ## 14. Look and sound `[Tunable]`
@@ -501,7 +504,7 @@ Later: remappable keys, left-handed layout, gamepad.
 - The Speech as the only special.
 - The 12-card MVP upgrade set.
 - Comms with Adama, Starbuck, Gaeta, Dualla, and the cameo roster.
-- Civilian Ship and Viper Pilot tiers.
+- Civilian Run and Viper Pilot tiers.
 - Desktop and phone controls, accessibility settings, local settings and best scores.
 
 ### Milestones (a guide, not a contract)
@@ -514,7 +517,7 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | M2 | **The loop** | play three minutes of the core loop | Director cap and attack tokens, Raiders that shoot, Viper hull and eject, resurrection (ghost blips, Returned marker), a 33-second cycle with spool, jump, and a short Recovering pause. **Fun check:** with placeholders, is this fun? If not, fix it before adding more. |
 | M3 | **Stakes and a win** | win or lose a full run (6 to 8 minutes) | Fleet Integrity, strafing runs, stray bullets, damage cap and partial repair, HUD (fleet pips, jump ring), the resurrection ship with persistent HP, win and lose screens, two tiers. |
 | M4 | **Build variety** | make different builds | Upgrade picks (about 6 cards, growing to 12), reroll, missiles and targeting, The Speech. |
-| M5 | **Personality** | feel the humor | Comms overlay, portraits (placeholder art), banter from JSON, Recovering scenes, Dradis-style HUD, audio, filters and effects with a reduced-effects mode. Your content and asset passes plug in here. **Player settings and storage arrive here, before the first sound**, so mute, the sound notice, and the reduced-effects toggle exist the moment there is anything to mute (section 14.1). |
+| M5 | **Personality** | feel the humor | Comms overlay, portraits (placeholder art), banter from JSON, Recovering scenes, Dradis-style HUD, audio, filters and effects with a reduced-effects mode. Your content and asset passes plug in here. **Player settings and storage arrive here, before the first sound**, so mute, the sound notice, and the reduced-effects toggle exist the moment there is anything to mute (section 14.1). Pause menu also gets **Abandon run** (back to title). |
 | M6 | **Polish and launch** | share it | Accessibility pass, phone QA, the full settings screen (built on the storage seam from M5), title screen and logo, disclaimer, local best scores, deploy. |
 
 **After MVP:** Vengeful, traits, Mandatory Firmware Update and loadout screen, remaining cards, more tiers, mutators, daily seed and leaderboard, gamepad, PWA install.
@@ -589,3 +592,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | Hangar bays: 4 s open / 4 s sealed while the resurrection ship is exposed. Starts open when the shield drops. Combat ticks only. HUD `bays` / `sealed`; doors split or meet. *Hangar Door Slam* is +30% factory damage per stack while open. Path, panic, escape FTL wait. Raptor and Imaginary Six remain. | The queue-sniper card needs a door you can see. |
 | 2026-09-21 | *Raptor Escort*: one escort per stack (max 2), patrols the fleet line, soaks strays whose landing x is within 10 wu. 3 HP then hangar until the next cycle; relaunch at full hull. Raptor, then flak, then fleet. Strafes still land. Placeholder olive wedge and pips; HUD `raptor n/max` or `hangar`. Imaginary Six remains. | The bodyguard card needs a body on the line. |
 | 2026-09-21 | *Imaginary Six*: one copy. Formation wingman, thin beam at 0.5 damage, gun interval, 140 wu range. Strafes first, then strays. Untouchable, gone while ejected. Steady outline and a persistent beam (not a flash). HUD `six`. Comms "who are you talking to" waits. MVP table of 12 is live. | The last MVP card is the fleet-defense escort only you can see. |
+| 2026-09-22 | Tiers: Launch is Viper Pilot (fleet cap 45, repair 40%). **Civilian Run** is the easier fleet (35 / 60%), same fight, not a tutorial. HUD `Pilot` / `Civilian`. Numbers live in `src/balance/tiers.ts`. Soon: JSON objects per difficulty for the rest of the math. Later: invite a harder return after a win. Abandon run waits for the M5 pause menu. Retry-from-last-jump and the epilogue wait. | So ignoring the fleet can actually end the run, and the two buttons say what they do. |

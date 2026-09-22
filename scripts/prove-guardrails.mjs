@@ -330,6 +330,20 @@ const SABOTAGE = [
       mustFail: 'npm run test',
     },
     {
+      what: 'Viper Pilot still repairs like Civilian Ship',
+      file: 'src/balance/tiers.ts',
+      find: '    fleetRepairOfMissing: 0.4,',
+      replace: '    fleetRepairOfMissing: 0.6,',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'Viper Pilot keeps the Civilian Ship damage cap',
+      file: 'src/balance/tiers.ts',
+      find: '    fleetCycleDamageCap: 45,',
+      replace: '    fleetCycleDamageCap: 35,',
+      mustFail: 'npm run test',
+    },
+    {
       what: 'the loop catches up without a limit',
       file: 'src/application/GameSession.ts',
       find: '    const ticksToRun = Math.min(dueTicks, MAX_CATCH_UP_TICKS);',

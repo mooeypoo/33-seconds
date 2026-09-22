@@ -45,4 +45,5 @@ export interface FrameStats {
   readonly raptorHp: number;
   readonly raptorHpMax: number;
   readonly sixPresent: boolean;
+  readonly tier: 'civilian-ship' | 'viper-pilot';
 }

@@ -57,6 +57,8 @@ const stats = hudStore.state;
             ? 'ready'
             : `${String(stats.stats.speechJumpsUntilReady)} jumps`
       }}</span>
+      ·
+      <span data-testid="tier">{{ stats.stats.tier === 'viper-pilot' ? 'pilot' : 'civilian' }}</span>
       · cards
       <span data-testid="cards">{{ stats.stats.cards }}</span>
       <span v-if="stats.stats.raptorHpMax > 0" data-testid="raptor">

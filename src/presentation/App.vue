@@ -54,7 +54,7 @@ onUnmounted(() => {
 
   <DragHint v-if="status.phase === 'running' && cyclePhase !== 'recovering' && cyclePhase !== 'jumping'" />
 
-  <TitleOverlay v-if="status.phase === 'title'" @start="session.start()" />
+  <TitleOverlay v-if="status.phase === 'title'" @start="session.start($event)" />
 
   <WinOverlay v-else-if="status.phase === 'won'" @continue="session.returnToTitle()" />
 

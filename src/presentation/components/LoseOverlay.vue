@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * The run is over: Fleet Integrity reached zero (PRD 5.3). Placeholder copy. No timer.
- * Retry-from-last-jump waits for the Civilian Ship tier.
+ * Retry-from-last-jump still waits. Viper Pilot numbers can reach this screen.
  */
 const emit = defineEmits<{ continue: [] }>();
 </script>

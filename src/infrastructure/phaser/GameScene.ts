@@ -141,6 +141,7 @@ export class GameScene extends Phaser.Scene {
       raptorHp: view.raptors.reduce((sum, raptor) => sum + (raptor.hangared ? 0 : raptor.hp), 0),
       raptorHpMax: view.raptors.reduce((sum, raptor) => sum + raptor.hpMax, 0),
       sixPresent: view.imaginarySix?.present === true,
+      tier: view.tier,
     });
 
     this.secondsSinceStatsReport = 0;

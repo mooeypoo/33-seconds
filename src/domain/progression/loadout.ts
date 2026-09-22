@@ -42,7 +42,10 @@ export class Loadout {
   private cylonSavesLeft = 0;
   private cylonEyeActive = false;
 
-  constructor(startingCards: readonly CardId[] = []) {
+  constructor(
+    startingCards: readonly CardId[] = [],
+    private readonly baseCycleCap: number = FLEET_CYCLE_DAMAGE_CAP,
+  ) {
     for (const id of startingCards) this.addStack(id);
     this.cylonSavesLeft = this.stacksOf('anyone-could-be-a-cylon');
   }
@@ -108,7 +111,7 @@ export class Loadout {
   }
 
   get fleetCycleDamageCap(): number {
-    return FLEET_CYCLE_DAMAGE_CAP * Math.pow(CONTINUITY_CAP_PER_STACK, this.stacksOf('continuity-of-government'));
+    return this.baseCycleCap * Math.pow(CONTINUITY_CAP_PER_STACK, this.stacksOf('continuity-of-government'));
   }
 
   get ghostDelaySeconds(): number {

@@ -15,7 +15,7 @@ const filledPips = computed(() => Math.round(integrity.value / 10));
 
 <template>
   <div class="fleet" data-testid="fleet-readout">
-    <p class="label">Fleet</p>
+    <p class="label">{{ stats.stats?.tier === 'viper-pilot' ? 'Fleet · Pilot' : 'Fleet · Civilian' }}</p>
     <p class="value" data-testid="fleet">{{ integrity }}/{{ integrityMax }}</p>
     <div class="pips" aria-hidden="true">
       <span v-for="n in 10" :key="n" class="pip" :class="{ filled: n <= filledPips }" />
@@ -26,7 +26,7 @@ const filledPips = computed(() => Math.round(integrity.value / 10));
 <style scoped>
 .fleet {
   pointer-events: none;
-  min-width: 72px;
+  min-width: 88px;
   text-align: center;
   font-family: ui-monospace, monospace;
   color: #cfe8d8;

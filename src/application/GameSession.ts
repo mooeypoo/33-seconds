@@ -1,3 +1,5 @@
+import { DEFAULT_PLAY_TIER, profileFor } from '../balance/tiers';
+import type { TierId } from '../domain/balance/profile';
 import { createGame, type Game, type GameOptions } from '../domain/game';
 import type { DomainEvent } from '../domain/shared/events';
 import { IDLE_INTENT } from '../domain/shared/intent';
@@ -81,9 +83,9 @@ export class GameSession {
   }
 
   /** Leaves the title screen. Also the first user gesture, which is when audio may start (D12). */
-  start(): void {
+  start(tier: TierId = DEFAULT_PLAY_TIER): void {
     if (this.phase !== 'title') return;
-    this.game = createGame(this.options);
+    this.game = createGame({ ...this.options, tierProfile: profileFor(tier) });
     this.phase = 'running';
     this.reason = null;
     this.accumulatorSeconds = 0;

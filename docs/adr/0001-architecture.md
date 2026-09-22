@@ -304,6 +304,10 @@ export interface CycleProfile {
 - No feature flags inside the domain. Staged features (Vengeful, traits) are selected by `returnedBehavior`, which is one field rather than a flag per feature.
 - Upgrades are **data-driven modifiers** (effects hooked to a `StatBlock` or to `onHit`, `onKill`, `onCycleStart`), not a class per card. Flair text is presentation data.
 
+**Live now (2026-09-22):** `CycleProfile` has two fields (`fleetCycleDamageCap`, `fleetRepairOfMissing`) in TypeScript at `src/balance/tiers.ts`. Director cap, hull, tokens, and the rest stay named constants until a tier actually differs.
+
+**Soon:** one JSON object per difficulty (typed, validated on load), still under the 12-field knob budget, so adding a third tier or retuning hits is data. Look into this before inviting players back onto a harder profile. Invariants (the 33) stay domain constants.
+
 **Why:** the owner asked for configurability that does not overwhelm. Three tiers with a hard budget keeps the answer to "where do I change this number?" obvious.
 
 ### D10. Persistence and privacy

@@ -35,7 +35,8 @@ import {
   raiderSpawnMaxX,
   raiderSpawnMinX,
 } from './swarm/raider';
-import { Fleet, FLEET_INTEGRITY_MAX, FLEET_LINE_Y_UNITS } from './fleet/integrity';
+import type { CycleProfile } from './balance/profile';
+import { Fleet, FLEET_CYCLE_DAMAGE_CAP, FLEET_INTEGRITY_MAX, FLEET_LINE_Y_UNITS, FLEET_REPAIR_OF_MISSING } from './fleet/integrity';
 import { Raptor, raptorLaunchX } from './fleet/raptor';
 import { ATTACK_TOKENS, DIRECTOR_CAP, Download, GHOST_RADIUS_UNITS, STRAFE_TOKENS } from './swarm/resurrection';
 import {
@@ -79,9 +80,14 @@ export interface GameOptions {
   readonly viperFires?: boolean;
   /**
    * Starting Fleet Integrity. Play uses 100. Tests can start near the floor so a dive can end
-   * the run; Civilian Ship numbers cannot reach zero in a normal cycle (PRD 7.2).
+   * the run; Civilian Run numbers cannot reach zero in a normal cycle (PRD 7.2).
    */
   readonly fleetStartingIntegrity?: number;
+  /**
+   * Difficulty numbers (ADR-0001 D9). Play injects Viper Pilot. Tests that omit this stay on
+   * Civilian Run numbers so existing cap math does not move.
+   */
+  readonly tierProfile?: CycleProfile;
   /**
    * Cards already stacked at launch. Tests use this so an effect is not gated on a random offer.
    * Play always starts empty.
@@ -105,6 +111,7 @@ export class Game {
   private readonly resurrectionShipHitPoints: number;
   private readonly cycle = new JumpCycle();
   private readonly fleet: Fleet;
+  private readonly profile: CycleProfile;
   private raptors: Raptor[] = [];
   private six: ImaginarySix | null = null;
   private readonly viper = new Viper();
@@ -137,8 +144,13 @@ export class Game {
     const vulnerable = options.resurrectionShipVulnerableCycle ?? RESURRECTION_SHIP_VULNERABLE_CYCLE;
     this.resurrectionShipVulnerableCycle = Math.max(this.resurrectionShipArrivesCycle, vulnerable);
     this.resurrectionShipHitPoints = options.resurrectionShipHitPoints ?? RESURRECTION_SHIP_HIT_POINTS;
+    this.profile = options.tierProfile ?? {
+      id: 'civilian-ship',
+      fleetCycleDamageCap: FLEET_CYCLE_DAMAGE_CAP,
+      fleetRepairOfMissing: FLEET_REPAIR_OF_MISSING,
+    };
     this.fleet = new Fleet(options.fleetStartingIntegrity ?? FLEET_INTEGRITY_MAX);
-    this.loadout = new Loadout(options.startingCards ?? []);
+    this.loadout = new Loadout(options.startingCards ?? [], this.profile.fleetCycleDamageCap);
     this.launchRaptors();
     this.syncSix();
   }
@@ -158,7 +170,7 @@ export class Game {
       if (phaseChange.phase === 'jumping') {
         this.clearTheSky(events);
         this.viper.resetAtJump();
-        this.fleet.repairAtJump();
+        this.fleet.repairAtJump(this.profile.fleetRepairOfMissing);
         this.speech.onJump();
         this.loadout.onJump();
         events.push({ type: 'FleetRepaired', integrity: this.fleet.view.integrity });
@@ -291,6 +303,7 @@ export class Game {
         shootable: this.loadout.ghostsAreShootable,
       })),
       fleet: this.fleet.view,
+      tier: this.profile.id,
       raptors: this.raptors.map((raptor) => raptor.toView()),
       imaginarySix: this.six?.isPresent ? this.six.toView() : null,
       resurrectionShip: this.resurrectionShip?.toView() ?? null,

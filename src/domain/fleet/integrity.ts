@@ -14,12 +14,12 @@ export const FLEET_DAMAGE_PER_STRAY = 1;
 export const FLEET_DAMAGE_PER_STRAFE = 8;
 
 /**
- * No single cycle can take more than this much integrity (PRD 7.2). Civilian Ship's 35% until
- * tiers exist.
+ * No single cycle can take more than this much integrity (PRD 7.2). Civilian Run's 35%.
+ * Viper Pilot uses a higher cap from the tier profile.
  */
 export const FLEET_CYCLE_DAMAGE_CAP = 35;
 
-/** Fraction of *missing* integrity restored at each jump (PRD 7.2). Civilian 60% until tiers. */
+/** Fraction of *missing* integrity restored at each jump (PRD 7.2). Civilian Run's 60%. */
 export const FLEET_REPAIR_OF_MISSING = 0.6;
 
 /**
@@ -120,9 +120,9 @@ export class Fleet {
   }
 
   /** Tyrol's opposite number: a fraction of what is missing, then the cycle cap resets. */
-  repairAtJump(): void {
+  repairAtJump(repairOfMissing: number = FLEET_REPAIR_OF_MISSING): void {
     const missing = FLEET_INTEGRITY_MAX - this.integrity;
-    this.integrity += missing * FLEET_REPAIR_OF_MISSING;
+    this.integrity += missing * repairOfMissing;
     this.damageThisCycle = 0;
     this.lastHitShipId = null;
   }
