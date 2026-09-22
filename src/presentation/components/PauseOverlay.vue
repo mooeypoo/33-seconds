@@ -5,7 +5,7 @@ import MuteControl from './MuteControl.vue';
 import { settingsStore } from '../stores/settingsStore';
 
 const props = defineProps<{ status: SessionStatus }>();
-const emit = defineEmits<{ resume: [] }>();
+const emit = defineEmits<{ resume: []; abandon: [] }>();
 
 /** Why we paused, in plain words: a pause nobody asked for should explain itself. */
 const REASON_TEXT: Record<PauseReason, string> = {
@@ -32,6 +32,7 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
       <h2 class="heading">{{ reasonText }}</h2>
       <p class="note">Nothing is running: the clock, the swarm, and every effect are frozen.</p>
       <button class="resume" type="button" @click="emit('resume')">Resume</button>
+      <button data-ui class="abandon" type="button" @click="emit('abandon')">Abandon run</button>
       <MuteControl />
       <button
         data-ui
@@ -43,8 +44,8 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
         {{ settingsStore.state.snapshot.reducedEffects ? 'Reduced effects on' : 'Reduced effects off' }}
       </button>
       <p class="note small">
-        Reduced effects apply after you reload the page. Abandon run, the comms log, and the
-        complaints board wait.
+        Abandon run goes back to the title and discards this run. Reduced effects apply after you
+        reload the page. The comms log and the complaints board wait.
       </p>
     </template>
   </div>
@@ -102,9 +103,22 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
 }
 
 .resume:focus-visible,
+.abandon:focus-visible,
 .effects:focus-visible {
   outline: 2px solid #cfe8d8;
   outline-offset: 3px;
+}
+
+.abandon {
+  min-width: 160px;
+  min-height: 44px;
+  font: inherit;
+  font-size: 15px;
+  color: #cfe8d8;
+  background: transparent;
+  border: 1px solid #6a3a3a;
+  border-radius: 8px;
+  cursor: pointer;
 }
 
 .effects {

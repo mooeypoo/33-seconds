@@ -68,6 +68,7 @@ onUnmounted(() => {
     v-else-if="status.phase === 'paused' || status.phase === 'resuming'"
     :status="status"
     @resume="session.requestResume()"
+    @abandon="session.abandonRun()"
   />
 </template>
 

@@ -430,7 +430,7 @@ Shift is deliberately not used for the special. On Windows, pressing it five tim
 - Triggers: pause button, Esc or P, and **auto-pause** when the tab is hidden, the window loses focus, the orientation changes, or a pointer is cancelled (a notification or an edge swipe).
 - Resume with a 3-2-1 countdown, which also clears any stuck keys or phantom stick.
 - The pause menu shows mute, a reduced-effects toggle, and later the full settings screen, the comms log, and the Cylon Complaints Board. **Live now:** mute and reduced-effects. The full settings screen waits for M6.
-- **Abandon run** (back to title, discard the current run) lives on that pause menu. Not this pass. Distinct from Civilian Run's retry-from-last-jump, which is a lose-screen offer. Win and lose already return to title.
+- **Abandon run** (back to title, discard the current run) lives on that pause menu. **Live now:** one button, only while paused, not during the resume countdown. The next Launch starts a new run. Distinct from the lose screen's Retry, and from retry-from-last-jump, which still waits. Win and lose already return to title.
 - Everything time-based follows the game clock, including comms, cooldowns, the FTL ring, and audio, so nothing keeps running while paused.
 
 ## 14. Look and sound `[Tunable]`
@@ -491,6 +491,7 @@ Later: remappable keys, left-handed layout, gamepad.
 - No accounts, no free-text input, no cookies, no third-party scripts or fonts, no analytics.
 - Local storage holds only: settings (volume, comms duration, reduced effects, readable font), best scores per tier, and the "seen" state for scenes and hints. It is versioned, validated when read, and treated as untrusted because a user can edit it.
 - **Leaderboard (later):** no free-text names. Players get a **generated callsign** or pick from a curated list. That removes both privacy risk and moderation burden. Stored: callsign, score, tier, daily seed date, timestamp. No accounts, so no personal data to delete. Server-side plausibility checks on scores. The leaderboard is for fun, not cheat-proof (see open questions).
+- **Soon — share a finished run.** After a win or a loss, a link back to this site shows that run's points and details graphically and offers another game. A shareable image may go with the link; the page is useful without it. Not built yet. The link should carry the result itself: no account, no free text, nothing stored, nothing that identifies a person. A server-side share id needs the leaderboard design note before any server code.
 - If analytics are ever added: aggregate, cookieless, and disclosed on the title screen. Requires an ADR first.
 - The community may include minors, so the design assumes it does.
 
@@ -596,3 +597,5 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | *Imaginary Six*: one copy. Formation wingman, thin beam at 0.5 damage, gun interval, 140 wu range. Strafes first, then strays. Untouchable, gone while ejected. Steady outline and a persistent beam (not a flash). HUD `six`. Comms "who are you talking to" waits. MVP table of 12 is live. | The last MVP card is the fleet-defense escort only you can see. |
 | 2026-09-22 | Tiers: Launch is Viper Pilot (fleet cap 45, repair 40%). **Civilian Run** is the easier fleet (35 / 60%), same fight, not a tutorial. HUD `Pilot` / `Civilian`. Numbers live in `src/balance/tiers.ts`. Soon: JSON objects per difficulty for the rest of the math. Later: invite a harder return after a win. Abandon run waits for the M5 pause menu. Retry-from-last-jump and the epilogue wait. | So ignoring the fleet can actually end the run, and the two buttons say what they do. |
 | 2026-09-22 | Player settings: versioned `StoragePort`, mute on title / HUD / pause, reduced-effects toggle (OS OR in-game), drag hint remembered. No audio yet. Abandon run still waits. | So mute exists before the first sound (14.1), and localStorage is treated as hostile. |
+| 2026-09-22 | **Abandon run** on the pause menu returns to the title and discards the run. Not available during the resume countdown. Retry-from-last-jump still waits. | A stuck or unwanted run needed a way back without pretending it was a loss. |
+| 2026-09-22 | Soon: a shareable result. A link back to the site shows the run's points and details and offers another game. An image may accompany it. The result belongs in the link, not on a server. | So a finished run can be shown to someone else without collecting personal data. |

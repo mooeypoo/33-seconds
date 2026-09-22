@@ -65,6 +65,28 @@ test.describe('pause', () => {
     expect(box.height).toBeGreaterThanOrEqual(44);
   });
 
+  test('abandon run returns to the title, and Launch starts over', async ({ page }) => {
+    await startRun(page);
+    await expectTicksToGrow(page, 20);
+
+    await page.keyboard.press('Escape');
+    const abandon = page.getByRole('button', { name: 'Abandon run' });
+    await expect(abandon).toBeVisible();
+    const box = (await abandon.boundingBox())!;
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+
+    const ticksWhenAbandoned = await readTicks(page);
+    await abandon.click();
+    await expect(page.getByRole('button', { name: 'Launch' })).toBeVisible();
+
+    await page.getByRole('button', { name: 'Launch' }).click();
+    await expect(page.getByTestId('viper-x')).toBeVisible();
+    await expect
+      .poll(async () => readTicks(page), { message: 'a new run starts its tick count over' })
+      .toBeLessThan(ticksWhenAbandoned);
+  });
+
   test('mute is labeled, large enough, and remembered', async ({ page }) => {
     await page.goto('/');
     const mute = page.getByRole('button', { name: 'Mute' });

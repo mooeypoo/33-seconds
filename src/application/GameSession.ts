@@ -144,6 +144,21 @@ export class GameSession {
     this.publish();
   }
 
+  /**
+   * Discards the current run from the pause menu (PRD 13.3). Not the lose screen's Retry, and
+   * not available while the resume countdown is already going.
+   */
+  abandonRun(): void {
+    if (this.phase !== 'paused') return;
+    this.phase = 'title';
+    this.reason = null;
+    this.countdownRemainingSeconds = 0;
+    this.accumulatorSeconds = 0;
+    this.pendingEvents = [];
+    this.input.clear();
+    this.publish();
+  }
+
   /** True while the domain is not being ticked. */
   get isFrozen(): boolean {
     return this.phase !== 'running';

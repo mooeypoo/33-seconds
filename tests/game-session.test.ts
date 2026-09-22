@@ -242,6 +242,39 @@ describe('pause', () => {
     expect(runFrames(600)).toBe(0);
   });
 
+  it('discards a paused run, and the next Launch does not inherit it', () => {
+    session.start();
+    runFrames(30);
+    expect(session.view.tickCount).toBe(30);
+
+    session.abandonRun();
+    expect(session.status.phase).toBe('running');
+
+    session.pause('player');
+    input.intent = { moveX: 1, moveY: 0, missile: true, special: false };
+    session.abandonRun();
+
+    expect(session.status).toMatchObject({ phase: 'title', pauseReason: null, countdownSeconds: 0 });
+    expect(input.intent).toEqual(IDLE_INTENT);
+    expect(runFrames(10)).toBe(0);
+
+    session.start();
+    expect(session.view.tickCount).toBe(0);
+    expect(session.status.phase).toBe('running');
+  });
+
+  it('does not abandon during the resume countdown', () => {
+    session.start();
+    runFrames(5);
+    session.pause('player');
+    session.requestResume();
+
+    session.abandonRun();
+
+    expect(session.status.phase).toBe('resuming');
+    expect(session.view.tickCount).toBe(5);
+  });
+
   it('ignores a resume request that nobody paused', () => {
     session.start();
 

@@ -358,6 +358,13 @@ const SABOTAGE = [
       mustFail: 'npm run test',
     },
     {
+      what: 'Abandon run leaves the paused run in place',
+      file: 'src/application/GameSession.ts',
+      find: '  abandonRun(): void {\n    if (this.phase !== \'paused\') return;',
+      replace: '  abandonRun(): void {\n    return;',
+      mustFail: 'npm run test',
+    },
+    {
       what: 'the loop catches up without a limit',
       file: 'src/application/GameSession.ts',
       find: '    const ticksToRun = Math.min(dueTicks, MAX_CATCH_UP_TICKS);',
