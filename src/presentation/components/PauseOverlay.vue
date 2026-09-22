@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { PauseReason, SessionStatus } from '../../application/GameSession';
+import MuteControl from './MuteControl.vue';
+import { settingsStore } from '../stores/settingsStore';
 
 const props = defineProps<{ status: SessionStatus }>();
 const emit = defineEmits<{ resume: [] }>();
@@ -30,7 +32,20 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
       <h2 class="heading">{{ reasonText }}</h2>
       <p class="note">Nothing is running: the clock, the swarm, and every effect are frozen.</p>
       <button class="resume" type="button" @click="emit('resume')">Resume</button>
-      <p class="note small">Settings, mute, abandon run, the comms log, and the complaints board arrive later.</p>
+      <MuteControl />
+      <button
+        data-ui
+        class="effects"
+        type="button"
+        :aria-pressed="settingsStore.state.snapshot.reducedEffects"
+        @click="settingsStore.toggleReducedEffects()"
+      >
+        {{ settingsStore.state.snapshot.reducedEffects ? 'Reduced effects on' : 'Reduced effects off' }}
+      </button>
+      <p class="note small">
+        Reduced effects apply after you reload the page. Abandon run, the comms log, and the
+        complaints board wait.
+      </p>
     </template>
   </div>
 </template>
@@ -86,8 +101,21 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
   cursor: pointer;
 }
 
-.resume:focus-visible {
+.resume:focus-visible,
+.effects:focus-visible {
   outline: 2px solid #cfe8d8;
   outline-offset: 3px;
+}
+
+.effects {
+  min-width: 160px;
+  min-height: 44px;
+  font: inherit;
+  font-size: 15px;
+  color: #cfe8d8;
+  background: transparent;
+  border: 1px solid #2c4a3a;
+  border-radius: 8px;
+  cursor: pointer;
 }
 </style>

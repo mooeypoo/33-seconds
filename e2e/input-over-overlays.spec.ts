@@ -67,6 +67,19 @@ test.describe('steering works wherever the finger lands', () => {
     await expect(hint).toBeHidden();
   });
 
+  test('the drag hint stays gone after a later run', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'The hint is for touch devices; desktop players get the key list.');
+    await startRun(page);
+
+    const viewport = page.viewportSize()!;
+    await dragFrom(page, { x: viewport.width / 2, y: viewport.height / 2 }, 0, -40);
+    await releaseDrag(page);
+    await expect(page.getByText('Drag anywhere to fly')).toBeHidden();
+
+    await startRun(page);
+    await expect(page.getByText('Drag anywhere to fly')).toBeHidden();
+  });
+
   test('the keyboard steers too, by physical key position', async ({ page }) => {
     await startRun(page);
     const before = await viperPosition(page);

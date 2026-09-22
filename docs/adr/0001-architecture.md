@@ -320,6 +320,8 @@ export interface CycleProfile {
 - Wrap all reads and writes in `try/catch` (quota errors, Safari private browsing). The game must run correctly with storage unavailable.
 - Store the minimum: settings, best score per tier, seen flags. No identifiers, no timestamps that could identify a person, no secrets.
 
+**Live now (2026-09-22):** `StoragePort` plus `PlayerSettings` at `thirty-three:v1:settings` (`muted`, `reducedEffects`, `dragHintSeen`). Invalid, unversioned, and throwing reads become defaults. Mute works when writes fail. Best scores wait.
+
 **Leaderboard (later, separate ADR before building):**
 - Netlify Functions with Netlify Blobs (or Supabase if more is needed).
 - **No free-text names.** Generated callsigns or a curated list.

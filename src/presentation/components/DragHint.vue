@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { hudStore } from '../stores/hudStore';
+import { settingsStore } from '../stores/settingsStore';
 
 /**
  * Tells a new player on a touch device that dragging flies the Viper (PRD 13.2). The stick's ring
@@ -10,7 +11,9 @@ import { hudStore } from '../stores/hudStore';
  */
 const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
 
-const visible = computed(() => isTouchDevice && !hudStore.state.dragHintDismissed);
+const visible = computed(
+  () => isTouchDevice && !hudStore.state.dragHintDismissed && !settingsStore.state.snapshot.dragHintSeen,
+);
 </script>
 
 <template>

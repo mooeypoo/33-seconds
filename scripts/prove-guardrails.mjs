@@ -330,17 +330,31 @@ const SABOTAGE = [
       mustFail: 'npm run test',
     },
     {
-      what: 'Viper Pilot still repairs like Civilian Ship',
+      what: 'Viper Pilot still repairs like Civilian Run',
       file: 'src/balance/tiers.ts',
       find: '    fleetRepairOfMissing: 0.4,',
       replace: '    fleetRepairOfMissing: 0.6,',
       mustFail: 'npm run test',
     },
     {
-      what: 'Viper Pilot keeps the Civilian Ship damage cap',
+      what: 'Viper Pilot keeps the Civilian Run damage cap',
       file: 'src/balance/tiers.ts',
       find: '    fleetCycleDamageCap: 45,',
       replace: '    fleetCycleDamageCap: 35,',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'a future settings envelope is trusted',
+      file: 'src/application/playerSettings.ts',
+      find: '  if (record.version !== PLAYER_SETTINGS_VERSION) return { ...DEFAULT_PLAYER_SETTINGS };',
+      replace: '  // sabotage: any envelope is current',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'truthy junk mutes the game',
+      file: 'src/application/playerSettings.ts',
+      find: '    muted: record.muted === true,',
+      replace: '    muted: Boolean(record.muted),',
       mustFail: 'npm run test',
     },
     {

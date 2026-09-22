@@ -17,6 +17,7 @@ export function bootPhaser(
   session: GameSession,
   stick: StickSource,
   reportStats: (stats: FrameStats) => void,
+  reducedEffects: boolean,
 ): () => void {
   const game = new Phaser.Game({
     type: Phaser.AUTO,
@@ -42,7 +43,7 @@ export function bootPhaser(
     },
     // No audio yet; the first user gesture will unlock it when audio arrives (ADR-0001 D12).
     audio: { noAudio: true },
-    scene: [new GameScene(session, stick, reportStats)],
+    scene: [new GameScene(session, stick, reportStats, reducedEffects)],
   });
 
   return () => {

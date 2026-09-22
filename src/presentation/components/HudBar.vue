@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import CycleClock from './CycleClock.vue';
 import FleetReadout from './FleetReadout.vue';
+import MuteControl from './MuteControl.vue';
 import type { SessionPhase } from '../../application/GameSession';
 import { hudStore } from '../stores/hudStore';
 
@@ -76,16 +77,19 @@ const stats = hudStore.state;
     <FleetReadout v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" />
     <CycleClock v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" />
 
-    <button
-      v-if="phase === 'running'"
-      data-ui
-      class="pause-button"
-      type="button"
-      aria-label="Pause"
-      @click="emit('pause')"
-    >
-      ⏸
-    </button>
+    <div class="controls">
+      <MuteControl v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" compact />
+      <button
+        v-if="phase === 'running'"
+        data-ui
+        class="pause-button"
+        type="button"
+        aria-label="Pause"
+        @click="emit('pause')"
+      >
+        ⏸
+      </button>
+    </div>
   </div>
 </template>
 
@@ -112,6 +116,13 @@ const stats = hudStore.state;
   font-size: 12px;
   line-height: 1.4;
   text-shadow: 0 1px 0 #000;
+}
+
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
 }
 
 .pause-button {

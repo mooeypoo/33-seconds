@@ -36,15 +36,22 @@ export class GameScene extends Phaser.Scene {
   private readonly session: GameSession;
   private readonly stick: StickSource;
   private readonly reportStats: (stats: FrameStats) => void;
+  private readonly reducedEffects: boolean;
   private presenters: Presenter[] = [];
 
   private secondsSinceStatsReport = 0;
 
-  constructor(session: GameSession, stick: StickSource, reportStats: (stats: FrameStats) => void) {
+  constructor(
+    session: GameSession,
+    stick: StickSource,
+    reportStats: (stats: FrameStats) => void,
+    reducedEffects: boolean,
+  ) {
     super({ key: 'game' });
     this.session = session;
     this.stick = stick;
     this.reportStats = reportStats;
+    this.reducedEffects = reducedEffects;
   }
 
   create(): void {
@@ -54,17 +61,16 @@ export class GameScene extends Phaser.Scene {
       .rectangle(WORLD_WIDTH_UNITS / 2, WORLD_HEIGHT_UNITS / 2, WORLD_WIDTH_UNITS - 2, WORLD_HEIGHT_UNITS - 2)
       .setStrokeStyle(1, PALETTE.viperCockpit, 0.25);
 
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     this.presenters = [
-      new FleetPresenter(this, prefersReducedMotion),
+      new FleetPresenter(this, this.reducedEffects),
       new RaptorPresenter(this),
       new ViperPresenter(this),
       new ImaginarySixPresenter(this),
       new ProjectilePresenter(this),
       new MissilePresenter(this),
-      new RaiderPresenter(this, prefersReducedMotion),
+      new RaiderPresenter(this, this.reducedEffects),
       new ResurrectionShipPresenter(this),
-      new StickPresenter(this, this.stick, prefersReducedMotion),
+      new StickPresenter(this, this.stick, this.reducedEffects),
     ];
   }
 

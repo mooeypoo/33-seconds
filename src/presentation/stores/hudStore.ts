@@ -8,8 +8,6 @@ import type { FrameStats } from '../../application/FrameStats';
 const state = reactive<{ stats: FrameStats | null; showDebug: boolean; dragHintDismissed: boolean }>({
   stats: null,
   showDebug: true,
-  // ASSUMPTION: the "already seen this" flag lives in memory until storage arrives in M5, so on a
-  // touch device the hint shows once per page load. That is the PRD 13.2 fallback for no storage.
   dragHintDismissed: false,
 });
 

@@ -419,7 +419,7 @@ Shift is deliberately not used for the special. On Windows, pressing it five tim
   - It appears on touch down and fades out when the finger lifts. Faint enough never to compete with the Raiders, drawn on the pixel grid like everything else.
   - It is not the only cue for the player's own movement: the Viper banks and its engine glow stretches with thrust.
   - Reduced-effects mode keeps the ring and dot. They are information, not decoration, so the fade is what shortens, never the indicator.
-- **A first-run hint tells new players to drag** `[Core]`: on a touch device, before the first drag of a player's first run, a short line near the bottom of the play area says that dragging anywhere flies the Viper. It disappears on the first touch, is remembered as seen, and reappears only if storage is unavailable. No timers on it, and it never blocks play.
+- **A first-run hint tells new players to drag** `[Core]`: on a touch device, before the first drag of a player's first run, a short line near the bottom of the play area says that dragging anywhere flies the Viper. It disappears on the first touch, is remembered as seen, and reappears only if storage is unavailable. No timers on it, and it never blocks play. **Live now:** remembered in player settings; the session still hides it after the first drag if storage fails.
 - It works **wherever the finger lands**, on any overlay layer, except on visible buttons and menus.
 - **Missile:** a large on-screen button (one-handed), or a tap from a second finger anywhere. **Live now:** both.
 - **Special:** a large on-screen button in the corner opposite the missile (one-handed), or E. **Live now:** The Speech.
@@ -429,7 +429,7 @@ Shift is deliberately not used for the special. On Windows, pressing it five tim
 ### 13.3 Pause
 - Triggers: pause button, Esc or P, and **auto-pause** when the tab is hidden, the window loses focus, the orientation changes, or a pointer is cancelled (a notification or an edge swipe).
 - Resume with a 3-2-1 countdown, which also clears any stuck keys or phantom stick.
-- The pause menu shows settings, the comms log, mute, and (later) the Cylon Complaints Board.
+- The pause menu shows mute, a reduced-effects toggle, and later the full settings screen, the comms log, and the Cylon Complaints Board. **Live now:** mute and reduced-effects. The full settings screen waits for M6.
 - **Abandon run** (back to title, discard the current run) lives on that pause menu. Not this pass. Distinct from Civilian Run's retry-from-last-jump, which is a lose-screen offer. Win and lose already return to title.
 - Everything time-based follows the game clock, including comms, cooldowns, the FTL ring, and audio, so nothing keeps running while paused.
 
@@ -457,12 +457,14 @@ Unexpected audio is the rudest thing a web page can do. These are hard rules, no
 - **Default: sound on**, because the title screen announces it before a sound is possible. Flip it with a changelog line if playtesting says otherwise.
 - Separate music and effects volumes belong in settings. Mute stays a single, always-available control that never hides in a menu.
 
+**Live now:** the title says the game has sound. Mute sits next to Launch, in the HUD beside pause, and on the pause menu, as the words Sound on / Muted (not an icon), at least 44 × 44 px. The choice is stored in `thirty-three:v1:settings`. Phaser still boots with `noAudio`. AudioPort, volumes, and actual sound wait.
+
 ## 15. Accessibility and comfort `[Core]`
 
 Hard rules:
 
 - **No camera shake, wobble, double vision, or rapid flashing.** Flash rate stays far below 3 per second. Whiteouts become a quick fade in reduced-effects mode.
-- `prefers-reduced-motion` is respected by default, with an in-game toggle.
+- `prefers-reduced-motion` is respected by default, with an in-game toggle. **Live now:** OS preference OR the pause-menu toggle. The toggle cannot turn OS reduced-motion off. Presenters read the combined flag at boot, so a mid-run change applies after a reload.
 - **Color is never the only cue.** Cylons are red *and* have a sweeping eye; inert is a still eye *and* an hourglass; strays are orange *and* have a longer trail.
 - Audio cues have visual equivalents, so the game is fully playable muted.
 - Sound never starts by itself, and mute is always one tap away (section 14.1).
@@ -593,3 +595,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-21 | *Raptor Escort*: one escort per stack (max 2), patrols the fleet line, soaks strays whose landing x is within 10 wu. 3 HP then hangar until the next cycle; relaunch at full hull. Raptor, then flak, then fleet. Strafes still land. Placeholder olive wedge and pips; HUD `raptor n/max` or `hangar`. Imaginary Six remains. | The bodyguard card needs a body on the line. |
 | 2026-09-21 | *Imaginary Six*: one copy. Formation wingman, thin beam at 0.5 damage, gun interval, 140 wu range. Strafes first, then strays. Untouchable, gone while ejected. Steady outline and a persistent beam (not a flash). HUD `six`. Comms "who are you talking to" waits. MVP table of 12 is live. | The last MVP card is the fleet-defense escort only you can see. |
 | 2026-09-22 | Tiers: Launch is Viper Pilot (fleet cap 45, repair 40%). **Civilian Run** is the easier fleet (35 / 60%), same fight, not a tutorial. HUD `Pilot` / `Civilian`. Numbers live in `src/balance/tiers.ts`. Soon: JSON objects per difficulty for the rest of the math. Later: invite a harder return after a win. Abandon run waits for the M5 pause menu. Retry-from-last-jump and the epilogue wait. | So ignoring the fleet can actually end the run, and the two buttons say what they do. |
+| 2026-09-22 | Player settings: versioned `StoragePort`, mute on title / HUD / pause, reduced-effects toggle (OS OR in-game), drag hint remembered. No audio yet. Abandon run still waits. | So mute exists before the first sound (14.1), and localStorage is treated as hostile. |

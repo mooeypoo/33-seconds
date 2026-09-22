@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { TierId } from '../../domain/balance/profile';
+import MuteControl from './MuteControl.vue';
 
 const emit = defineEmits<{ start: [tier: TierId] }>();
 </script>
@@ -12,6 +13,11 @@ const emit = defineEmits<{ start: [tier: TierId] }>();
       Two difficulties. They look the same; only the fleet math changes. Viper Pilot can lose.
       Civilian Run cannot die from a bad 33.
     </p>
+
+    <p class="sound-notice">
+      This game has sound. The tab stays quiet until you Launch. Mute is always one tap away.
+    </p>
+    <MuteControl />
 
     <button class="start" type="button" @click="emit('start', 'viper-pilot')">Launch — Viper Pilot</button>
     <p class="tier-note">Default. Ignore the civilians long enough and they are gone.</p>
@@ -56,7 +62,8 @@ const emit = defineEmits<{ start: [tier: TierId] }>();
 .subtitle,
 .hint,
 .disclaimer,
-.tier-note {
+.tier-note,
+.sound-notice {
   max-width: 34ch;
   margin: 0;
   font-size: 14px;
