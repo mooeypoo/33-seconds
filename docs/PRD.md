@@ -403,6 +403,8 @@ Do not add the ships, and do not rewrite the name-calling lines, until one of th
 ### 12.3 Recovering scenes
 8-12 seconds, 2-4 beats, two portraits trading lines. Tyrol anchors. The closing beat points at the next jump. Each beat uses the same reading time as a line. If that would run past 12 seconds, the beats shrink together so the scene still finishes.
 
+The scene is the top of the Recovering screen, above the cards. Touches on the scene pass through.
+
 The band is how the cycle that just ended went, remembered through the jump repair. **Clean:** the fleet took nothing and the Viper lost no hull. **Wrecked:** the fleet took 16 or more, or the Viper lost 3 or more hull, or the pilot ejected (a download that puts them back still counts). **Rough:** anything else. Those two numbers are assumptions until play says otherwise.
 
 ### 12.4 Content format
@@ -503,7 +505,7 @@ Later: remappable keys, left-handed layout, gamepad.
 ## 16. Content, IP, and spoilers `[Core]`
 
 - **All art, audio, and text are original.** No show score, screenshots, voice clips, or actor likenesses. No quoting show scripts. Short catchphrases ("so say we all," "frak") are used sparingly as references.
-- The title screen states it is an **unofficial fan project** and is not affiliated with or endorsed by the show's rights holders or anyone in the cast. The game never uses a real person's name or likeness.
+- The title screen states it is an **unofficial fan project** and is not affiliated with or endorsed by the show's rights holders or anyone in the cast. The game never uses a real person's name or likeness. **Live now:** the title, the two pitch lines, and the disclaimer come from `title.json`. One quote from that file is chosen each time the title is shown. There is no timer on it.
 - **Spoiler policy:** every line must make sense to someone who has only seen the first few episodes. No line implies that a specific named character is a Cylon. Gags about suspicion target the *player*. *Imaginary Six* is approved because her presence is established very early in the show, and the card text still stays vague.
 - Humor targets the show's *quirks*, never the cast, the community, or real people. Avoid humor built on stereotypes.
 - Community-contributed lines come in by pull request and go through the content checklist in AGENTS.md.
@@ -546,7 +548,7 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | M3 | **Stakes and a win** | win or lose a full run (6 to 8 minutes) | Fleet Integrity, strafing runs, stray bullets, damage cap and partial repair, HUD (fleet pips, jump ring), the resurrection ship with persistent HP, win and lose screens, two tiers. |
 | M4 | **Build variety** | make different builds | Upgrade picks (about 6 cards, growing to 12), reroll, missiles and targeting, The Speech. |
 | M5 | **Personality** | feel the humor | Comms overlay, portraits (placeholder art), banter from JSON, Recovering scenes, Dradis-style HUD, audio, filters and effects with a reduced-effects mode. Your content and asset passes plug in here. **Player settings and storage arrive here, before the first sound**, so mute, the sound notice, and the reduced-effects toggle exist the moment there is anything to mute (section 14.1). Pause menu also gets **Abandon run** (back to title). |
-| M6 | **Polish and launch** | share it | Accessibility pass, phone QA, the full settings screen (built on the storage seam from M5), title screen and logo, disclaimer, local best scores, deploy. |
+| M6 | **Polish and launch** | share it | Accessibility pass, phone QA, the full settings screen (built on the storage seam from M5), logo (title copy and disclaimer are live), local best scores, deploy. |
 
 **After MVP:** Vengeful, traits, Mandatory Firmware Update and loadout screen, remaining cards, more tiers, mutators, daily seed and leaderboard, gamepad, PWA install.
 
@@ -630,3 +632,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-22 | All twelve cards have a joke and advice from Baltar and Roslin, shown on the pick. Dealing the hand speaks one line about a card on that table. "Who are you talking to" and Recovering scenes still wait. | The card should say what it does, in both voices, without hiding the choice. |
 | 2026-09-22 | Recovering plays a 2–4 beat scene for a clean, rough, or wrecked cycle, and the next cycle waits until that scene and the pick are both done. Once each time Imaginary Six appears, someone asks who the pilot is talking to. | The calm between jumps is a conversation, and the wingman is noticed. |
 | 2026-09-22 | Comms now speaks on a fleet hit, a Raider's return, the factory's death and its 75/50/25 marks, a three-kill cluster, a close miss, low hull, and a 12-second kill drought. Spool is also called at 5 seconds and at 2. Heavy-Raider lines stay quiet. | The lines that were written can play, because the fight already has those moments. |
+| 2026-09-22 | The title shows its written pitch, disclaimer, and one quote per visit. The Recovering scene sits at the top of that screen. | The words that were already written should be where a player reads them. |

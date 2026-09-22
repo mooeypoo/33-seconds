@@ -1,14 +1,23 @@
 <script setup lang="ts">
+import titleCopy from '../../content/title.json';
 import type { TierId } from '../../domain/balance/profile';
+import { createRandomStream } from '../../domain/shared/random';
 import MuteControl from './MuteControl.vue';
 
 const emit = defineEmits<{ start: [tier: TierId] }>();
+
+const quotes = titleCopy.quotes;
+const buffer = new Uint32Array(1);
+crypto.getRandomValues(buffer);
+const quote = quotes[createRandomStream(buffer[0] ?? 1).index(quotes.length)] ?? '';
 </script>
 
 <template>
   <!-- data-ui: this is a real control, so a touch here is a button press, not the drag stick. -->
   <div data-ui class="overlay">
-    <h1 class="title">33 Seconds</h1>
+    <h1 class="title">{{ titleCopy.title }}</h1>
+    <p v-for="(line, index) in titleCopy.body" :key="index" class="pitch">{{ line }}</p>
+    <p v-if="quote" class="quote" data-testid="title-quote">{{ quote }}</p>
     <p class="subtitle">
       Two difficulties. They look the same; only the fleet math changes. Viper Pilot can lose.
       Civilian Run cannot die from a bad 33.
@@ -29,10 +38,7 @@ const emit = defineEmits<{ start: [tier: TierId] }>();
       The Speech with E or the other button. At each jump, pick a card. Pause with Esc, P, or the
       button.
     </p>
-    <p class="disclaimer">
-      Unofficial fan project. Not affiliated with or endorsed by the show's rights holders or anyone
-      in the cast.
-    </p>
+    <p class="disclaimer">{{ titleCopy.disclaimer }}</p>
   </div>
 </template>
 
@@ -45,7 +51,8 @@ const emit = defineEmits<{ start: [tier: TierId] }>();
   flex-direction: column;
   gap: 12px;
   align-items: center;
-  justify-content: center;
+  justify-content: safe center;
+  overflow-y: auto;
   padding: 24px;
   text-align: center;
   background: rgb(5 7 10 / 88%);
@@ -60,6 +67,8 @@ const emit = defineEmits<{ start: [tier: TierId] }>();
 }
 
 .subtitle,
+.pitch,
+.quote,
 .hint,
 .disclaimer,
 .tier-note,
@@ -69,6 +78,11 @@ const emit = defineEmits<{ start: [tier: TierId] }>();
   font-size: 14px;
   line-height: 1.5;
   color: #9fb8ab;
+}
+
+.quote {
+  font-style: italic;
+  color: #e8d8cf;
 }
 
 .tier-note {

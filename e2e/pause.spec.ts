@@ -1,5 +1,10 @@
+import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
 import { expectTicksToGrow, readTicks, startRun } from './helpers';
+
+const titleCopy = JSON.parse(
+  readFileSync(new URL('../src/content/title.json', import.meta.url), 'utf8'),
+) as { title: string; body: string[]; disclaimer: string; quotes: string[] };
 
 /** Pause is a hard requirement: it has to work anywhere, and it has to actually freeze things. */
 test.describe('pause', () => {
@@ -12,6 +17,12 @@ test.describe('pause', () => {
 
     const response = await page.goto('/');
     expect(response?.headers()['content-security-policy']).toContain("default-src 'self'");
+
+    await expect(page.getByRole('heading', { name: titleCopy.title })).toBeVisible();
+    await expect(page.getByText(titleCopy.body[0] ?? '')).toBeVisible();
+    await expect(page.getByText(titleCopy.disclaimer)).toBeVisible();
+    const quote = (await page.getByTestId('title-quote').textContent())?.trim();
+    expect(titleCopy.quotes).toContain(quote);
 
     await page.getByRole('button', { name: 'Launch' }).click();
 

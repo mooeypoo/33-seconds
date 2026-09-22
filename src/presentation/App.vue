@@ -66,6 +66,7 @@ onUnmounted(() => {
   <RecoveringOverlay
     v-else-if="status.phase === 'running' && cyclePhase === 'recovering'"
     :held-card-id="status.heldCardId"
+    :scene="status.comms"
   />
 
   <PauseOverlay
@@ -76,7 +77,8 @@ onUnmounted(() => {
   />
 
   <!-- After the menus so a hand being dealt can still be heard. Touches pass through. -->
-  <CommsOverlay v-if="status.comms" :comms="status.comms" />
+  <!-- During Recovering the scene sits on that screen, so it is not said twice. -->
+  <CommsOverlay v-if="status.comms && cyclePhase !== 'recovering'" :comms="status.comms" />
 </template>
 
 <style scoped>
