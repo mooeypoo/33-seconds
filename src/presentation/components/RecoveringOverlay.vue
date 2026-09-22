@@ -4,7 +4,8 @@ import { SESSION_KEY } from '../injection';
 import flair from '../../content/upgrades.flair.json';
 
 /**
- * Recovering pick (PRD 5.1, 10). No timer. The chosen card starts the next cycle. Comms scenes wait.
+ * Recovering pick (PRD 5.1, 10). No timer. The chosen card starts the next cycle. A comms line
+ * may show over this; it does not have to finish first. Full scenes wait.
  */
 const session = inject(SESSION_KEY);
 if (!session) throw new Error('RecoveringOverlay needs SESSION_KEY from main.ts');

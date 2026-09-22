@@ -1,0 +1,47 @@
+[
+  {
+    "id": "adama-cycle-started-01",
+    "speaker": "adama",
+    "trigger": "CycleStarted",
+    "text": "PLACEHOLDER: Another 33. Hold the line.",
+    "weight": 1,
+    "cooldownSeconds": 20,
+    "priority": "normal"
+  },
+  {
+    "id": "adama-ship-arrived-01",
+    "speaker": "adama",
+    "trigger": "ResurrectionShipArrived",
+    "text": "PLACEHOLDER: The resurrection ship is on the board.",
+    "weight": 1,
+    "cooldownSeconds": 30,
+    "priority": "normal"
+  },
+  {
+    "id": "adama-special-used-01",
+    "speaker": "adama",
+    "trigger": "SpecialUsed",
+    "text": "PLACEHOLDER: Hold. They will not fire.",
+    "weight": 1,
+    "cooldownSeconds": 20,
+    "priority": "normal"
+  },
+  {
+    "id": "adama-run-won-01",
+    "speaker": "adama",
+    "trigger": "RunWon",
+    "text": "PLACEHOLDER: The loop is offline. Take the jump.",
+    "weight": 1,
+    "cooldownSeconds": 30,
+    "priority": "normal"
+  },
+  {
+    "id": "adama-fleet-lost-01",
+    "speaker": "adama",
+    "trigger": "FleetLost",
+    "text": "PLACEHOLDER: The fleet did not make this jump.",
+    "weight": 1,
+    "cooldownSeconds": 30,
+    "priority": "normal"
+  }
+]

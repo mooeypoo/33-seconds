@@ -2,6 +2,7 @@
 import { computed, inject, onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 import type { SessionStatus } from '../application/GameSession';
 import { CANVAS_HOST_KEY, SESSION_KEY } from './injection';
+import CommsOverlay from './components/CommsOverlay.vue';
 import DragHint from './components/DragHint.vue';
 import HudBar from './components/HudBar.vue';
 import JumpFade from './components/JumpFade.vue';
@@ -70,6 +71,8 @@ onUnmounted(() => {
     @resume="session.requestResume()"
     @abandon="session.abandonRun()"
   />
+
+  <CommsOverlay v-if="status.comms" :comms="status.comms" />
 </template>
 
 <style scoped>

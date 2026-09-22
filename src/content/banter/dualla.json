@@ -1,0 +1,11 @@
+[
+  {
+    "id": "dualla-ftl-spool-01",
+    "speaker": "dualla",
+    "trigger": "FtlSpoolProgress",
+    "text": "PLACEHOLDER: The fleet is still with you.",
+    "weight": 1,
+    "cooldownSeconds": 20,
+    "priority": "critical"
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "id": "starbuck-missile-01",
+    "speaker": "starbuck",
+    "trigger": "MissileLaunched",
+    "text": "PLACEHOLDER: That one is away.",
+    "weight": 1,
+    "cooldownSeconds": 8,
+    "priority": "flavor"
+  }
+]

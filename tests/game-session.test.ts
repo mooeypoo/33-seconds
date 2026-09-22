@@ -275,6 +275,18 @@ describe('pause', () => {
     expect(session.view.tickCount).toBe(5);
   });
 
+  it('keeps the comms line up while paused', () => {
+    session.start();
+    runFrames(1);
+    const line = session.status.comms;
+    expect(line?.speakerName).toBe('Adama');
+
+    session.pause('player');
+    runFrames(TICKS_PER_SECOND * 10);
+
+    expect(session.status.comms).toEqual(line);
+  });
+
   it('ignores a resume request that nobody paused', () => {
     session.start();
 

@@ -1,0 +1,11 @@
+[
+  {
+    "id": "gaeta-ftl-spool-01",
+    "speaker": "gaeta",
+    "trigger": "FtlSpoolProgress",
+    "text": "PLACEHOLDER: Spooling. Jump in {seconds}.",
+    "weight": 1,
+    "cooldownSeconds": 20,
+    "priority": "critical"
+  }
+]

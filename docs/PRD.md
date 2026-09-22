@@ -108,7 +108,7 @@ The HUD clock is enough to test the rule. **Make the countdown more noticeable l
 | **Jumping** | about 1 s | Fade, never a white flash (a still overlay in reduced-effects mode). Bullets clear. |
 | **Recovering** | 8-12 s | Invulnerable. Tyrol resets your Viper hull and missiles. The fleet gets a partial repair. You pick 1 of 3 upgrades. A short comms scene plays. |
 
-The next cycle starts when **both** the scene has ended **and** the upgrade is chosen. There is no timer on the pick. A player who wants to think can. **Live now:** picking a card *is* Continue. Comms scenes wait.
+The next cycle starts when **both** the scene has ended **and** the upgrade is chosen. There is no timer on the pick. A player who wants to think can. **Live now:** picking a card *is* Continue. A Tyrol line may show over the table; it does not gate the pick. Full scenes wait.
 
 A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 
@@ -388,6 +388,8 @@ Gaeta and Dualla announce the same jump from two angles. The civilian count cree
 - All comms timing runs on the game clock, so pause works.
 - The banter random stream is separate from gameplay, so choosing a joke never changes a seeded run.
 
+**Live now:** one line at a time, from JSON, with a letter-block portrait and the speaker's name. Cycle start, FTL spool, the resurrection ship's arrival, a missile, Recovering, win, and loss. Critical spool text can replace a lower line. Flavor stays quiet at 1 hull. The line follows the game clock, so pause freezes it, and it never takes a touch. Full roster, derived quips, the comms log, the duration setting, and Recovering scenes that gate the next cycle wait.
+
 ### 12.3 Recovering scenes
 8-12 seconds, 2-4 beats, two portraits trading lines. Tyrol anchors. Scene lines depend on how much the fleet and Viper were damaged: "Not a scratch on her. I'm suspicious" for a clean cycle, exasperation for a wrecked one.
 
@@ -599,3 +601,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-22 | Player settings: versioned `StoragePort`, mute on title / HUD / pause, reduced-effects toggle (OS OR in-game), drag hint remembered. No audio yet. Abandon run still waits. | So mute exists before the first sound (14.1), and localStorage is treated as hostile. |
 | 2026-09-22 | **Abandon run** on the pause menu returns to the title and discards the run. Not available during the resume countdown. Retry-from-last-jump still waits. | A stuck or unwanted run needed a way back without pretending it was a loss. |
 | 2026-09-22 | Soon: a shareable result. A link back to the site shows the run's points and details and offers another game. An image may accompany it. The result belongs in the link, not on a server. | So a finished run can be shown to someone else without collecting personal data. |
+| 2026-09-22 | Comms: one JSON line at a time (placeholder text, letter portrait plus name). Spool is critical. Flavor drops at 1 hull. Pause freezes the line. The pick still starts the next cycle; full Recovering scenes wait. | Personality starts as a line that cannot get in the way. |

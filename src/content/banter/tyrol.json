@@ -1,0 +1,11 @@
+[
+  {
+    "id": "tyrol-cycle-recovering-01",
+    "speaker": "tyrol",
+    "trigger": "CycleRecovering",
+    "text": "PLACEHOLDER: Not a scratch on her. I'm suspicious.",
+    "weight": 1,
+    "cooldownSeconds": 20,
+    "priority": "normal"
+  }
+]

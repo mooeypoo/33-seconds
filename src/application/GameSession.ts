@@ -1,8 +1,11 @@
 import { DEFAULT_PLAY_TIER, profileFor } from '../balance/tiers';
+import { Banter, banterSeed, type CommsLine } from './banter/Banter';
+import { BANTER_LINES } from './banter/lines';
 import type { TierId } from '../domain/balance/profile';
-import { createGame, type Game, type GameOptions } from '../domain/game';
+import { createGame, DEFAULT_RUN_SEED, type Game, type GameOptions } from '../domain/game';
 import type { DomainEvent } from '../domain/shared/events';
 import { IDLE_INTENT } from '../domain/shared/intent';
+import { createRandomStream } from '../domain/shared/random';
 import { TICK_SECONDS } from '../domain/shared/time';
 import type { GameView } from '../domain/views';
 import type { InputPort } from './ports/InputPort';
@@ -21,6 +24,8 @@ export interface SessionStatus {
   readonly pauseReason: PauseReason | null;
   /** Whole seconds still on the resume countdown, or 0 when it is not counting. */
   readonly countdownSeconds: number;
+  /** The one comms line on screen, or null. Pause freezes it (PRD 12.2). */
+  readonly comms: CommsLine | null;
 }
 
 export interface FrameResult {
@@ -56,11 +61,13 @@ export class GameSession {
   private accumulatorSeconds = 0;
   private countdownRemainingSeconds = 0;
   private pendingEvents: DomainEvent[] = [];
+  private banter: Banter;
 
   constructor(input: InputPort, options: GameOptions = {}) {
     this.input = input;
     this.options = options;
     this.game = createGame(options);
+    this.banter = this.freshBanter();
   }
 
   get status(): SessionStatus {
@@ -68,6 +75,7 @@ export class GameSession {
       phase: this.phase,
       pauseReason: this.reason,
       countdownSeconds: Math.ceil(this.countdownRemainingSeconds),
+      comms: this.phase === 'title' ? null : this.banter.line,
     };
   }
 
@@ -86,6 +94,7 @@ export class GameSession {
   start(tier: TierId = DEFAULT_PLAY_TIER): void {
     if (this.phase !== 'title') return;
     this.game = createGame({ ...this.options, tierProfile: profileFor(tier) });
+    this.banter = this.freshBanter();
     this.phase = 'running';
     this.reason = null;
     this.accumulatorSeconds = 0;
@@ -140,6 +149,7 @@ export class GameSession {
     if (this.phase !== 'won' && this.phase !== 'lost') return;
     this.phase = 'title';
     this.reason = null;
+    this.banter = this.freshBanter();
     this.input.clear();
     this.publish();
   }
@@ -155,6 +165,7 @@ export class GameSession {
     this.countdownRemainingSeconds = 0;
     this.accumulatorSeconds = 0;
     this.pendingEvents = [];
+    this.banter = this.freshBanter();
     this.input.clear();
     this.publish();
   }
@@ -220,11 +231,30 @@ export class GameSession {
       }
     }
 
+    this.noteBanter(events, delta);
+
     return {
       events,
       interpolationAlpha: this.accumulatorSeconds / TICK_SECONDS,
       ticksAdvanced: ticksRun,
     };
+  }
+
+  private freshBanter(): Banter {
+    const seed = this.options.seed ?? DEFAULT_RUN_SEED;
+    return new Banter(createRandomStream(banterSeed(seed)), BANTER_LINES);
+  }
+
+  /** Comms follows the game clock: this is only called from a frame that was running. */
+  private noteBanter(events: readonly DomainEvent[], deltaSeconds: number): void {
+    const before = this.banter.line?.text ?? null;
+    const view = this.game.view;
+    this.banter.observe(events, {
+      secondsRemaining: view.cycle.secondsRemaining,
+      hull: view.viper.hp,
+    });
+    this.banter.advance(deltaSeconds);
+    if ((this.banter.line?.text ?? null) !== before) this.publish();
   }
 
   private publish(): void {

@@ -80,6 +80,19 @@ test.describe('steering works wherever the finger lands', () => {
     await expect(page.getByText('Drag anywhere to fly')).toBeHidden();
   });
 
+  test('a drag that starts on a comms line still steers', async ({ page }) => {
+    await startRun(page);
+    const comms = page.getByTestId('comms');
+    await expect(comms).toBeVisible();
+    await expect(comms).toContainText('Adama');
+
+    const before = await viperPosition(page);
+    const box = (await comms.boundingBox())!;
+    await dragFrom(page, { x: box.x + box.width / 2, y: box.y + box.height / 2 }, 70, 40);
+    await expectViperToMove(page, 'fly when the drag starts on comms', (now) => now.x !== before.x || now.y !== before.y);
+    await releaseDrag(page);
+  });
+
   test('the keyboard steers too, by physical key position', async ({ page }) => {
     await startRun(page);
     const before = await viperPosition(page);

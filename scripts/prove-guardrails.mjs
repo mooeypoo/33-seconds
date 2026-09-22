@@ -358,6 +358,13 @@ const SABOTAGE = [
       mustFail: 'npm run test',
     },
     {
+      what: 'a critical comms line cannot replace flavor',
+      file: 'src/application/banter/Banter.ts',
+      find: '    if (this.shown !== null && priorityRank(chosen.priority) <= priorityRank(this.shown.priority)) return;',
+      replace: '    if (this.shown !== null) return;',
+      mustFail: 'npm run test',
+    },
+    {
       what: 'Abandon run leaves the paused run in place',
       file: 'src/application/GameSession.ts',
       find: '  abandonRun(): void {\n    if (this.phase !== \'paused\') return;',
