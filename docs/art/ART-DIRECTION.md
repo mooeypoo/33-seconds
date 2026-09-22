@@ -121,6 +121,8 @@ Keep `assets/PROVENANCE.md`, one row per file: file, creator, tool, date, licens
 
 ## 8. Suggested first session
 
+File names, sizes, and the one-line description of each frame for this session are in [SPRITE-FILES.md](SPRITE-FILES.md).
+
 1. Fix the palette in your art tool.
 2. Draw `viper`, `raider`, and the three bullets. Export.
 3. Draw `explosion_small`.
