@@ -74,7 +74,7 @@ export function speakerName(speaker: BanterSpeaker): string {
   return SPEAKER_NAMES[speaker];
 }
 
-function isSpeaker(value: unknown): value is BanterSpeaker {
+export function isSpeaker(value: unknown): value is BanterSpeaker {
   return typeof value === 'string' && (SPEAKERS as readonly string[]).includes(value);
 }
 

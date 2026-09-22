@@ -9,7 +9,7 @@ import {
 import type { InputPort } from '../src/application/ports/InputPort';
 import type { InputIntent } from '../src/domain/shared/intent';
 import { IDLE_INTENT } from '../src/domain/shared/intent';
-import { BANTER_LINES } from '../src/application/banter/lines';
+import { RECOVERING_SCENES } from '../src/application/banter/recoveringScene';
 import { TICK_SECONDS, TICKS_PER_SECOND } from '../src/domain/shared/time';
 
 /** A stand-in for the keyboard and stick adapters, so we can watch what the session asks of them. */
@@ -333,14 +333,23 @@ describe('pause', () => {
     expect(session.view.cycle.phase).toBe('recovering');
   });
 
-  it('speaks about a card that is on the table when the hand is dealt', () => {
+  it('plays the recovering scene, and holds the pick until that scene ends', () => {
     session.start();
     runFrames(TICKS_PER_SECOND * 35);
+    expect(session.view.cycle.phase).toBe('recovering');
 
-    const ids: readonly string[] = session.view.upgradeOffer?.cardIds ?? [];
-    const spoken = BANTER_LINES.find((line) => line.text === session.status.comms?.text);
-    expect(spoken?.upgradeId === undefined ? false : ids.includes(spoken.upgradeId)).toBe(true);
-    expect(session.status.comms?.speakerName === 'Baltar' || session.status.comms?.speakerName === 'Roslin').toBe(true);
+    const beats = RECOVERING_SCENES.flatMap((scene) => scene.beats.map((beat) => beat.text));
+    expect(beats).toContain(session.status.comms?.text);
+
+    const cardId = session.view.upgradeOffer?.cardIds[0] ?? '';
+    expect(cardId).not.toBe('');
+    session.pickUpgrade(cardId);
+    session.advance(ONE_FRAME_AT_60HZ);
+    expect(session.view.cycle.phase).toBe('recovering');
+    expect(session.status.heldCardId).toBe(cardId);
+
+    runFrames(TICKS_PER_SECOND * 13);
+    expect(session.view.cycle.phase).toBe('arriving');
   });
 });
 

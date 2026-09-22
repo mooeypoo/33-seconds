@@ -6,11 +6,13 @@ const props = defineProps<{ comms: CommsLine }>();
 
 /** The letter is a stand-in portrait. The name next to it is the cue, not the color. */
 const initial = computed(() => props.comms.speakerName.slice(0, 1));
+const partnerInitial = computed(() => props.comms.partnerName?.slice(0, 1) ?? '');
 </script>
 
 <template>
   <!-- Not data-ui: a touch here still steers (PRD 12.2). -->
   <p class="comms" data-testid="comms" role="status" aria-live="polite">
+    <span v-if="comms.partnerName" class="portrait partner" aria-hidden="true">{{ partnerInitial }}</span>
     <span class="portrait" aria-hidden="true">{{ initial }}</span>
     <span class="body">
       <span class="name">{{ comms.speakerName }}</span>
@@ -51,6 +53,10 @@ const initial = computed(() => props.comms.speakerName.slice(0, 1));
   background: #c4b08a;
   font-family: ui-monospace, monospace;
   font-size: 16px;
+}
+
+.partner {
+  opacity: 0.55;
 }
 
 .body {

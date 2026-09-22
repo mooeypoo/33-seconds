@@ -156,6 +156,9 @@ describe('strays in a run', () => {
     run(game, ticksFor(JUMPING_SECONDS));
     expect(game.view.cycle.phase).toBe('recovering');
     expect(game.view.fleet.integrity).toBeLessThanOrEqual(FLEET_INTEGRITY_MAX);
+    expect(game.view.fleet.damageThisCycle).toBe(0);
+    expect(game.view.fleet.lastCycleDamage).toBeGreaterThan(0);
+    expect(game.view.recoveryBand).not.toBe('clean');
   });
 
   it('ends the run when integrity reaches zero', () => {

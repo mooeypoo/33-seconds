@@ -305,8 +305,7 @@ Status legend: unchecked = not reviewed yet.
 - [ ] `six-special-used-04` — "Everything happens for a reason. Mine, usually."
 - [ ] `six-special-used-05` — "You can thank the red dress later."
 
-**Missing:** "who are you talking to?" replies from Tigh / Adama / Gaeta
-(need `ImaginarySixActive` trigger added first)
+**Wired:** Tigh, Adama, and Gaeta already have `ImaginarySixActive` lines. The game says one of them once each time she appears, after the louder line has finished.
 
 ---
 

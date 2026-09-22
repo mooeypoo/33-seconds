@@ -63,7 +63,10 @@ onUnmounted(() => {
 
   <JumpFade v-else-if="status.phase === 'running' && cyclePhase === 'jumping'" />
 
-  <RecoveringOverlay v-else-if="status.phase === 'running' && cyclePhase === 'recovering'" />
+  <RecoveringOverlay
+    v-else-if="status.phase === 'running' && cyclePhase === 'recovering'"
+    :held-card-id="status.heldCardId"
+  />
 
   <PauseOverlay
     v-else-if="status.phase === 'paused' || status.phase === 'resuming'"

@@ -1,3 +1,4 @@
+import { damageBand, type DamageBand } from './cycle/damageBand';
 import { JumpCycle } from './cycle/jumpCycle';
 import { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';
 import {
@@ -133,6 +134,7 @@ export class Game {
   private specialHeld = false;
   private readonly speech = new Speech();
   private readonly loadout: Loadout;
+  private recoveryBand: DamageBand = 'clean';
 
   constructor(options: GameOptions = {}) {
     const seed = options.seed ?? DEFAULT_RUN_SEED;
@@ -171,6 +173,7 @@ export class Game {
         this.clearTheSky(events);
         this.viper.resetAtJump();
         this.fleet.repairAtJump(this.profile.fleetRepairOfMissing);
+        this.recoveryBand = damageBand(this.fleet.view.lastCycleDamage, this.viper.scarHullLost, this.viper.scarEjected);
         this.speech.onJump();
         this.loadout.onJump();
         events.push({ type: 'FleetRepaired', integrity: this.fleet.view.integrity });
@@ -316,6 +319,7 @@ export class Game {
       upgradeOffer: this.loadout.offer,
       loadout: this.loadout.cards,
       cycle: this.cycle.view,
+      recoveryBand: this.recoveryBand,
     };
   }
 

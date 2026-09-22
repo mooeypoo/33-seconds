@@ -68,6 +68,8 @@ export function nearestCivilianShipIndex(x: number): number {
 export class Fleet {
   private integrity: number;
   private damageThisCycle = 0;
+  /** Damage of the cycle that just jumped. Still set after the repair wipes the live counter. */
+  private lastCycleDamage = 0;
   private lastHitShipId: number | null = null;
 
   constructor(startingIntegrity: number = FLEET_INTEGRITY_MAX) {
@@ -91,6 +93,7 @@ export class Fleet {
       integrity: this.integrity,
       integrityMax: FLEET_INTEGRITY_MAX,
       damageThisCycle: this.damageThisCycle,
+      lastCycleDamage: this.lastCycleDamage,
       lastHitShipId: this.lastHitShipId,
       ships,
     };
@@ -121,6 +124,7 @@ export class Fleet {
 
   /** Tyrol's opposite number: a fraction of what is missing, then the cycle cap resets. */
   repairAtJump(repairOfMissing: number = FLEET_REPAIR_OF_MISSING): void {
+    this.lastCycleDamage = this.damageThisCycle;
     const missing = FLEET_INTEGRITY_MAX - this.integrity;
     this.integrity += missing * repairOfMissing;
     this.damageThisCycle = 0;

@@ -86,7 +86,13 @@ test.describe('steering works wherever the finger lands', () => {
     await expect(page.getByText('Pick one. No timer.')).toBeVisible({ timeout: 70_000 });
     await expect(page.getByText('Baltar.').first()).toBeVisible();
     await expect(page.getByText('Roslin.').first()).toBeVisible();
-    await expect(page.getByTestId('comms')).toContainText(/Baltar|Roslin/);
+    await expect(page.getByTestId('comms')).toContainText(/Tyrol|Adama|Tigh|Gaeta|Dualla/);
+
+    await page.locator('[data-testid^="upgrade-"]').first().click();
+    await expect(page.getByText('That one. The deck is still talking.')).toBeVisible();
+    await expect(page.getByText('Chosen', { exact: true })).toBeVisible();
+    await page.waitForTimeout(400);
+    await expect(page.getByText('Jump complete')).toBeVisible();
   });
 
   test('a drag that starts on a comms line still steers', async ({ page }) => {

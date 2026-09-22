@@ -4,12 +4,14 @@ import { SESSION_KEY } from '../injection';
 import flair from '../../content/upgrades.flair.json';
 
 /**
- * Recovering pick (PRD 5.1, 10). No timer. The chosen card starts the next cycle. A comms line
- * may show over this; it does not have to finish first. Full scenes wait.
+ * Recovering pick (PRD 5.1, 10). No timer. A tap during the scene is held, and the next cycle
+ * starts when the scene has finished and a card is chosen.
  */
 const session = inject(SESSION_KEY);
 if (!session) throw new Error('RecoveringOverlay needs SESSION_KEY from main.ts');
 const play = session;
+
+const props = defineProps<{ heldCardId: string | null }>();
 
 interface CardFlair {
   readonly id: string;
@@ -50,7 +52,7 @@ function reroll(): void {
   <div class="recovering">
     <div class="panel" data-ui>
       <h2>Jump complete</h2>
-      <p class="lead">Pick one. No timer.</p>
+      <p class="lead">{{ props.heldCardId ? 'That one. The deck is still talking.' : 'Pick one. No timer.' }}</p>
 
       <div class="cards">
         <button
@@ -59,10 +61,13 @@ function reroll(): void {
           data-ui
           type="button"
           class="card"
+          :class="{ chosen: card.id === props.heldCardId }"
+          :aria-pressed="card.id === props.heldCardId"
           :data-testid="`upgrade-${card.id}`"
           @click="pick(card.id)"
         >
           <em class="title">{{ card.title }}</em>
+          <span v-if="card.id === props.heldCardId" class="chosen-label">Chosen</span>
           <span class="joke">{{ card.joke }}</span>
           <span class="plain">{{ card.plain }}</span>
           <span v-if="card.advice?.baltar" class="advice"><span class="who">Baltar.</span> {{ card.advice.baltar }}</span>
@@ -136,6 +141,17 @@ h2 {
   background: #c6ced8;
   border: 0;
   cursor: pointer;
+}
+
+.chosen {
+  outline: 2px solid #06110c;
+}
+
+.chosen-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .card:focus-visible,

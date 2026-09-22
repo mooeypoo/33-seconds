@@ -4,6 +4,7 @@
  * per frame: each view is a small plain object of numbers.
  */
 import type { TierId } from './balance/profile';
+import type { DamageBand } from './cycle/damageBand';
 import type { CardId } from './progression/catalog';
 
 export interface ViperView {
@@ -100,6 +101,8 @@ export interface FleetView {
   readonly integrity: number;
   readonly integrityMax: number;
   readonly damageThisCycle: number;
+  /** Fleet damage from the cycle that just ended. Survives the jump repair. */
+  readonly lastCycleDamage: number;
   readonly lastHitShipId: number | null;
   readonly ships: readonly CivilianShipView[];
 }
@@ -169,6 +172,8 @@ export interface GameView {
   } | null;
   readonly loadout: readonly { readonly id: CardId; readonly stacks: number }[];
   readonly cycle: CycleView;
+  /** Scene band for the cycle that just ended. Clean until the first jump. */
+  readonly recoveryBand: DamageBand;
   readonly tickCount: number;
   readonly kills: number;
 }

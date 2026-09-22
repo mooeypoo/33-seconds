@@ -223,4 +223,42 @@ describe('Banter', () => {
     comms.observe([rerolled], { ...quiet, offeredCardIds: ['your-call-is-important-to-us'] });
     expect(comms.line).toEqual({ speakerName: 'Roslin', text: 'Hold.' });
   });
+
+  it('asks who you are talking to only when the strip is empty, and not at one hull', () => {
+    const lines: BanterLine[] = [
+      {
+        id: 'starbuck-missile-01',
+        speaker: 'starbuck',
+        trigger: 'MissileLaunched',
+        text: 'Catch.',
+        weight: 1,
+        cooldownSeconds: 15,
+        priority: 'flavor',
+        chance: 1,
+        poolId: 'missile',
+      },
+      {
+        id: 'tigh-imaginary-six-active-01',
+        speaker: 'tigh',
+        trigger: 'ImaginarySixActive',
+        text: 'Who?',
+        weight: 1,
+        cooldownSeconds: 25,
+        priority: 'flavor',
+        chance: 1,
+        poolId: 'six',
+      },
+    ];
+    const comms = new Banter(stream(0), lines);
+    comms.observe([missile], quiet);
+    expect(comms.line?.text).toBe('Catch.');
+    expect(comms.mention('ImaginarySixActive', quiet)).toBe(false);
+
+    comms.advance(20);
+    expect(comms.mention('ImaginarySixActive', { ...quiet, hull: 1 })).toBe(false);
+    expect(comms.line).toBeNull();
+
+    expect(comms.mention('ImaginarySixActive', quiet)).toBe(true);
+    expect(comms.line).toEqual({ speakerName: 'Tigh', text: 'Who?' });
+  });
 });

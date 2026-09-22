@@ -1,11 +1,12 @@
 import { DEFAULT_PLAY_TIER, profileFor } from '../balance/tiers';
-import { Banter, banterSeed, type CommsLine } from './banter/Banter';
+import { Banter, banterSeed, type BanterContext, type CommsLine } from './banter/Banter';
 import { BANTER_LINES } from './banter/lines';
+import { ScenePlayer } from './banter/recoveringScene';
 import type { TierId } from '../domain/balance/profile';
 import { createGame, DEFAULT_RUN_SEED, type Game, type GameOptions } from '../domain/game';
 import type { DomainEvent } from '../domain/shared/events';
 import { IDLE_INTENT } from '../domain/shared/intent';
-import { createRandomStream } from '../domain/shared/random';
+import { createRandomStream, type RandomStream } from '../domain/shared/random';
 import { TICK_SECONDS } from '../domain/shared/time';
 import type { GameView } from '../domain/views';
 import type { InputPort } from './ports/InputPort';
@@ -24,8 +25,10 @@ export interface SessionStatus {
   readonly pauseReason: PauseReason | null;
   /** Whole seconds still on the resume countdown, or 0 when it is not counting. */
   readonly countdownSeconds: number;
-  /** The one comms line on screen, or null. Pause freezes it (PRD 12.2). */
+  /** The one comms line on screen, or null. A Recovering scene takes the strip. Pause freezes it. */
   readonly comms: CommsLine | null;
+  /** A card tapped while the scene is still going. The cycle starts when the scene ends. */
+  readonly heldCardId: string | null;
 }
 
 export interface FrameResult {
@@ -62,6 +65,11 @@ export class GameSession {
   private countdownRemainingSeconds = 0;
   private pendingEvents: DomainEvent[] = [];
   private banter: Banter;
+  private readonly scene = new ScenePlayer();
+  private sceneRandom!: RandomStream;
+  private heldCardId: string | null = null;
+  private sixRemarkOwed = false;
+  private sixWasPresent = false;
 
   constructor(input: InputPort, options: GameOptions = {}) {
     this.input = input;
@@ -75,7 +83,8 @@ export class GameSession {
       phase: this.phase,
       pauseReason: this.reason,
       countdownSeconds: Math.ceil(this.countdownRemainingSeconds),
-      comms: this.phase === 'title' ? null : this.banter.line,
+      comms: this.phase === 'title' ? null : this.scene.active ? this.scene.line : this.banter.line,
+      heldCardId: this.phase === 'running' ? this.heldCardId : null,
     };
   }
 
@@ -94,7 +103,7 @@ export class GameSession {
   start(tier: TierId = DEFAULT_PLAY_TIER): void {
     if (this.phase !== 'title') return;
     this.game = createGame({ ...this.options, tierProfile: profileFor(tier) });
-    this.banter = this.freshBanter();
+    this.resetChatter();
     this.phase = 'running';
     this.reason = null;
     this.accumulatorSeconds = 0;
@@ -129,19 +138,35 @@ export class GameSession {
    */
   continueFromJump(): void {
     if (this.phase !== 'running') return;
+    this.scene.stop();
+    this.heldCardId = null;
     this.pendingEvents.push(...this.game.continueFromJump());
   }
 
-  /** Picks a Recovering card and starts the next cycle. The pick is Continue (PRD 5.1). */
+  /**
+   * Chooses a Recovering card. During the scene the choice is held, and the next cycle starts
+   * once the scene has finished (PRD 5.1). A later tap replaces the hold. No timer.
+   */
   pickUpgrade(cardId: string): void {
     if (this.phase !== 'running') return;
+    const offered = this.game.view.upgradeOffer?.cardIds ?? [];
+    if (!offered.some((id) => id === cardId)) return;
+    if (this.scene.active) {
+      this.heldCardId = cardId;
+      this.publish();
+      return;
+    }
+    this.heldCardId = null;
     this.pendingEvents.push(...this.game.pickUpgrade(cardId));
   }
 
-  /** One free reroll of the Recovering table. */
+  /** One free reroll of the Recovering table. A held choice does not survive a new hand. */
   rerollOffer(): void {
     if (this.phase !== 'running') return;
-    this.pendingEvents.push(...this.game.rerollOffer());
+    const events = this.game.rerollOffer();
+    if (events.length > 0) this.heldCardId = null;
+    this.pendingEvents.push(...events);
+    this.publish();
   }
 
   /** Leaves the win or lose screen for the title. The next Launch starts a new run. */
@@ -149,7 +174,7 @@ export class GameSession {
     if (this.phase !== 'won' && this.phase !== 'lost') return;
     this.phase = 'title';
     this.reason = null;
-    this.banter = this.freshBanter();
+    this.resetChatter();
     this.input.clear();
     this.publish();
   }
@@ -165,7 +190,7 @@ export class GameSession {
     this.countdownRemainingSeconds = 0;
     this.accumulatorSeconds = 0;
     this.pendingEvents = [];
-    this.banter = this.freshBanter();
+    this.resetChatter();
     this.input.clear();
     this.publish();
   }
@@ -242,31 +267,77 @@ export class GameSession {
 
   private freshBanter(): Banter {
     const seed = this.options.seed ?? DEFAULT_RUN_SEED;
-    return new Banter(createRandomStream(banterSeed(seed)), BANTER_LINES);
+    this.sceneRandom = createRandomStream(banterSeed(seed));
+    return new Banter(this.sceneRandom, BANTER_LINES);
+  }
+
+  private resetChatter(): void {
+    this.banter = this.freshBanter();
+    this.scene.stop();
+    this.heldCardId = null;
+    this.sixRemarkOwed = false;
+    this.sixWasPresent = false;
   }
 
   /** Comms follows the game clock: this is only called from a frame that was running. */
   private noteBanter(events: readonly DomainEvent[], deltaSeconds: number): void {
-    const before = this.banter.line?.text ?? null;
+    const before = commsKey(this.status.comms);
     const view = this.game.view;
     const ships = view.fleet.ships;
     // ASSUMPTION: Dualla's "ready" count is healthy civilian hulls. There is no separate FTL checklist yet.
-    this.banter.observe(events, {
+    const context = {
       secondsRemaining: view.cycle.secondsRemaining,
       hull: view.viper.hp,
       spoolPercent: Math.round(view.cycle.spoolProgress * 100),
       readyShips: ships.filter((ship) => ship.healthy).length,
       shipTotal: ships.length,
       offeredCardIds: view.upgradeOffer?.cardIds ?? [],
-    });
+    };
+
+    if (events.some((event) => event.type === 'CyclePhaseChanged' && event.phase === 'recovering')) {
+      this.heldCardId = null;
+      this.scene.start(view.recoveryBand, this.sceneRandom);
+    }
+
+    this.banter.observe(events, context);
     this.banter.advance(deltaSeconds);
-    if ((this.banter.line?.text ?? null) !== before) this.publish();
+    const justLeftTheScene = this.scene.active && this.scene.advance(deltaSeconds);
+    if (justLeftTheScene) this.commitHeldPick();
+    // The arriving line is in next frame's events. Let it speak before anyone asks about Six.
+    if (!this.scene.active && !justLeftTheScene) this.maybeMentionSix(context);
+    if (commsKey(this.status.comms) !== before) this.publish();
+  }
+
+  /** The next cycle, once the scene has had its say and a card is waiting. */
+  private commitHeldPick(): void {
+    const cardId = this.heldCardId;
+    if (cardId === null) return;
+    this.heldCardId = null;
+    this.pendingEvents.push(...this.game.pickUpgrade(cardId));
+  }
+
+  /**
+   * Someone asks who the pilot is talking to, once each time Six appears. Flavor, so it waits
+   * for a quiet strip and stays silent at 1 hull.
+   */
+  private maybeMentionSix(context: BanterContext): void {
+    const present = this.game.view.imaginarySix !== null;
+    if (present && !this.sixWasPresent) this.sixRemarkOwed = true;
+    if (!present) this.sixRemarkOwed = false;
+    this.sixWasPresent = present;
+    if (!this.sixRemarkOwed || this.banter.line !== null) return;
+    if (this.banter.mention('ImaginarySixActive', context)) this.sixRemarkOwed = false;
   }
 
   private publish(): void {
     const status = this.status;
     for (const listener of this.listeners) listener(status);
   }
+}
+
+function commsKey(line: CommsLine | null): string {
+  if (line === null) return '';
+  return `${line.speakerName}|${line.partnerName ?? ''}|${line.text}`;
 }
 
 function clampFrameSeconds(frameSeconds: number): number {

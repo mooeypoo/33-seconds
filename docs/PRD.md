@@ -108,7 +108,7 @@ The HUD clock is enough to test the rule. **Make the countdown more noticeable l
 | **Jumping** | about 1 s | Fade, never a white flash (a still overlay in reduced-effects mode). Bullets clear. |
 | **Recovering** | 8-12 s | Invulnerable. Tyrol resets your Viper hull and missiles. The fleet gets a partial repair. You pick 1 of 3 upgrades. A short comms scene plays. |
 
-The next cycle starts when **both** the scene has ended **and** the upgrade is chosen. There is no timer on the pick. A player who wants to think can. **Live now:** picking a card *is* Continue. A Tyrol line may show over the table; it does not gate the pick. Full scenes wait.
+The next cycle starts when **both** the scene has ended **and** the upgrade is chosen. There is no timer on the pick. A player who wants to think can. **Live now:** the scene plays over the table. A tap during it is held, and a later tap can change it. The cycle starts when the scene has finished and a card is chosen. Ask Baltar Again clears a held choice.
 
 A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 
@@ -323,7 +323,7 @@ Rarities are initial proposals. **MVP** marks the launch set of 12.
 | *Raptor Escort* | A Raptor patrols the fleet line and soaks strays. After 3 hits it returns to hangar and comes back next cycle. | Uncommon | MVP |
 | *Imaginary Six* | See below. | Questionable | MVP |
 
-**Live now:** twelve MVP cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, and a line each from Baltar and Roslin on the card. Dealing the hand, and dealing it again, speaks one line about a card that is actually on the table. That line does not have to finish before the pick. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. *Flak Enthusiast* is Galactica eating strays (40% then +15% per extra stack); without it every stray still hits. *Hangar Door Slam* is +30% factory damage while bays are open. *Raptor Escort* is one body per stack on the fleet line (3 HP, hangar, relaunch next cycle). *Imaginary Six* is a formation wingman: thin beam, half a gun hit, strafes then strays, in range, untouchable. Comms "who are you talking to", Recovering scenes, and Later cards wait.
+**Live now:** twelve MVP cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, and a line each from Baltar and Roslin on the card. Dealing the hand can speak about a card on that table; the Recovering scene takes the strip while it plays. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. *Flak Enthusiast* is Galactica eating strays (40% then +15% per extra stack); without it every stray still hits. *Hangar Door Slam* is +30% factory damage while bays are open. *Raptor Escort* is one body per stack on the fleet line (3 HP, hangar, relaunch next cycle). *Imaginary Six* is a formation wingman: thin beam, half a gun hit, strafes then strays, in range, untouchable. Once each time she appears, someone asks who the pilot is talking to, after the louder line has finished. Later cards wait.
 
 ### 10.3 *Imaginary Six* (Questionable, one copy) `[Tunable]`
 
@@ -331,7 +331,7 @@ An escort only you can see.
 
 - **Overwatch:** she flies in formation beside your Viper and auto-fires a thin beam, at about half the damage of your gun, prioritizing **strafing runs and bullets headed for the fleet**. She is the fleet-defense escort, where the Raptor is the fleet-soak escort. Live numbers: 0.5 damage, same interval as the gun, **140** wu range. She does not shoot parked Raiders or the factory.
 - **Untouchable:** she cannot be hit and does not soak damage. She is imaginary. She leaves the board while you are ejected.
-- **Cosmetic downside:** other characters occasionally ask who you are talking to. Starbuck's replies read as one side of a conversation. Six's portrait style differs from the others. Comms lines wait.
+- **Cosmetic downside:** other characters occasionally ask who you are talking to. **Live now:** Tigh, Adama, or Gaeta, once each time she appears, after any louder line has finished. Starbuck's half of that conversation, and Six's own portrait, wait.
 - **Presentation:** a distinct outline sprite with a steady (never flickering) glow. The beam is a persistent line to the current target, not a strobe. HUD says `six`. Card text stays vague: "An ally only you can see."
 - **Balance watch:** her beam overlaps with *Flak Enthusiast* and *Raptor Escort*. The simulation harness should confirm that stacking all three does not make the fleet unloseable.
 
@@ -389,7 +389,7 @@ Gaeta and Dualla announce the same jump from two angles. The civilian count cree
 - The banter random stream is separate from gameplay, so choosing a joke never changes a seeded run.
 - Lines that share a moment live in one pool (same trigger, priority, and cooldown; the jokes are an array). A pool may set `chance` below 1 so that speaker is only sometimes eligible. The game still shows one line. Starbuck's cycle-start pool starts at 0.25, so Adama opens most cycles.
 
-**Live now:** one line at a time, from JSON pools, with a letter-block portrait and the speaker's name. The line is a strip across the top, above menus as well as the fight, and a touch on it still steers. Cycle start (Adama, and sometimes Starbuck), FTL spool, the resurrection ship's arrival, a missile, the Speech, win, and loss. A dealt hand speaks once about a card on that table, and a reroll can replace that line. `{seconds}`, `{percent}`, `{count}`, and `{total}` are filled when the line is chosen. Critical spool text can replace a lower line. A new hand can replace a line that is still up. Flavor stays quiet at 1 hull. The line follows the game clock, so pause freezes it. Derived quips (a kill streak, a close call, a fleet hit, ship milestones, "who are you talking to"), the comms log, the duration setting, and Recovering scenes that gate the next cycle wait.
+**Live now:** one line at a time, from JSON pools, with a letter-block portrait and the speaker's name. A scene shows the previous speaker beside the one who is talking. The line is a strip across the top, above menus as well as the fight, and a touch on it still steers. Cycle start (Adama, and sometimes Starbuck), FTL spool, the resurrection ship's arrival, a missile, the Speech, win, and loss. A dealt hand can speak about a card on that table, and a reroll can replace that line, unless a Recovering scene is using the strip. Someone asks who the pilot is talking to once each time Imaginary Six appears, and only when the strip is empty. `{seconds}`, `{percent}`, `{count}`, and `{total}` are filled when the line is chosen. Critical spool text can replace a lower line. A new hand can replace a line that is still up. Flavor stays quiet at 1 hull. The line follows the game clock, so pause freezes it. Derived quips (a kill streak, a close call, a fleet hit, ship milestones), the comms log, and the duration setting wait.
 
 ### 12.5 Wingman squad `[Later]`
 
@@ -401,7 +401,9 @@ Not built. The player is the only Viper until this is promoted. Two choices stay
 Do not add the ships, and do not rewrite the name-calling lines, until one of these is chosen.
 
 ### 12.3 Recovering scenes
-8-12 seconds, 2-4 beats, two portraits trading lines. Tyrol anchors. Scene lines depend on how much the fleet and Viper were damaged: "Not a scratch on her. I'm suspicious" for a clean cycle, exasperation for a wrecked one.
+8-12 seconds, 2-4 beats, two portraits trading lines. Tyrol anchors. The closing beat points at the next jump. Each beat uses the same reading time as a line. If that would run past 12 seconds, the beats shrink together so the scene still finishes.
+
+The band is how the cycle that just ended went, remembered through the jump repair. **Clean:** the fleet took nothing and the Viper lost no hull. **Wrecked:** the fleet took 16 or more, or the Viper lost 3 or more hull, or the pilot ejected (a download that puts them back still counts). **Rough:** anything else. Those two numbers are assumptions until play says otherwise.
 
 ### 12.4 Content format
 Lines and scenes are data, not code. The authoritative format, trigger list, length limit, and coverage targets are in [`content/CONTENT-SCHEMA.md`](content/CONTENT-SCHEMA.md), and the voices are in [`content/VOICE-GUIDE.md`](content/VOICE-GUIDE.md). A speaker file groups jokes that share a moment:
@@ -626,3 +628,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-22 | Writer files group jokes that share a trigger, priority, and cooldown into one pool. A pool may set `chance` below 1. Starbuck gets a couple of cycle-start lines at chance 0.25, so Adama still opens most cycles. The loader still reads one object per line until that pack replaces the placeholders. | So a writer sees one list per moment, and a cycle-start aside can stay rare. |
 | 2026-09-22 | Comms loads those pools, including `chance` and the four placeholders. The line sits in the top HUD band. **Later (12.5):** either the player is the only Viper and lines may name Starbuck, or a few non-firing wingmen guard the start of a run and the lines name them too. Not built. | The jokes can play, and the squad is one decision with the way people are addressed. |
 | 2026-09-22 | All twelve cards have a joke and advice from Baltar and Roslin, shown on the pick. Dealing the hand speaks one line about a card on that table. "Who are you talking to" and Recovering scenes still wait. | The card should say what it does, in both voices, without hiding the choice. |
+| 2026-09-22 | Recovering plays a 2–4 beat scene for a clean, rough, or wrecked cycle, and the next cycle waits until that scene and the pick are both done. Once each time Imaginary Six appears, someone asks who the pilot is talking to. | The calm between jumps is a conversation, and the wingman is noticed. |

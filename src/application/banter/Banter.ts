@@ -3,10 +3,11 @@ import type { DomainEvent } from '../../domain/shared/events';
 import type { BanterLine, BanterPriority, BanterTrigger } from './lines';
 import { speakerName } from './lines';
 
-/** What the overlay shows. No ids, no markup. */
+/** What the overlay shows. No ids, no markup. `partnerName` is the other portrait in a scene. */
 export interface CommsLine {
   readonly speakerName: string;
   readonly text: string;
+  readonly partnerName?: string | null;
 }
 
 export interface BanterContext {
@@ -90,6 +91,32 @@ export class Banter {
       if (this.shown !== null && priorityRank(chosen.priority) <= priorityRank(this.shown.priority)) return;
     }
 
+    this.show(chosen, context);
+  }
+
+  /**
+   * A derived aside, such as someone noticing Imaginary Six. It waits for an empty strip, so it
+   * never talks over Adama or a spool call.
+   */
+  mention(trigger: BanterTrigger, context: BanterContext): boolean {
+    if (this.shown !== null) return false;
+    const crisis = context.hull <= 1;
+    const poolOpen = new Map<string, boolean>();
+    const candidates: BanterLine[] = [];
+    for (const line of this.lines) {
+      if (line.trigger !== trigger) continue;
+      if (line.priority === 'flavor' && crisis) continue;
+      if ((this.readyAtSeconds.get(line.id) ?? 0) > this.elapsedSeconds) continue;
+      if (!this.poolIsOpen(line, poolOpen)) continue;
+      candidates.push(line);
+    }
+    const chosen = this.pickHighest(candidates);
+    if (chosen === null) return false;
+    this.show(chosen, context);
+    return true;
+  }
+
+  private show(chosen: BanterLine, context: BanterContext): void {
     const text = fillPlaceholders(chosen.text, context);
     this.shown = {
       id: chosen.id,
