@@ -1,10 +1,28 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { CommsLine } from '../../application/banter/Banter';
+import { effectiveReducedEffects } from '../../application/playerSettings';
+import { hudStore } from '../stores/hudStore';
+import { settingsStore } from '../stores/settingsStore';
+import { portraitPose, portraitSrc } from '../portraits';
 
 const props = defineProps<{ comms: CommsLine; embedded?: boolean; docked?: boolean }>();
 
-/** The letter is a stand-in portrait. The name next to it is the cue, not the color. */
+/** Captured once. The in-game toggle still updates through the settings store (PRD 15). */
+const osReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const pose = computed(() =>
+  portraitPose(
+    hudStore.state.stats?.ticks ?? 0,
+    effectiveReducedEffects(osReduced, settingsStore.state.snapshot.reducedEffects),
+  ),
+);
+
+const speakerSrc = computed(() => portraitSrc(props.comms.speakerName, pose.value));
+/** The other person in a scene is not the one talking, so the mouth stays shut. */
+const partnerSrc = computed(() =>
+  props.comms.partnerName ? portraitSrc(props.comms.partnerName, 'closed') : null,
+);
 const initial = computed(() => props.comms.speakerName.slice(0, 1));
 const partnerInitial = computed(() => props.comms.partnerName?.slice(0, 1) ?? '');
 </script>
@@ -12,8 +30,19 @@ const partnerInitial = computed(() => props.comms.partnerName?.slice(0, 1) ?? ''
 <template>
   <!-- Not data-ui: a touch here still steers (PRD 12.2). -->
   <p class="comms" :class="{ embedded, docked }" data-testid="comms" role="status" aria-live="polite">
-    <span v-if="comms.partnerName" class="portrait partner" aria-hidden="true">{{ partnerInitial }}</span>
-    <span class="portrait" aria-hidden="true">{{ initial }}</span>
+    <img
+      v-if="partnerSrc"
+      class="portrait partner"
+      :src="partnerSrc"
+      alt=""
+      width="64"
+      height="64"
+    />
+    <span v-else-if="comms.partnerName" class="portrait partner letter" aria-hidden="true">{{
+      partnerInitial
+    }}</span>
+    <img v-if="speakerSrc" class="portrait" :src="speakerSrc" alt="" width="64" height="64" />
+    <span v-else class="portrait letter" aria-hidden="true">{{ initial }}</span>
     <span class="body">
       <span class="name">{{ comms.speakerName }}</span>
       <span class="text">{{ comms.text }}</span>
@@ -45,8 +74,12 @@ const partnerInitial = computed(() => props.comms.partnerName?.slice(0, 1) ?? ''
 
 .portrait {
   flex: none;
-  width: 32px;
-  height: 32px;
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+}
+
+.letter {
   display: grid;
   place-items: center;
   color: #06110c;

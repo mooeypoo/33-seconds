@@ -62,8 +62,8 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 | `imaginary_six` | 16 x 16 | 2 | P2 | A steady outline sprite. Costume and silhouette, not likeness. Play uses a pale Dradis outline and a still glow; HUD `six`. Never flickers. Never Cylon red. |
 | `explosion_large` | 32 x 32 | 8 | P2 | Same rules as small |
 | `icon_hourglass`, `icon_hold_music`, `icon_missile`, `icon_special_ready`, `icon_eye` | 8 x 8 | 1 each | P2 | HUD and status icons |
-| `portrait_adama`, `_starbuck`, `_gaeta`, `_dualla` | 32 x 32 | 4 each (closed, open, blink, signature) | P2 | Core comms cast. Costume and silhouette, not actor likeness. |
-| `portrait_tigh`, `_baltar`, `_roslin`, `_tyrol`, `_six` | 32 x 32 | 4 each | P3 | Cameos |
+| `portrait_adama`, `_starbuck`, `_gaeta`, `_dualla` | 64 x 64, shown at 64 CSS px | 4 each (closed, open, blink, signature) | P2 | Core comms cast. Costume and silhouette, not actor likeness. Page images, not playfield sprites. |
+| `portrait_tigh`, `_baltar`, `_roslin`, `_tyrol`, `_six` | 64 x 64, shown at 64 CSS px | 4 each | P3 | Cameos. Same four frames. |
 | `title_logo` | about 200 x 60 on screen, file drawn at 800 x 240 | 1 | P3 | Wide UI image, not a square sprite. CSS wordmark stands in until `assets/ui/title_logo.png` exists. Prompt in GENERATION-NOTES.md. |
 
 **Drawn in code, not art:** the Dradis sweep, the FTL spool ring, HUD bars, scanlines, the touch stick ring and dot, and parallax stars. That saves you a lot of work, and it keeps them crisp at any size.
@@ -107,7 +107,7 @@ Rules:
 - **Frames:** name animation tags in your tool (`neutral`, `bank_left`, `bank_right`, `eye`, `flicker`) and keep the same tag names as the asset list.
 - **Anchor:** the sprite center unless noted.
 - **Invulnerability and hit feedback:** a steady outline or a slow pulse (2 Hz or slower). **Never strobe.** No white full-screen or full-sprite flashes.
-- **Portraits:** 32 x 32, same four frames for every character so the animation code is shared.
+- **Portraits:** 64 × 64, shown at 64 CSS pixels. Same four frames for every character so the animation code is shared. These are page images, so they are not drawn at 4× and shrunk into the 270 × 480 world. A later UI pass may show this same file at about 128 CSS pixels on a large screen (PRD 12.6). Do not draw a second size yet. Signature is not drawn yet: the game shows the closed file for that pose.
 - **Fonts:** self-hosted `woff2` files under an open license (for example the SIL Open Font License). Candidates: **Silkscreen** or **Press Start 2P** for style, and **Atkinson Hyperlegible** for the readable-font toggle. Check each license at the time you add it.
 
 ## 6. Provenance

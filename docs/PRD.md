@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Status** | Living document (see below) |
-| **Last changed** | 2026-09-22 (see the changelog at the end) |
+| **Last changed** | 2026-09-23 (see the changelog at the end) |
 | **Owner** | Moriel |
 | **Related** | [Architecture guidelines (ADR-0001)](adr/0001-architecture.md), [AGENTS.md](../AGENTS.md) |
 
@@ -381,7 +381,7 @@ Gaeta and Dualla announce the same jump from two angles. The civilian count cree
 - One message at a time. Low-priority lines are dropped, not queued, if a higher-priority line is waiting.
 - **Quiet during crises:** flavor is suppressed at low hull or during a boss entrance. Only critical lines (jump countdown) get through.
 - Cooldowns per character, plus no-repeat memory. Cameos come from a **shuffle bag**, so everyone appears before anyone repeats.
-- Placement: a band above the playfield, directly under the fleet score, the same on a phone and on a desktop. It stays in that column, not in the side margins, and it never covers the score or the clock. Never in the middle of play or the mobile thumb zone.
+- Placement: a band above the playfield, directly under the fleet score, the same on a phone and on a desktop. It stays in that column, not in the side margins, and it never covers the score or the clock. Never in the middle of play or the mobile thumb zone. A later pass may move this (12.6). Until that pass, this placement stands.
 - A short radio-squelch blip masks the pop-in.
 - **Duration:** `clamp(1.5 s + characters / 12, 4 s, 8 s)`, multiplied by a player setting (Short 0.75x, Normal 1x, Long 1.5x).
 - A **comms log** in the pause menu keeps the last 20 lines.
@@ -389,7 +389,7 @@ Gaeta and Dualla announce the same jump from two angles. The civilian count cree
 - The banter random stream is separate from gameplay, so choosing a joke never changes a seeded run.
 - Lines that share a moment live in one pool (same trigger, priority, and cooldown; the jokes are an array). A pool may set `chance` below 1 so that speaker is only sometimes eligible. The game still shows one line. Starbuck's cycle-start pool starts at 0.25, so Adama opens most cycles.
 
-**Live now:** one line at a time, from JSON pools, with a letter-block portrait and the speaker's name. A scene shows the previous speaker beside the one who is talking. The line sits in the band above the playfield, under the fleet score, and a touch on it still steers. It does not cover the score. Cycle start (Adama, and sometimes Starbuck), FTL spool, the resurrection ship's arrival, a missile, the Speech, win, and loss. A dealt hand can speak about a card on that table, and a reroll can replace that line, unless a Recovering scene is using the strip. Someone asks who the pilot is talking to once each time Imaginary Six appears, and only when the strip is empty. `{seconds}`, `{percent}`, `{count}`, and `{total}` are filled when the line is chosen. Critical spool text can replace a lower line. A new hand can replace a line that is still up. Flavor stays quiet at 1 hull. The line follows the game clock, so pause freezes it. A fleet hit, a Raider coming back, and the factory's death each get a line. Three kills inside 2 seconds, a Cylon round that misses inside 16 units of the Viper, hull at 2 or below (once until it is repaired), and 12 seconds without a kill are noticed from the fight, not from new rules. The factory is called at 75, 50, and 25 percent of the hull it has left, with that percent in the line. The spool is also called at 5 seconds and at 2. Those timings are assumptions until a playtest. A heavy Raider is not in the fight, so those lines stay quiet. The comms log and the duration setting wait.
+**Live now:** one line at a time, from JSON pools, with the speaker's 64×64 portrait and name. Closed, open, and blink step on the game clock, two changes a second. Reduced effects holds the closed mouth. The signature frame is that closed picture until those files exist. The other person in a scene stays on closed. A name with no picture keeps the letter block. A scene shows the previous speaker beside the one who is talking. The line sits in the band above the playfield, under the fleet score, and a touch on it still steers. It does not cover the score. Cycle start (Adama, and sometimes Starbuck), FTL spool, the resurrection ship's arrival, a missile, the Speech, win, and loss. A dealt hand can speak about a card on that table, and a reroll can replace that line, unless a Recovering scene is using the strip. Someone asks who the pilot is talking to once each time Imaginary Six appears, and only when the strip is empty. `{seconds}`, `{percent}`, `{count}`, and `{total}` are filled when the line is chosen. Critical spool text can replace a lower line. A new hand can replace a line that is still up. Flavor stays quiet at 1 hull. The line follows the game clock, so pause freezes it. A fleet hit, a Raider coming back, and the factory's death each get a line. Three kills inside 2 seconds, a Cylon round that misses inside 16 units of the Viper, hull at 2 or below (once until it is repaired), and 12 seconds without a kill are noticed from the fight, not from new rules. The factory is called at 75, 50, and 25 percent of the hull it has left, with that percent in the line. The spool is also called at 5 seconds and at 2. Those timings are assumptions until a playtest. A heavy Raider is not in the fight, so those lines stay quiet. The comms log and the duration setting wait.
 
 ### 12.5 Wingman squad `[Later]`
 
@@ -399,6 +399,13 @@ Not built. The player is the only Viper until this is promoted. Two choices stay
 - **Squad.** A few other pilots fly with you at the start of a run. They shoot little or not at all, wander on a seeded path, and block bullets. They are guards, not a second player. Each jump brings only some of them back, so the run gets harder as the guard thins out. Comms can name those pilots, not only Starbuck.
 
 Do not add the ships, and do not rewrite the name-calling lines, until one of these is chosen.
+
+### 12.6 Where the line sits `[Later]`
+
+Not built. Look at this in a future UI pass. Until then the line stays in the band above the playfield (12.2), and every portrait file is the 64 × 64 drawing in section 14.
+
+- **Narrow window and phone.** One strip under the playfield, outside it. The fleet percentage, with its pips, sits at one end. At the other end the portrait rises into the strip and the bubble updates beside it. The face is the 64 × 64 file shown at 64 CSS pixels. The top band is no longer needed for the score or the line. Pause stays a top-corner control (13.2). The face does not cover the playfield, the fleet, or the Viper, and it stays out of the thumb zone.
+- **Large screen.** The same 64 × 64 file may be shown at about 128 CSS pixels, nearest-neighbor, in the side margins, so the face is easier to read on a desktop. Still outside the playfield. That is a second display size of this file, not a second drawing. If the doubled pixels look too coarse, that pass can ask for a 128 × 128 redraw.
 
 ### 12.3 Recovering scenes
 8-12 seconds, 2-4 beats, two portraits trading lines. Tyrol anchors. The closing beat points at the next jump. Each beat uses the same reading time as a line. If that would run past 12 seconds, the beats shrink together so the scene still finishes.
@@ -465,7 +472,7 @@ Shift is deliberately not used for the special. On Windows, pressing it five tim
 - **Internal resolution about 270 px on the short side**, upscaled with nearest-neighbor. Particles and explosions share the same pixel grid.
 - **Palette of 16-24 colors.** Gunmetal grays and olive for the fleet, Dradis green for the HUD, and a single hot red reserved for Cylons.
 - **Silhouettes carry the fandom:** an original angular-wedge Viper with twin engine glow (a similitude, not a traced show ship), an arrowhead Raider with a sweeping red eye, a heavy Raider variant, a chunky original-design resurrection ship, and Galactica as a slow parallax silhouette in the background, so you are always visibly defending something. **Live now:** the Viper (64×64 shown at 16×16), the Raider (48×48 shown at 12×12, three eye frames), the shots (player and aimed 12×20 shown at 3×5, stray 12×28 shown at 3×7), and the small explosion use the PNGs in `assets/`. The fleet is still placeholders.
-- About 25 small sprites for gameplay. Portraits are 32 x 32 with mouth-closed, mouth-open, and blink frames plus one signature expression, 36 frames in total for 9 portraits (see [`art/ART-DIRECTION.md`](art/ART-DIRECTION.md) for the full asset list).
+- About 25 small sprites for gameplay. Portraits are 64 × 64, shown at 64 CSS pixels, with mouth-closed, mouth-open, and blink frames plus one signature expression, 36 frames in total for 9 portraits (see [`art/ART-DIRECTION.md`](art/ART-DIRECTION.md) for the full asset list). A later UI pass may show that same file at about 128 CSS pixels on a large screen (12.6).
 - Portraits are drawn by **costume and silhouette**, not actor likeness.
 - Tools: Aseprite, LibreSprite, or Piskel for art. ZzFX or jsfxr for effects. BeepBox for original chiptune loops.
 - Optional scanline and CRT look: on by default on desktop, off by default on phones, with a toggle.
@@ -571,7 +578,7 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 11 | Languages | English. All text is data, so translation stays possible. |
 | 12 | Community heads-up | The owner does this before going public. |
 | 13 | Viper heading | Fixed heading toward the swarm side. It banks left and right, and does not rotate. |
-| 14 | World orientation | One fixed 9:16 portrait world. On a desktop it is centered and a little shorter than the window, so the fleet score and the comms band sit above it. The same band is used on a phone. Comms do not sit in the side margins. |
+| 14 | World orientation | One fixed 9:16 portrait world. On a desktop it is centered and a little shorter than the window, so the fleet score and the comms band sit above it. The same band is used on a phone. Comms do not sit in the side margins. A later UI pass may move the line (12.6). Until then this default stands. |
 | 15 | Civilian "assists" | Dropped. Civilian Ship just has easier numbers. |
 | 16 | Visual construction | Hybrid: hand-drawn sprites for ships, and code and filters for the background and effects (ADR-0001, D4b). |
 | 17 | A first-run tutorial | `[Later]`. A short lesson the first time someone launches, separate from Civilian Run. Civilian Run stays the same fight with an easier fleet, not that lesson. |
@@ -641,3 +648,5 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-22 | Launch sits on the empty playfield. How to play opens with the goal of the run. A click outside a title sheet closes it. The fleet score is a large readout above the playfield; comms sit under that score, in the same column on a phone and on a desktop, and do not cover it. The 33 is painted in the playfield behind the ships, with a hidden copy for assistive tech. A short first-run tutorial is something to look into later. Civilian Run is still not that tutorial. | Speeches were covering the score, and the countdown belonged with the fleet. |
 | 2026-09-22 | Fleet health is a percentage with ten pips, on the same line as the comms. Launch says the fleet is in your hands. The debug readout floats in the desktop margin during development and in the test build, and is absent from a shipped build. | The health line was a scoreboard, and the debug text was sitting in the game. |
 | 2026-09-23 | Raiders use the three eye frames, shown at 12×12. An armed Raider steps the eye; the others hold center. Player and aimed shots are 12×20 shown at 3×5. A stray is 12×28 shown at 3×7, so the longer trail is a cue besides the orange. | The next pictures should replace the rectangles before more are drawn. |
+| 2026-09-23 | Portraits are drawn at 64×64 and shown at 64 CSS pixels. A later UI pass (12.6) may put the line under the playfield on a narrow window and a phone, with the fleet percentage at one end and the portrait and bubble at the other, and may show that same file at about 128 CSS pixels in the side margins on a large screen. The line still sits above the playfield until that pass. | One 64×64 drawing is the face to produce now. A desktop wants a bigger face, and that layout is a later look. |
+| 2026-09-23 | Comms shows the 64×64 portraits: closed, open, and blink on the game clock, two changes a second. Reduced effects holds closed. Signature uses the closed file until those drawings exist. The line still sits above the playfield. | The faces are drawn. The signature pose and the bottom strip can wait. |

@@ -138,7 +138,7 @@ onUnmounted(() => {
 .comms-slot {
   flex: 1;
   min-width: 0;
-  min-height: 44px;
+  min-height: 64px;
   display: flex;
   flex-direction: column;
   justify-content: center;
