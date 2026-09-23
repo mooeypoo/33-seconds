@@ -25,7 +25,8 @@ const visible = computed(
 .hint {
   position: absolute;
   right: 0;
-  bottom: max(24px, env(safe-area-inset-bottom));
+  /* Above the corner buttons, which sit on the bottom edge of the playfield. */
+  bottom: 76px;
   left: 0;
   margin: 0;
   /* Transparent to pointer input, like the rest of the HUD layer. */

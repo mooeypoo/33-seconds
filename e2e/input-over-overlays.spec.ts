@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { dragFrom, expectViperToMove, releaseDrag, startRun, viperPosition } from './helpers';
+import { dragFrom, expectViperToMove, hudButton, releaseDrag, startRun, viperPosition } from './helpers';
 
 /**
  * The input matrix from ADR-0001 D6. This is the test that protects against a future overlay
@@ -34,7 +34,7 @@ test.describe('steering works wherever the finger lands', () => {
     await startRun(page);
     const before = await viperPosition(page);
 
-    const box = (await page.getByRole('button', { name: 'Pause' }).boundingBox())!;
+    const box = (await (await hudButton(page, 'Pause')).boundingBox())!;
     await dragFrom(page, { x: box.x + box.width / 2, y: box.y + box.height / 2 }, -80, 80);
     // Long enough that a stick which had engaged would have moved the Viper a long way.
     await page.waitForTimeout(700);
@@ -48,7 +48,7 @@ test.describe('steering works wherever the finger lands', () => {
   test('tapping the pause button pauses', async ({ page }) => {
     await startRun(page);
 
-    await page.getByRole('button', { name: 'Pause' }).click();
+    await (await hudButton(page, 'Pause')).click();
 
     await expect(page.getByRole('button', { name: 'Resume' })).toBeVisible();
   });

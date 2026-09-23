@@ -52,7 +52,7 @@ const partnerInitial = computed(() => props.comms.partnerName?.slice(0, 1) ?? ''
 
 <style scoped>
 .comms {
-  /* Top band, above menus, so the swarm and the card table both leave it readable (PRD 12.2). */
+  /* Under the playfield. A touch here still steers, and the strip height does not follow the text (PRD 12.2). */
   position: absolute;
   z-index: 4;
   top: max(8px, env(safe-area-inset-top));

@@ -1,11 +1,27 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import CycleClock from './CycleClock.vue';
 import MuteControl from './MuteControl.vue';
 import type { SessionPhase } from '../../application/GameSession';
 import { hudStore } from '../stores/hudStore';
 
 defineProps<{ phase: SessionPhase }>();
-const emit = defineEmits<{ pause: [] }>();
+const emit = defineEmits<{ pause: []; about: [] }>();
+const settingsOpen = ref(false);
+
+function toggleSettings(): void {
+  settingsOpen.value = !settingsOpen.value;
+}
+
+function pause(): void {
+  settingsOpen.value = false;
+  emit('pause');
+}
+
+function about(): void {
+  settingsOpen.value = false;
+  emit('about');
+}
 
 const stats = hudStore.state;
 </script>
@@ -77,17 +93,21 @@ const stats = hudStore.state;
     <CycleClock v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" class="clock-mirror" />
 
     <div v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" class="controls">
-      <MuteControl compact />
       <button
-        v-if="phase === 'running'"
         data-ui
-        class="pause-button"
+        class="hud-button cog"
         type="button"
-        aria-label="Pause"
-        @click="emit('pause')"
+        aria-label="Settings"
+        :aria-expanded="settingsOpen"
+        @click="toggleSettings"
       >
-        ⏸
+        ⚙
       </button>
+      <div class="menu" :class="{ open: settingsOpen }" data-ui>
+        <MuteControl compact />
+        <button v-if="phase === 'running'" data-ui class="hud-button" type="button" @click="pause">Pause</button>
+        <button v-if="phase === 'running'" data-ui class="hud-button" type="button" @click="about">About</button>
+      </div>
     </div>
   </div>
 </template>
@@ -138,18 +158,21 @@ const stats = hudStore.state;
 }
 
 .controls {
+  position: relative;
   display: flex;
   flex: none;
   align-items: center;
   gap: 8px;
 }
 
-.pause-button {
+.hud-button {
   /* At least 44x44 px, inside the safe area (PRD 13.2). */
   pointer-events: auto;
   min-width: 44px;
   min-height: 44px;
-  font-size: 18px;
+  padding: 0 10px;
+  font: inherit;
+  font-size: 13px;
   color: #cfe8d8;
   background: rgb(12 20 28 / 80%);
   border: 1px solid #2c4a3a;
@@ -157,8 +180,44 @@ const stats = hudStore.state;
   cursor: pointer;
 }
 
-.pause-button:focus-visible {
+.hud-button:focus-visible {
   outline: 2px solid #7fd6a0;
   outline-offset: 2px;
+}
+
+.cog {
+  display: none;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Sound, Pause, and About need about 440px beside the fleet score. */
+@container topband (max-width: 440px) {
+  .cog {
+    display: inline-block;
+  }
+
+  .menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 5;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px;
+    background: #0b0e14;
+    border: 1px solid #2c4a3a;
+  }
+
+  .menu.open {
+    display: flex;
+  }
 }
 </style>
