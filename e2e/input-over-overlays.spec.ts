@@ -18,7 +18,8 @@ test.describe('steering works wherever the finger lands', () => {
     await releaseDrag(page);
   });
 
-  test('a drag that starts on the debug readout still steers', async ({ page }) => {
+  test('a drag that starts on the debug readout still steers', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile-chrome', 'The debug readout floats in the desktop margin only');
     await startRun(page);
     const before = await viperPosition(page);
 

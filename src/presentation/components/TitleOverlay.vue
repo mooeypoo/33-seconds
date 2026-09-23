@@ -1,126 +1,653 @@
 <script setup lang="ts">
+import { nextTick, useTemplateRef, ref } from 'vue';
 import titleCopy from '../../content/title.json';
+import viperNeutral from '../../../assets/ships/viper_neutral.png';
 import type { TierId } from '../../domain/balance/profile';
 import { createRandomStream } from '../../domain/shared/random';
 import MuteControl from './MuteControl.vue';
 
 const emit = defineEmits<{ start: [tier: TierId] }>();
 
+type Sheet = 'manual' | 'credits';
+type ManualTab = 'controls' | 'fight';
+
 const quotes = titleCopy.quotes;
 const buffer = new Uint32Array(1);
 crypto.getRandomValues(buffer);
 const quote = quotes[createRandomStream(buffer[0] ?? 1).index(quotes.length)] ?? '';
+const lead = titleCopy.body[1] ?? '';
+
+const sheet = ref<Sheet | null>(null);
+const manualTab = ref<ManualTab>('controls');
+const backButton = useTemplateRef<HTMLButtonElement>('backButton');
+const manualButton = useTemplateRef<HTMLButtonElement>('manualButton');
+const creditsButton = useTemplateRef<HTMLButtonElement>('creditsButton');
+const sheetRoot = useTemplateRef<HTMLElement>('sheetRoot');
+
+function openSheet(which: Sheet): void {
+  if (which === 'manual') manualTab.value = 'controls';
+  sheet.value = which;
+  void nextTick(() => {
+    backButton.value?.focus();
+  });
+}
+
+function closeSheet(): void {
+  const which = sheet.value;
+  sheet.value = null;
+  void nextTick(() => {
+    (which === 'credits' ? creditsButton.value : manualButton.value)?.focus();
+  });
+}
+
+/** Keep Tab inside the sheet. Esc returns to the face. Pause is a no-op while the title is up. */
+function onSheetKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    closeSheet();
+    return;
+  }
+  if (event.key !== 'Tab') return;
+  const root = sheetRoot.value;
+  if (!root) return;
+  const focusable = [...root.querySelectorAll<HTMLElement>('a[href], button:not([disabled])')];
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (!first || !last) return;
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+}
 </script>
 
 <template>
-  <!-- data-ui: this is a real control, so a touch here is a button press, not the drag stick. -->
-  <div data-ui class="overlay">
-    <h1 class="title">{{ titleCopy.title }}</h1>
-    <p v-for="(line, index) in titleCopy.body" :key="index" class="pitch">{{ line }}</p>
-    <p v-if="quote" class="quote" data-testid="title-quote">{{ quote }}</p>
-    <p class="subtitle">
-      Two difficulties. They look the same; only the fleet math changes. Viper Pilot can lose.
-      Civilian Run cannot die from a bad 33.
-    </p>
+  <!-- data-ui: the whole face is a control, including the clear well over the playfield, so a touch here is not the drag stick. -->
+  <div data-ui class="stage">
+    <div class="board" :inert="sheet !== null">
+      <span class="bracket bracket-nw" aria-hidden="true"></span>
+      <span class="bracket bracket-ne" aria-hidden="true"></span>
+      <span class="bracket bracket-sw" aria-hidden="true"></span>
+      <span class="bracket bracket-se" aria-hidden="true"></span>
 
-    <p class="sound-notice">
-      This game has sound. The tab stays quiet until you Launch. Mute is always one tap away.
-    </p>
-    <MuteControl />
+      <section class="mast" aria-label="33 Seconds">
+        <div class="mast-inner">
+          <div class="wordmark">
+            <img class="mark" :src="viperNeutral" alt="" width="128" height="128" />
+            <h1 class="title">{{ titleCopy.title }}</h1>
+          </div>
+          <p class="pitch">{{ titleCopy.body[0] }}</p>
+          <p class="inspired">{{ titleCopy.inspired }}</p>
+          <p v-if="quote" class="quote" data-testid="title-quote">{{ quote }}</p>
+        </div>
+      </section>
 
-    <button class="start" type="button" @click="emit('start', 'viper-pilot')">Launch — Viper Pilot</button>
-    <p class="tier-note">Default. Ignore the civilians long enough and they are gone.</p>
-    <button class="civilian" type="button" @click="emit('start', 'civilian-ship')">Civilian Run</button>
-    <p class="tier-note">Same fight. The fleet holds together better. Not a tutorial.</p>
+      <!-- The playfield is empty until a run starts, so Launch sits on it. -->
+      <div class="well">
+        <div class="launch-box">
+          <button class="launch" type="button" @click="emit('start', 'viper-pilot')">Launch — Viper Pilot</button>
+          <p class="tier-note">{{ titleCopy.tiers.viperPilot }}</p>
+        </div>
+      </div>
 
-    <p class="hint">
-      Move with WASD, the arrow keys, or by dragging anywhere. Missiles with Space or the button.
-      The Speech with E or the other button. At each jump, pick a card. Pause with Esc, P, or the
-      button.
-    </p>
-    <p class="disclaimer">{{ titleCopy.disclaimer }}</p>
+      <section class="actions" aria-label="More">
+        <div class="actions-inner">
+          <div class="easy-box">
+            <p class="kicker">{{ titleCopy.tiers.civilianKicker }}</p>
+            <button class="civilian" type="button" @click="emit('start', 'civilian-ship')">Civilian Run</button>
+            <p class="tier-note">{{ titleCopy.tiers.civilian }}</p>
+          </div>
+
+          <div class="sound-row">
+            <p class="sound">{{ titleCopy.sound }}</p>
+            <MuteControl />
+          </div>
+
+          <p class="hint">{{ titleCopy.controls }}</p>
+
+          <div class="more">
+            <button ref="manualButton" class="more-button" type="button" @click="openSheet('manual')">How to fly</button>
+            <button ref="creditsButton" class="more-button" type="button" @click="openSheet('credits')">
+              Credits
+            </button>
+          </div>
+
+          <p class="disclaimer">{{ titleCopy.disclaimer }}</p>
+        </div>
+      </section>
+    </div>
+
+    <div
+      v-if="sheet"
+      ref="sheetRoot"
+      class="sheet-layer"
+      role="dialog"
+      aria-modal="true"
+      :aria-labelledby="sheet === 'credits' ? 'credits-title' : 'manual-title'"
+      @keydown="onSheetKeydown"
+      @pointerdown.self="closeSheet"
+    >
+      <div class="sheet" @pointerdown.stop>
+        <button ref="backButton" class="back" type="button" @click="closeSheet">Back</button>
+
+        <template v-if="sheet === 'manual'">
+          <h2 id="manual-title" class="sheet-title">{{ titleCopy.manual.title }}</h2>
+          <p v-if="lead" class="lead">{{ lead }}</p>
+          <div class="tabs" role="tablist" aria-label="How to fly">
+            <button
+              class="tab"
+              type="button"
+              role="tab"
+              :aria-selected="manualTab === 'controls'"
+              @click="manualTab = 'controls'"
+            >
+              {{ titleCopy.manual.controlsHeading }}
+            </button>
+            <button
+              class="tab"
+              type="button"
+              role="tab"
+              :aria-selected="manualTab === 'fight'"
+              @click="manualTab = 'fight'"
+            >
+              {{ titleCopy.manual.fightTab }}
+            </button>
+          </div>
+          <div v-if="manualTab === 'controls'" class="panel" role="tabpanel">
+            <dl class="controls">
+              <div v-for="row in titleCopy.manual.controls" :key="row.action" class="control">
+                <dt>{{ row.action }}</dt>
+                <dd>{{ row.detail }}</dd>
+              </div>
+            </dl>
+          </div>
+          <div v-else class="panel" role="tabpanel">
+            <p class="goal">{{ titleCopy.manual.goal }}</p>
+            <div v-for="block in titleCopy.manual.fight" :key="block.heading" class="block">
+              <h3 class="block-heading">{{ block.heading }}</h3>
+              <p>{{ block.text }}</p>
+            </div>
+          </div>
+        </template>
+
+        <template v-else>
+          <h2 id="credits-title" class="sheet-title">{{ titleCopy.credits.title }}</h2>
+          <p class="byline">{{ titleCopy.credits.byline }}</p>
+          <p class="inspiration">{{ titleCopy.credits.inspiration }}</p>
+          <ul class="credit-links">
+            <li v-for="link in titleCopy.credits.links" :key="link.href">
+              <a class="credit-link" :href="link.href" target="_blank" rel="noopener noreferrer">
+                {{ link.label }}
+                <span class="sr-only"> (opens in a new tab)</span>
+              </a>
+            </li>
+          </ul>
+          <p class="disclaimer">{{ titleCopy.disclaimer }}</p>
+        </template>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.overlay {
+.stage {
   position: absolute;
   inset: 0;
   pointer-events: auto;
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: center;
-  justify-content: safe center;
-  overflow-y: auto;
-  padding: 24px;
-  text-align: center;
-  background: rgb(5 7 10 / 88%);
-  color: #cfe8d8;
+  align-items: safe center;
+  justify-content: center;
+  overflow: auto;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: rgb(5 7 10 / 24%);
+  color: #f3efe3;
   font-family: ui-monospace, monospace;
+}
+
+.board {
+  position: relative;
+  width: min(520px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 0;
+  background: transparent;
+}
+
+.bracket {
+  display: none;
+}
+
+.bracket-nw {
+  top: 5px;
+  left: 5px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.bracket-ne {
+  top: 5px;
+  right: 5px;
+  border-left: 0;
+  border-bottom: 0;
+}
+
+.bracket-sw {
+  bottom: 5px;
+  left: 5px;
+  border-right: 0;
+  border-top: 0;
+}
+
+.bracket-se {
+  right: 5px;
+  bottom: 5px;
+  border-left: 0;
+  border-top: 0;
+}
+
+.mast,
+.actions {
+  background: rgb(11 14 20 / 94%);
+  border: 2px solid #1c8459;
+}
+
+.mast-inner,
+.actions-inner {
+  padding: 22px 18px;
+}
+
+.well {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 132px;
+}
+
+.well .launch-box {
+  width: min(280px, 100%);
+  background: rgb(11 14 20 / 92%);
+}
+
+.wordmark {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.mark {
+  width: 64px;
+  height: 64px;
+  flex: none;
+  image-rendering: pixelated;
 }
 
 .title {
   margin: 0;
-  font-size: clamp(28px, 8vw, 48px);
-  letter-spacing: 0.08em;
+  font-size: clamp(28px, 7vw, 48px);
+  line-height: 0.95;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  color: #b8ffdc;
 }
 
-.subtitle,
 .pitch,
 .quote,
+.inspired,
+.lead,
+.sound,
 .hint,
-.disclaimer,
 .tier-note,
-.sound-notice {
-  max-width: 34ch;
+.disclaimer,
+.byline,
+.inspiration,
+.block p,
+.controls dd {
   margin: 0;
+  font-size: 16px;
+  line-height: 1.45;
+}
+
+.pitch {
+  margin-top: 14px;
+  color: #f3efe3;
+}
+
+.inspired {
+  margin-top: 10px;
+  color: #b3bbc5;
   font-size: 14px;
-  line-height: 1.5;
-  color: #9fb8ab;
 }
 
 .quote {
+  margin-top: 12px;
+  padding-left: 10px;
+  border-left: 3px solid #ffc457;
+  color: #b3bbc5;
   font-style: italic;
-  color: #e8d8cf;
+}
+
+.actions-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.launch-box,
+.easy-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+}
+
+.launch-box {
+  border: 2px solid #4fe19a;
+  background: rgb(15 54 38 / 55%);
+}
+
+.easy-box {
+  border: 1px solid #46505e;
+}
+
+.kicker {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #ffc457;
+}
+
+.launch,
+.civilian,
+.more-button,
+.back,
+.tab,
+.credit-link {
+  font: inherit;
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.launch,
+.civilian,
+.more-button,
+.back,
+.tab {
+  padding: 10px 14px;
+  text-align: left;
+}
+
+.launch {
+  font-size: 18px;
+  color: #06110c;
+  background: #4fe19a;
+  border: 0;
+}
+
+.civilian,
+.more-button,
+.back,
+.tab {
+  color: #b8ffdc;
+  background: transparent;
+  border: 1px solid #1c8459;
+}
+
+.tab[aria-selected='true'] {
+  color: #06110c;
+  background: #4fe19a;
+  border-color: #4fe19a;
+}
+
+.tier-note,
+.hint,
+.disclaimer {
+  color: #b3bbc5;
 }
 
 .tier-note {
-  font-size: 12px;
-  margin-top: -4px;
+  font-size: 14px;
+}
+
+.sound-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.sound {
+  flex: 1;
+  color: #f3efe3;
+}
+
+.more {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
 }
 
 .disclaimer {
-  font-size: 12px;
+  font-size: 13px;
 }
 
-.start {
-  min-width: 160px;
-  min-height: 48px;
-  font: inherit;
-  font-size: 18px;
-  color: #06110c;
-  background: #7fd6a0;
-  border: 0;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.start:focus-visible,
-.civilian:focus-visible {
-  outline: 2px solid #cfe8d8;
+.launch:focus-visible,
+.civilian:focus-visible,
+.more-button:focus-visible,
+.back:focus-visible,
+.tab:focus-visible,
+.credit-link:focus-visible {
+  outline: 2px solid #b8ffdc;
   outline-offset: 3px;
 }
 
-.civilian {
-  min-width: 160px;
-  min-height: 44px;
-  font: inherit;
+.sheet-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  overflow: auto;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: rgb(5 7 10 / 96%);
+}
+
+.sheet {
+  width: min(640px, 100%);
+  margin-block: auto;
+  padding: 18px 18px 22px;
+  background: #0b0e14;
+  border: 2px solid #1c8459;
+  box-shadow:
+    0 0 0 4px #0b0e14,
+    0 0 0 6px #4fe19a;
+}
+
+.back {
+  min-width: 88px;
+}
+
+.sheet-title {
+  margin: 14px 0 0;
+  font-size: clamp(26px, 5vw, 36px);
+  letter-spacing: 0.05em;
+  color: #b8ffdc;
+}
+
+.lead,
+.byline,
+.inspiration {
+  margin-top: 10px;
+  color: #f3efe3;
+}
+
+.inspiration {
+  color: #b3bbc5;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.tab {
   font-size: 15px;
-  color: #cfe8d8;
-  background: transparent;
-  border: 1px solid #2c4a3a;
-  border-radius: 8px;
-  cursor: pointer;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+.panel {
+  margin-top: 8px;
+}
+
+.goal {
+  margin: 16px 0 0;
+  font-size: 18px;
+  line-height: 1.4;
+  color: #f3efe3;
+}
+
+.controls {
+  margin: 0;
+}
+
+.control,
+.block {
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid #1c8459;
+}
+
+.controls dt,
+.block-heading {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  color: #b8ffdc;
+}
+
+.controls dd,
+.block p {
+  margin: 6px 0 0;
+  max-width: 36em;
+  color: #f3efe3;
+}
+
+.credit-links {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.credit-link {
+  display: inline-flex;
+  align-items: center;
+  color: #b8ffdc;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The playfield is a portrait column. On a wide window the face flanks it instead of covering it. */
+@media (min-width: 960px) {
+  .stage {
+    align-items: stretch;
+    padding: 0;
+    overflow: hidden;
+    background: rgb(5 7 10 / 24%);
+  }
+
+  .board {
+    width: auto;
+    height: 100%;
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) min(calc(100dvh * 270 / 480), 46vw) minmax(280px, 1fr);
+    gap: 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .bracket {
+    display: none;
+  }
+
+  .well {
+    display: flex;
+  }
+
+  .mast,
+  .actions {
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    background: rgb(11 14 20 / 92%);
+    border: 0;
+    box-shadow:
+      inset 0 3px 0 #4fe19a,
+      inset 0 -3px 0 #4fe19a;
+  }
+
+  .mast {
+    display: flex;
+    justify-content: flex-end;
+    border-right: 2px solid #1c8459;
+  }
+
+  .actions {
+    display: flex;
+    justify-content: flex-start;
+    border-left: 2px solid #1c8459;
+  }
+
+  .mast-inner,
+  .actions-inner {
+    width: min(400px, 100%);
+    padding: 32px 28px;
+  }
+
+  .mast-inner {
+    display: flex;
+    flex-direction: column;
+    /* safe: a short window keeps the top of the column reachable instead of clipping it. */
+    justify-content: safe center;
+  }
+
+  .actions-inner {
+    justify-content: safe center;
+  }
+
+  .mark {
+    width: 128px;
+    height: 128px;
+  }
+
+  .title {
+    font-size: 48px;
+  }
 }
 </style>

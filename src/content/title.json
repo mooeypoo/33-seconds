@@ -4,13 +4,54 @@
     "Every thirty-three seconds, the fleet jumps. Every thirty-three seconds, you keep them alive.",
     "Fly the line. Pick your upgrades. Don't overthink the eye."
   ],
+  "inspired": "Fan art inspired by Battlestar Galactica.",
   "disclaimer": "Unofficial fan project. Not affiliated with or endorsed by the show's rights holders or anyone in the cast.",
   "quotes": [
-    "Thirty-three seconds. Try not to die of pride.",
+    "Thirty-three seconds. Humanity survives.",
     "The paperwork survives. Nothing else is guaranteed.",
     "Resurrection ships: like exes, but louder.",
     "Every pilot thinks they're the exception. Fly anyway.",
     "The fleet remembers every ship that almost made it.",
     "Somewhere, Tyrol is already judging your landing."
-  ]
+  ],
+  "sound": "This game has sound. The tab stays quiet until you Launch.",
+  "controls": "Drag or WASD to move. Space or the button fires a missile. Esc pauses.",
+  "tiers": {
+    "viperPilot": "The fleet is in your hands.",
+    "civilian": "Easier fleet. Same fight.",
+    "civilianKicker": "Easy run"
+  },
+  "manual": {
+    "title": "How to fly",
+    "controlsHeading": "Controls",
+    "fightTab": "How to play",
+    "goal": "Fly Starbuck's Viper. Protect the fleet from the Cylon raiders. They keep coming until you destroy the resurrection ship.",
+    "controls": [
+      { "action": "Move", "detail": "WASD, arrows, or drag." },
+      { "action": "Missiles", "detail": "Space or the button. Three a cycle." },
+      {
+        "action": "The Speech",
+        "detail": "E or its button. A rare weapon that stops all attacking Cylons in their tracks. Every 3 jumps."
+      },
+      { "action": "Pause", "detail": "Esc, P, or the button." }
+    ],
+    "fight": [
+      { "heading": "Guns", "text": "They fire on their own. Losing your Viper costs time, not the run." },
+      { "heading": "The jump", "text": "33 seconds, then the fleet jumps. Pick 1 of 3 cards. No timer." },
+      { "heading": "The fleet", "text": "You lose if the civilians hit zero. Civilian Run is the easier fleet." },
+      {
+        "heading": "They come back",
+        "text": "Raiders return until you destroy the resurrection ship. Then clear the last wave."
+      }
+    ]
+  },
+  "credits": {
+    "title": "Credits",
+    "byline": "A game by Moriel Schottlender",
+    "inspiration": "Fan art inspired by Battlestar Galactica, and by the episode \"33,\" in which the fleet jumps every thirty-three minutes.",
+    "links": [
+      { "label": "moriel.tech", "href": "https://moriel.tech" },
+      { "label": "github.com/mooeypoo/33-seconds", "href": "https://github.com/mooeypoo/33-seconds" }
+    ]
+  }
 }

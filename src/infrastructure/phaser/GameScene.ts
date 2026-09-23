@@ -10,6 +10,7 @@ import { ProjectilePresenter } from './contexts/combat/ProjectilePresenter';
 import { ImaginarySixPresenter } from './contexts/combat/ImaginarySixPresenter';
 import { ViperPresenter } from './contexts/combat/ViperPresenter';
 import { StickPresenter, type StickSource } from './contexts/controls/StickPresenter';
+import { ClockPresenter } from './contexts/cycle/ClockPresenter';
 import { FleetPresenter } from './contexts/fleet/FleetPresenter';
 import { RaptorPresenter } from './contexts/fleet/RaptorPresenter';
 import { RaiderPresenter } from './contexts/swarm/RaiderPresenter';
@@ -81,6 +82,7 @@ export class GameScene extends Phaser.Scene {
       .setStrokeStyle(1, PALETTE.viperCockpit, 0.25);
 
     this.presenters = [
+      new ClockPresenter(this),
       new FleetPresenter(this, this.reducedEffects),
       new RaptorPresenter(this),
       new ViperPresenter(this),

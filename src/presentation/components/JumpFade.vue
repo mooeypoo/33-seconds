@@ -13,6 +13,7 @@
 .jump-fade {
   position: absolute;
   inset: 0;
+  z-index: 4;
   pointer-events: none;
   display: grid;
   place-items: center;

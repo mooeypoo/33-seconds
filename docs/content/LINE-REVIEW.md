@@ -341,7 +341,7 @@ Status legend: unchecked = not reviewed yet.
   rights holders or anyone in the cast."
 
 **Quotes (random pool, one shown per visit)**
-- [ ] "Thirty-three seconds. Try not to die of pride."
+- [ ] "Thirty-three seconds. Humanity survives."
 - [ ] "The paperwork survives. Nothing else is guaranteed."
 - [ ] "Resurrection ships: like exes, but louder."
 - [ ] "Every pilot thinks they're the exception. Fly anyway."

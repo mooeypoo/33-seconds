@@ -18,7 +18,8 @@ export default defineConfig({
     { name: 'mobile-chrome', use: { ...devices['Pixel 7'] } },
   ],
   webServer: {
-    command: `npm run build && npm run preview -- --port ${String(PORT)} --strictPort`,
+    // The readout is how these tests see the simulation. The shipped build does not set this.
+    command: `VITE_SHOW_DEBUG=true npm run build && npm run preview -- --port ${String(PORT)} --strictPort`,
     port: PORT,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

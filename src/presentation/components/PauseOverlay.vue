@@ -55,6 +55,7 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
 .overlay {
   position: absolute;
   inset: 0;
+  z-index: 4;
   pointer-events: auto;
   display: flex;
   flex-direction: column;

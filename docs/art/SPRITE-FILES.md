@@ -1,6 +1,6 @@
 # Sprite files
 
-The first picture pass. Draw each frame at 4× the size the game shows, so the picture has room in it. The game nearest-neighbors that file down to the small size. On a phone it is still that small, because the whole playfield is one 270×480 picture. A generated hero is a **square** image at the 4× size, on a **solid magenta (`#FF00FF`) background** so it keys out cleanly, then snapped to the palette in [ART-DIRECTION.md](ART-DIRECTION.md). Matching variants are painted from that hero; a first try at generating the variants is in [GENERATION-NOTES.md](GENERATION-NOTES.md). Drop each file at the path in the table. The rest of the asset table (fleet, resurrection ship, icons, title logo) waits.
+The first picture pass. Draw each frame at 4× the size the game shows, so the picture has room in it. The game nearest-neighbors that file down to the small size. On a phone it is still that small, because the whole playfield is one 270×480 picture. A generated hero is a **square** image at the 4× size, on a **solid magenta (`#FF00FF`) background** so it keys out cleanly, then snapped to the palette in [ART-DIRECTION.md](ART-DIRECTION.md). Matching variants are painted from that hero; a first try at generating the variants is in [GENERATION-NOTES.md](GENERATION-NOTES.md). Drop each file at the path in the table. The rest of the asset table (fleet, resurrection ship, icons) waits. The title wordmark is CSS until `title_logo` below is drawn.
 
 Items are the ships, shots, and the explosion. Characters are the comms portraits: costume and silhouette, never a real person's face. Hot red belongs to the Raider and to `bullet_aimed` only.
 
@@ -113,3 +113,11 @@ Every portrait is a bust facing forward, 32 × 32, in `assets/portraits/`. Two f
 | `six_open.png` | The same outline, mouth slightly open. |
 | `six_blink.png` | The same outline, eyes shut in a blink. |
 | `six_signature.png` | The same outline, a slight amused smile. |
+
+## Title
+
+Not a playfield sprite. The face uses a CSS wordmark and the existing Viper picture until this file exists. Show it with nearest-neighbor (`image-rendering: pixelated`) at about 200 × 60.
+
+| Folder | File | Drawn at | Shown as | What it shows |
+|---|---|---|---|---|
+| `assets/ui/` | `title_logo.png` | 800 × 240 | about 200 × 60 | The words "33 SECONDS" in chunky block letters, Dradis green. A small angular starfighter may sit to the left of the words. Wide rectangle, magenta background. Prompt in [GENERATION-NOTES.md](GENERATION-NOTES.md). |

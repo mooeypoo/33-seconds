@@ -59,3 +59,9 @@ Pixel art of an original fighter craft, seen from directly above, nose pointing 
 ```
 Pixel art of a mid-sized explosion burst from a retro arcade-style space battle, top-down view, centered in a square image. A jagged, irregular burst — not a smooth circle or a soft blob — with sharp spiky rays of flame reaching outward from a bright core, plus two or three small angular debris chunks flying free at the outer edge. Colors: warm orange #d9731a and warning yellow #ffc457 for the flame core and rays, gunmetal #46505e and #77838f for the debris chunks — no white, no pink, no blue. Flat pixel-art colors only, chunky square pixels, hard clean edges, no anti-aliasing, no glow blur, no soft gradient. Keep the shape bold and readable — it needs to still read clearly as an explosion at its peak when shrunk to 16 by 16 pixels. Solid flat magenta background #FF00FF, no shadow, no floor, no ship. One burst only, no text, no logo.
 ```
+
+**Title wordmark** (`assets/ui/title_logo.png`). This one is a wide UI image, not a square ship. Draw it at 800 × 240 so it stays sharp when the page shows it at about 200 × 60. The face uses a CSS wordmark until the file exists. Leave the show's name out of the prompt.
+
+```
+Pixel-art game title logo, a wide rectangle, exactly the words "33 SECONDS" in chunky block capital letters, centered. Letters use only #4fe19a and #b8ffdc. A small angular starfighter silhouette may sit to the left of the words: olive #5a6a38 and gunmetal #46505e, white-yellow engines #fff3d6 and #ffc457, no red anywhere. Hard square pixels, no anti-aliasing, no gradients, no glow blur, no outline thinner than two pixels. Solid flat magenta background #FF00FF, no shadow, no stars, no extra text. The words must still read as "33 SECONDS" when the image is shown at 200 by 60 pixels.
+```

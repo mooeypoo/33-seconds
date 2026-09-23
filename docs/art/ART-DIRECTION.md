@@ -64,7 +64,7 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 | `icon_hourglass`, `icon_hold_music`, `icon_missile`, `icon_special_ready`, `icon_eye` | 8 x 8 | 1 each | P2 | HUD and status icons |
 | `portrait_adama`, `_starbuck`, `_gaeta`, `_dualla` | 32 x 32 | 4 each (closed, open, blink, signature) | P2 | Core comms cast. Costume and silhouette, not actor likeness. |
 | `portrait_tigh`, `_baltar`, `_roslin`, `_tyrol`, `_six` | 32 x 32 | 4 each | P3 | Cameos |
-| `title_logo` | about 200 x 60 | 1 | P3 | Depends on the name decision |
+| `title_logo` | about 200 x 60 on screen, file drawn at 800 x 240 | 1 | P3 | Wide UI image, not a square sprite. CSS wordmark stands in until `assets/ui/title_logo.png` exists. Prompt in GENERATION-NOTES.md. |
 
 **Drawn in code, not art:** the Dradis sweep, the FTL spool ring, HUD bars, scanlines, the touch stick ring and dot, and parallax stars. That saves you a lot of work, and it keeps them crisp at any size.
 

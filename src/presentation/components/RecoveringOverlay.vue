@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue';
-import type { CommsLine } from '../../application/banter/Banter';
 import { SESSION_KEY } from '../injection';
 import flair from '../../content/upgrades.flair.json';
-import CommsOverlay from './CommsOverlay.vue';
 
 /**
  * Recovering pick (PRD 5.1, 10). No timer. A tap during the scene is held, and the next cycle
@@ -13,7 +11,7 @@ const session = inject(SESSION_KEY);
 if (!session) throw new Error('RecoveringOverlay needs SESSION_KEY from main.ts');
 const play = session;
 
-const props = defineProps<{ heldCardId: string | null; scene: CommsLine | null }>();
+const props = defineProps<{ heldCardId: string | null }>();
 
 interface CardFlair {
   readonly id: string;
@@ -52,9 +50,6 @@ function reroll(): void {
 
 <template>
   <div class="recovering">
-    <div v-if="props.scene" class="scene-slot">
-      <CommsOverlay embedded :comms="props.scene" />
-    </div>
     <div class="panel" data-ui>
       <h2>Jump complete</h2>
       <p class="lead">{{ props.heldCardId ? 'That one. The deck is still talking.' : 'Pick one. No timer.' }}</p>
@@ -98,6 +93,7 @@ function reroll(): void {
 .recovering {
   position: absolute;
   inset: 0;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -106,11 +102,6 @@ function reroll(): void {
   background: rgb(8 12 16 / 55%);
   padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
     max(8px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
-}
-
-.scene-slot {
-  width: min(420px, 100%);
-  flex: none;
 }
 
 .panel {
