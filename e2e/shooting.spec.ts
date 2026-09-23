@@ -13,6 +13,7 @@ test.describe('auto-fire', () => {
       })
       .toBeGreaterThan(0);
 
-    await expect(page.getByTestId('hull')).toBeVisible();
+    // Hull lives in the debug readout, which a phone does not show.
+    await expect(page.getByTestId('hull')).toBeAttached();
   });
 });

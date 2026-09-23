@@ -85,8 +85,13 @@ test.describe('steering works wherever the finger lands', () => {
     test.setTimeout(90_000);
     await startRun(page);
     await expect(page.getByText('Pick one. No timer.')).toBeVisible({ timeout: 70_000 });
-    await expect(page.getByText('Baltar.').first()).toBeVisible();
-    await expect(page.getByText('Roslin.').first()).toBeVisible();
+    // The play column is shorter than the window, so the advice can sit below the fold until scrolled.
+    const baltar = page.getByText('Baltar.').first();
+    const roslin = page.getByText('Roslin.').first();
+    await baltar.scrollIntoViewIfNeeded();
+    await expect(baltar).toBeVisible();
+    await roslin.scrollIntoViewIfNeeded();
+    await expect(roslin).toBeVisible();
     await expect(page.getByTestId('comms')).toContainText(/Tyrol|Adama|Tigh|Gaeta|Dualla/);
 
     await page.locator('[data-testid^="upgrade-"]').first().click();

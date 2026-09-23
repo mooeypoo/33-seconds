@@ -92,7 +92,8 @@ test.describe('pause', () => {
     await expect(page.getByRole('button', { name: 'Launch' })).toBeVisible();
 
     await page.getByRole('button', { name: 'Launch' }).click();
-    await expect(page.getByTestId('viper-x')).toBeVisible();
+    // The debug readout is hidden on a phone. The node is still there, and that is what this checks.
+    await expect(page.getByTestId('viper-x')).toBeAttached();
     await expect
       .poll(async () => readTicks(page), { message: 'a new run starts its tick count over' })
       .toBeLessThan(ticksWhenAbandoned);
