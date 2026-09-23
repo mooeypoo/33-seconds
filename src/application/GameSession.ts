@@ -5,6 +5,7 @@ import { BanterCues, type Cue, type CueSnapshot } from './banter/cues';
 import { ScenePlayer } from './banter/recoveringScene';
 import type { TierId } from '../domain/balance/profile';
 import { createGame, DEFAULT_RUN_SEED, type Game, type GameOptions } from '../domain/game';
+import { PHONE_PLAYFIELD, type Playfield } from '../domain/shared/world';
 import type { DomainEvent } from '../domain/shared/events';
 import { IDLE_INTENT } from '../domain/shared/intent';
 import { createRandomStream, type RandomStream } from '../domain/shared/random';
@@ -102,9 +103,10 @@ export class GameSession {
   }
 
   /** Leaves the title screen. Also the first user gesture, which is when audio may start (D12). */
-  start(tier: TierId = DEFAULT_PLAY_TIER): void {
+  start(tier: TierId = DEFAULT_PLAY_TIER, playfield?: Playfield): void {
     if (this.phase !== 'title') return;
-    this.game = createGame({ ...this.options, tierProfile: profileFor(tier) });
+    const lane = playfield ?? this.options.playfield ?? PHONE_PLAYFIELD;
+    this.game = createGame({ ...this.options, tierProfile: profileFor(tier), playfield: lane });
     this.resetChatter();
     this.phase = 'running';
     this.reason = null;

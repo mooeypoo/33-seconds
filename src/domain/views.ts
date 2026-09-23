@@ -152,6 +152,10 @@ export interface GameView {
   readonly raiders: readonly RaiderView[];
   readonly ghosts: readonly GhostView[];
   readonly fleet: FleetView;
+  /** Lane width for this run. Presenters size the frame to it. */
+  readonly worldWidth: number;
+  /** 1 on a phone. Desktop grows the Viper and the Raiders by this, pictures and hitboxes. */
+  readonly fighterScale: number;
   readonly tier: TierId;
   readonly raptors: readonly RaptorView[];
   readonly imaginarySix: ImaginarySixView | null;

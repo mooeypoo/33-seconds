@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 import type { SessionStatus } from '../application/GameSession';
-import { CANVAS_HOST_KEY, SESSION_KEY } from './injection';
+import { playfieldForWindow } from '../application/playfield';
+import type { TierId } from '../domain/balance/profile';
+import { CANVAS_HOST_KEY, RESIZE_PLAYFIELD_KEY, SESSION_KEY } from './injection';
 import AboutSheet from './components/AboutSheet.vue';
 import CommsOverlay from './components/CommsOverlay.vue';
 import DragHint from './components/DragHint.vue';
@@ -20,6 +22,7 @@ import { hudStore } from './stores/hudStore';
 
 const session = inject(SESSION_KEY);
 const mountCanvas = inject(CANVAS_HOST_KEY);
+const resizePlayfield = inject(RESIZE_PLAYFIELD_KEY);
 if (!session || !mountCanvas) throw new Error('App.vue needs a session and a canvas host from main.ts');
 
 const canvasHost = useTemplateRef<HTMLElement>('canvasHost');
@@ -32,6 +35,12 @@ const showFleet = computed(
 /** About is a pause with the how-to sheet, not the pause menu. */
 const aboutOpen = ref(false);
 let unsubscribe: (() => void) | null = null;
+
+function beginRun(tier: TierId): void {
+  const playfield = playfieldForWindow(window.innerWidth);
+  session?.start(tier, playfield);
+  resizePlayfield?.(playfield.width);
+}
 
 function openAbout(): void {
   aboutOpen.value = true;
@@ -101,7 +110,7 @@ onUnmounted(() => {
     </footer>
   </div>
 
-  <TitleOverlay v-if="status.phase === 'title'" @start="session.start($event)" />
+  <TitleOverlay v-if="status.phase === 'title'" @start="beginRun" />
 
   <WinOverlay v-else-if="status.phase === 'won'" @continue="session.returnToTitle()" />
 
@@ -136,7 +145,7 @@ onUnmounted(() => {
 .bottom-band,
 .shell.in-run .play {
   /* Top controls plus a fixed dialogue strip under the playfield. */
-  width: min(100%, calc((100dvh - 240px) * 270 / 480));
+  width: min(100%, calc((100dvh - 240px) * 324 / 480));
 }
 
 .top-band {

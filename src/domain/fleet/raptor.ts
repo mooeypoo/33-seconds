@@ -34,10 +34,12 @@ export class Raptor {
   private direction: number;
   private hull: number = RAPTOR_HIT_POINTS;
   private hangared = false;
+  private readonly worldWidth: number;
 
-  constructor(id: number, x: number, direction: number) {
+  constructor(id: number, x: number, direction: number, worldWidth: number = WORLD_WIDTH_UNITS) {
     this.id = id;
-    this.positionX = clamp(x, EDGE_PAD_UNITS, WORLD_WIDTH_UNITS - EDGE_PAD_UNITS);
+    this.worldWidth = worldWidth;
+    this.positionX = clamp(x, EDGE_PAD_UNITS, worldWidth - EDGE_PAD_UNITS);
     this.previousPositionX = this.positionX;
     this.direction = direction < 0 ? -1 : 1;
   }
@@ -72,7 +74,7 @@ export class Raptor {
     this.previousPositionY = this.positionY;
     this.positionX += this.direction * RAPTOR_SPEED_UNITS_PER_SECOND * tickSeconds;
     const minX = EDGE_PAD_UNITS;
-    const maxX = WORLD_WIDTH_UNITS - EDGE_PAD_UNITS;
+    const maxX = this.worldWidth - EDGE_PAD_UNITS;
     if (this.positionX <= minX) {
       this.positionX = minX;
       this.direction = 1;
@@ -106,7 +108,7 @@ export class Raptor {
 }
 
 /** Spread escorts along the line so two stacks are not a pile. */
-export function raptorLaunchX(index: number, count: number): number {
-  const span = WORLD_WIDTH_UNITS - EDGE_PAD_UNITS * 2;
+export function raptorLaunchX(index: number, count: number, worldWidth: number = WORLD_WIDTH_UNITS): number {
+  const span = worldWidth - EDGE_PAD_UNITS * 2;
   return EDGE_PAD_UNITS + ((index + 1) / (count + 1)) * span;
 }

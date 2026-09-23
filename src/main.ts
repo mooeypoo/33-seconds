@@ -1,5 +1,6 @@
 import { createApp } from 'vue';
 import { GameSession } from './application/GameSession';
+import { playfieldForWindow } from './application/playfield';
 import { PlayerSettings, effectiveReducedEffects } from './application/playerSettings';
 import { attachAutoPause } from './infrastructure/input/autoPause';
 import { CombinedInput } from './infrastructure/input/CombinedInput';
@@ -9,7 +10,13 @@ import { ButtonLatchInput } from './infrastructure/input/ButtonLatchInput';
 import { bootPhaser } from './infrastructure/phaser/PhaserGame';
 import { createStoragePort } from './infrastructure/storage/LocalStorageAdapter';
 import App from './presentation/App.vue';
-import { CANVAS_HOST_KEY, MISSILE_PRESS_KEY, SPECIAL_PRESS_KEY, SESSION_KEY } from './presentation/injection';
+import {
+  CANVAS_HOST_KEY,
+  MISSILE_PRESS_KEY,
+  RESIZE_PLAYFIELD_KEY,
+  SPECIAL_PRESS_KEY,
+  SESSION_KEY,
+} from './presentation/injection';
 import { hudStore } from './presentation/stores/hudStore';
 import { settingsStore } from './presentation/stores/settingsStore';
 import './presentation/styles.css';
@@ -36,7 +43,9 @@ const keyboard = new KeyboardInput({
   },
 });
 
-const session = new GameSession(new CombinedInput(stick, keyboard, buttons));
+const playfield = playfieldForWindow(window.innerWidth);
+const session = new GameSession(new CombinedInput(stick, keyboard, buttons), { playfield });
+let resizePlayfield = (_worldWidth: number): void => {};
 
 keyboard.attach();
 stick.attach({
@@ -60,8 +69,11 @@ app.provide(MISSILE_PRESS_KEY, () => {
 app.provide(SPECIAL_PRESS_KEY, () => {
   buttons.pressSpecial();
 });
+app.provide(RESIZE_PLAYFIELD_KEY, (worldWidth: number) => {
+  resizePlayfield(worldWidth);
+});
 app.provide(CANVAS_HOST_KEY, (host: HTMLElement) => {
-  bootPhaser(
+  const phaser = bootPhaser(
     host,
     session,
     stick,
@@ -69,7 +81,9 @@ app.provide(CANVAS_HOST_KEY, (host: HTMLElement) => {
       hudStore.setStats(stats);
     },
     reducedEffects,
+    playfield.width,
   );
+  resizePlayfield = phaser.resize;
 });
 app.mount(root);
 

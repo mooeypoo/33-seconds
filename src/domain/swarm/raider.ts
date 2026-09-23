@@ -23,12 +23,12 @@ export const RAIDER_RADIUS_UNITS = 8;
 
 export const RAIDER_SPAWN_Y_UNITS = RAIDER_HALF_HEIGHT_UNITS + 8;
 
-export function raiderSpawnMinX(): number {
-  return RAIDER_HALF_WIDTH_UNITS;
+export function raiderSpawnMinX(fighterScale = 1): number {
+  return RAIDER_HALF_WIDTH_UNITS * fighterScale;
 }
 
-export function raiderSpawnMaxX(): number {
-  return WORLD_WIDTH_UNITS - RAIDER_HALF_WIDTH_UNITS;
+export function raiderSpawnMaxX(worldWidth: number = WORLD_WIDTH_UNITS, fighterScale = 1): number {
+  return worldWidth - RAIDER_HALF_WIDTH_UNITS * fighterScale;
 }
 
 /**

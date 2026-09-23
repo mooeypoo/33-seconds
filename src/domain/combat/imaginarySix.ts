@@ -33,6 +33,11 @@ export class ImaginarySix {
   private beamX = 0;
   private beamY = 0;
   private aiming = false;
+  private readonly worldWidth: number;
+
+  constructor(worldWidth: number = WORLD_WIDTH_UNITS) {
+    this.worldWidth = worldWidth;
+  }
 
   get x(): number {
     return this.positionX;
@@ -66,9 +71,9 @@ export class ImaginarySix {
     const right = viperX + SIX_OFFSET_X_UNITS;
     const left = viperX - SIX_OFFSET_X_UNITS;
     const nextX = clamp(
-      right <= WORLD_WIDTH_UNITS - SIX_HALF_WIDTH_UNITS ? right : left,
+      right <= this.worldWidth - SIX_HALF_WIDTH_UNITS ? right : left,
       SIX_HALF_WIDTH_UNITS,
-      WORLD_WIDTH_UNITS - SIX_HALF_WIDTH_UNITS,
+      this.worldWidth - SIX_HALF_WIDTH_UNITS,
     );
     const nextY = clamp(viperY, SIX_HALF_HEIGHT_UNITS, WORLD_HEIGHT_UNITS - SIX_HALF_HEIGHT_UNITS);
 

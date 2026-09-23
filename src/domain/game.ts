@@ -32,7 +32,6 @@ import {
   RAIDER_HALF_HEIGHT_UNITS,
   RAIDER_HALF_WIDTH_UNITS,
   RAIDER_RADIUS_UNITS,
-  RAIDER_SPAWN_Y_UNITS,
   raiderSpawnMaxX,
   raiderSpawnMinX,
 } from './swarm/raider';
@@ -48,8 +47,12 @@ import {
   RESURRECTION_SHIP_VULNERABLE_CYCLE,
 } from './swarm/resurrectionShip';
 import type { GameView } from './views';
+import { PHONE_PLAYFIELD, type Playfield } from './shared/world';
 
-/** Seed used when the caller does not pass one. Play uses this until a run-start seed exists. */
+/**
+ * Seed used when the caller does not pass one. The same seed on the same playfield is the same
+ * scenario. A phone and a desktop do not share a playfield, so they do not share a scenario.
+ */
 export const DEFAULT_RUN_SEED = 1;
 
 export interface GameOptions {
@@ -94,6 +97,11 @@ export interface GameOptions {
    * Play always starts empty.
    */
   readonly startingCards?: readonly CardId[];
+  /**
+   * Lane width and fighter scale. Omitted means the phone world, so existing tests stay put.
+   * A desktop run passes the wider playfield (PRD decision 14).
+   */
+  readonly playfield?: Playfield;
 }
 
 /**
@@ -111,11 +119,12 @@ export class Game {
   private readonly resurrectionShipVulnerableCycle: number;
   private readonly resurrectionShipHitPoints: number;
   private readonly cycle = new JumpCycle();
+  private readonly playfield: Playfield;
   private readonly fleet: Fleet;
   private readonly profile: CycleProfile;
   private raptors: Raptor[] = [];
   private six: ImaginarySix | null = null;
-  private readonly viper = new Viper();
+  private readonly viper: Viper;
   private readonly shots: Projectile[] = [];
   private readonly liveShots: Projectile[] = [];
   private readonly missiles: Missile[] = [];
@@ -151,7 +160,9 @@ export class Game {
       fleetCycleDamageCap: FLEET_CYCLE_DAMAGE_CAP,
       fleetRepairOfMissing: FLEET_REPAIR_OF_MISSING,
     };
-    this.fleet = new Fleet(options.fleetStartingIntegrity ?? FLEET_INTEGRITY_MAX);
+    this.playfield = options.playfield ?? PHONE_PLAYFIELD;
+    this.viper = new Viper(this.playfield.width, this.playfield.fighterScale);
+    this.fleet = new Fleet(options.fleetStartingIntegrity ?? FLEET_INTEGRITY_MAX, this.playfield.width);
     this.loadout = new Loadout(options.startingCards ?? [], this.profile.fleetCycleDamageCap);
     this.launchRaptors();
     this.syncSix();
@@ -286,7 +297,7 @@ export class Game {
         velocityY: viper.velocityYUnitsPerSecond,
         hp: viper.hp,
         ejected: viper.isEjected,
-        scale: this.loadout.viperScale,
+        scale: this.loadout.viperScale * this.playfield.fighterScale,
         cylonEye: this.loadout.cylonEye,
       },
       projectiles: this.liveShots.map((shot) => shot.toView()),
@@ -301,11 +312,13 @@ export class Game {
         x: download.x,
         // Spoilers: sit on the return column at spawn height so you can see and shoot the future
         // (PRD 10.2). Without the card the bar stays on the corpse.
-        y: this.loadout.ghostsAreShootable ? RAIDER_SPAWN_Y_UNITS : download.y,
+        y: this.loadout.ghostsAreShootable ? this.raiderSpawnY : download.y,
         remainingSeconds: download.remaining,
         shootable: this.loadout.ghostsAreShootable,
       })),
       fleet: this.fleet.view,
+      worldWidth: this.playfield.width,
+      fighterScale: this.playfield.fighterScale,
       tier: this.profile.id,
       raptors: this.raptors.map((raptor) => raptor.toView()),
       imaginarySix: this.six?.isPresent ? this.six.toView() : null,
@@ -621,7 +634,7 @@ export class Game {
           this.loadout.playerShotRadius,
           raider.x,
           raider.y,
-          RAIDER_RADIUS_UNITS,
+          this.raiderRadius,
         );
         if (!hit) continue;
 
@@ -682,7 +695,7 @@ export class Game {
     const delaySeconds = this.loadout.ghostDelaySeconds;
     if (delaySeconds <= 0) return false;
 
-    const ghostY = RAIDER_SPAWN_Y_UNITS;
+    const ghostY = this.raiderSpawnY;
     let bestAlong = Infinity;
     let best: Download | null = null;
     for (const download of this.downloads) {
@@ -743,7 +756,7 @@ export class Game {
           MISSILE_RADIUS_UNITS,
           raider.x,
           raider.y,
-          RAIDER_RADIUS_UNITS,
+          this.raiderRadius,
         );
         if (along === null) continue;
         if (along < bestAlong || (along === bestAlong && raider.id < bestId)) {
@@ -815,7 +828,7 @@ export class Game {
         RAIDER_SHOT_RADIUS_UNITS,
         this.viper.x,
         this.viper.y,
-        this.loadout.viperRadius,
+        this.loadout.viperRadius * this.playfield.fighterScale,
       );
       if (!hit) continue;
 
@@ -866,7 +879,9 @@ export class Game {
     const count = this.loadout.raptorCount;
     this.raptors = [];
     for (let index = 0; index < count; index++) {
-      this.raptors.push(new Raptor(index, raptorLaunchX(index, count), index % 2 === 0 ? 1 : -1));
+      this.raptors.push(
+        new Raptor(index, raptorLaunchX(index, count, this.playfield.width), index % 2 === 0 ? 1 : -1, this.playfield.width),
+      );
     }
   }
 
@@ -875,7 +890,7 @@ export class Game {
   }
 
   private syncSix(): void {
-    if (this.loadout.hasImaginarySix) this.six ??= new ImaginarySix();
+    if (this.loadout.hasImaginarySix) this.six ??= new ImaginarySix(this.playfield.width);
     else this.six = null;
   }
 
@@ -1074,7 +1089,7 @@ export class Game {
     if (this.resurrectionShip) return;
     if (this.cycle.view.cycleIndex < this.resurrectionShipArrivesCycle) return;
     const shielded = this.cycle.view.cycleIndex < this.resurrectionShipVulnerableCycle;
-    this.resurrectionShip = new ResurrectionShip(this.resurrectionShipHitPoints, shielded);
+    this.resurrectionShip = new ResurrectionShip(this.resurrectionShipHitPoints, shielded, this.playfield.width);
     events.push({ type: 'ResurrectionShipArrived', x: this.resurrectionShip.x, y: this.resurrectionShip.y });
   }
 
@@ -1106,14 +1121,14 @@ export class Game {
     returning?: { readonly identityId: number; readonly deaths: number; readonly x: number },
   ): void {
     if (this.raiders.length >= DIRECTOR_CAP) return;
-    const minX = raiderSpawnMinX();
-    const maxX = raiderSpawnMaxX();
+    const minX = raiderSpawnMinX(this.playfield.fighterScale);
+    const maxX = raiderSpawnMaxX(this.playfield.width, this.playfield.fighterScale);
     const column = returning?.x ?? this.pickFreshColumn(minX, maxX);
     const x = Math.min(maxX, Math.max(minX, column));
     const identityId = returning?.identityId ?? this.nextIdentityId;
     if (!returning) this.nextIdentityId += 1;
 
-    const raider = new Raider(this.nextId, identityId, x, RAIDER_SPAWN_Y_UNITS, {
+    const raider = new Raider(this.nextId, identityId, x, this.raiderSpawnY, {
       deaths: returning?.deaths ?? 0,
       returned: Boolean(returning),
     });
@@ -1130,8 +1145,16 @@ export class Game {
     });
   }
 
+  private get raiderRadius(): number {
+    return RAIDER_RADIUS_UNITS * this.playfield.fighterScale;
+  }
+
+  private get raiderSpawnY(): number {
+    return RAIDER_HALF_HEIGHT_UNITS * this.playfield.fighterScale + 8;
+  }
+
   private pickFreshColumn(minX: number, maxX: number): number {
-    const gap = RAIDER_HALF_WIDTH_UNITS * 4;
+    const gap = RAIDER_HALF_WIDTH_UNITS * this.playfield.fighterScale * 4;
     for (let attempt = 0; attempt < 8; attempt++) {
       const x = this.scenario.between(minX, maxX);
       if (this.raiders.every((raider) => Math.abs(raider.x - x) >= gap)) return x;

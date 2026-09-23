@@ -14,6 +14,7 @@ const STILL_MS = 280;
 export class ExplosionPresenter implements Presenter {
   private readonly scene: Phaser.Scene;
   private readonly reduced: boolean;
+  private fighterScale = 1;
 
   constructor(scene: Phaser.Scene, prefersReducedMotion: boolean) {
     this.scene = scene;
@@ -31,7 +32,8 @@ export class ExplosionPresenter implements Presenter {
   onEvent(event: DomainEvent): void {
     if (event.type !== 'RaiderDestroyed') return;
     const sprite = this.scene.add.sprite(event.x, event.y, EXPLOSION_FRAMES[2]);
-    sprite.setDisplaySize(SHIP_SHOWN_UNITS, SHIP_SHOWN_UNITS);
+    const shown = SHIP_SHOWN_UNITS * this.fighterScale;
+    sprite.setDisplaySize(shown, shown);
     sprite.setDepth(4);
 
     if (this.reduced) {
@@ -53,7 +55,8 @@ export class ExplosionPresenter implements Presenter {
     });
   }
 
-  sync(_view: GameView, _alpha: number): void {
-    // The burst is an event, not a body the domain keeps around.
+  sync(view: GameView, _alpha: number): void {
+    // The burst is an event. The scale is remembered so the next one matches this run's fighters.
+    this.fighterScale = view.fighterScale;
   }
 }

@@ -3,7 +3,7 @@ import { FLEET_LINE_Y_UNITS } from '../../../../domain/fleet/integrity';
 import { RAIDER_HIT_POINTS } from '../../../../domain/swarm/raider';
 import { RESURRECTION_DOWNLOAD_SECONDS } from '../../../../domain/swarm/resurrection';
 import type { DomainEvent } from '../../../../domain/shared/events';
-import { WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS, clamp } from '../../../../domain/shared/world';
+import { WORLD_HEIGHT_UNITS, clamp } from '../../../../domain/shared/world';
 import type { GameView, GhostView, RaiderView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
 import { PALETTE } from '../../shared/palette';
@@ -103,7 +103,8 @@ export class RaiderPresenter implements Presenter {
       mark.hull.setAlpha(raider.protected ? 0.55 : 1);
       this.drawPips(mark.pips, raider);
       this.syncEye(mark, raider.armed);
-      mark.body.setDisplaySize(RAIDER_SHOWN_UNITS, RAIDER_SHOWN_UNITS);
+      const shown = RAIDER_SHOWN_UNITS * view.fighterScale;
+      mark.body.setDisplaySize(shown, shown);
       this.syncDive(raider, mark.hull.x, mark.hull.y);
     }
 
@@ -158,7 +159,7 @@ export class RaiderPresenter implements Presenter {
     for (const ghost of view.ghosts) {
       const existing = this.blips.get(ghost.identityId);
       const mark = existing ?? this.buildGhost(ghost);
-      mark.root.setPosition(this.ghostX(ghost.x), this.ghostY(ghost.y));
+      mark.root.setPosition(this.ghostX(ghost.x, view.worldWidth), this.ghostY(ghost.y));
       mark.cross.setVisible(ghost.shootable);
       this.setDownloadPips(mark.pips, ghost.remainingSeconds);
     }
@@ -212,8 +213,8 @@ export class RaiderPresenter implements Presenter {
     }
   }
 
-  private ghostX(x: number): number {
-    return clamp(x, DOWNLOAD_BAR_WIDTH / 2 + 1, WORLD_WIDTH_UNITS - DOWNLOAD_BAR_WIDTH / 2 - 1);
+  private ghostX(x: number, worldWidth: number): number {
+    return clamp(x, DOWNLOAD_BAR_WIDTH / 2 + 1, worldWidth - DOWNLOAD_BAR_WIDTH / 2 - 1);
   }
 
   private ghostY(y: number): number {
