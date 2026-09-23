@@ -42,7 +42,7 @@ describe('the Recovering table', () => {
     expect(second.view.upgradeOffer?.cardIds).toEqual(offer?.cardIds);
   });
 
-  it('lets you Ask Baltar Again once, then not again', () => {
+  it('refreshes the offered cards once, then not again', () => {
     const game = createGame({ seed: 1, raidersFire: false });
     toRecovering(game);
     const before = game.view.upgradeOffer?.cardIds ?? [];
@@ -73,6 +73,21 @@ describe('the Recovering table', () => {
     expect(game.view.cycle.cycleIndex).toBe(2);
     expect(game.view.upgradeOffer).toBeNull();
     expect(game.view.loadout.some((card) => card.id === cardId && card.stacks === 1)).toBe(true);
+    expect(game.view.upgradeOrder.at(-1)).toBe(cardId);
+  });
+
+  it('moves a card you already own to the end when you take it again', () => {
+    const game = createGame({ seed: 1, raidersFire: false, startingCards: ['spoilers', 'flak-enthusiast'] });
+    expect(game.view.upgradeOrder).toEqual(['spoilers', 'flak-enthusiast']);
+
+    toRecovering(game);
+    const next = game.view.upgradeOffer?.cardIds[0] ?? '';
+    expect(next).not.toBe('');
+    game.pickUpgrade(next);
+
+    expect(game.view.upgradeOrder.at(-1)).toBe(next);
+    expect(game.view.upgradeOrder).toContain('spoilers');
+    expect(game.view.upgradeOrder).toContain('flak-enthusiast');
   });
 
   it('does not offer a card that is already at its stack cap', () => {

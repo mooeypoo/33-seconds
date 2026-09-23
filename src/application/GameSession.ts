@@ -29,8 +29,8 @@ export interface SessionStatus {
   readonly countdownSeconds: number;
   /** The one comms line on screen, or null. A Recovering scene takes the strip. Pause freezes it. */
   readonly comms: CommsLine | null;
-  /** A card tapped while the scene is still going. The cycle starts when the scene ends. */
-  readonly heldCardId: string | null;
+  /** The Recovering sheet is up. Focus loss does not cover it with the pause menu. */
+  readonly choosingUpgrade: boolean;
 }
 
 export interface FrameResult {
@@ -69,7 +69,8 @@ export class GameSession {
   private banter: Banter;
   private readonly scene = new ScenePlayer();
   private sceneRandom!: RandomStream;
-  private heldCardId: string | null = null;
+  /** A card waiting out the 3-2-1 after Apply. The fight starts when that countdown ends. */
+  private pendingUpgradeId: string | null = null;
   private sixRemarkOwed = false;
   private sixWasPresent = false;
   private readonly cues = new BanterCues();
@@ -87,7 +88,8 @@ export class GameSession {
       pauseReason: this.reason,
       countdownSeconds: Math.ceil(this.countdownRemainingSeconds),
       comms: this.phase === 'title' ? null : this.scene.active ? this.scene.line : this.banter.line,
-      heldCardId: this.phase === 'running' ? this.heldCardId : null,
+      choosingUpgrade:
+        this.phase === 'running' && this.pendingUpgradeId === null && this.game.view.cycle.phase === 'recovering',
     };
   }
 
@@ -115,9 +117,15 @@ export class GameSession {
     this.publish();
   }
 
-  /** Pauses from a player action or from an automatic trigger. Ignored unless a run is going. */
+  /**
+   * Pauses from a player action or from an automatic trigger. Ignored unless a run is going.
+   * The Recovering sheet already waits for Apply, so nothing covers it: not a blur, a hidden tab,
+   * Esc, or the Pause button. Phaser still pauses its own loop while the tab is hidden. A blur
+   * that leaves the tab visible does not. The 3-2-1 after Apply can still pause.
+   */
   pause(reason: PauseReason): void {
     if (this.phase !== 'running' && this.phase !== 'resuming') return;
+    if (this.status.choosingUpgrade) return;
     this.phase = 'paused';
     this.reason = reason;
     this.countdownRemainingSeconds = 0;
@@ -136,41 +144,39 @@ export class GameSession {
   }
 
   /**
-   * Leaves Recovering. There is no timer on this (PRD 5.1). Ignored unless a run is going and
-   * the domain is actually recovering, so Pause cannot skip a cycle. Play uses pickUpgrade;
-   * tests that only need the next cycle still call this.
+   * Leaves Recovering without a card. Ignored unless a run is going and the domain is actually
+   * recovering, so Pause cannot skip a cycle. Play uses pickUpgrade; tests that only need the
+   * next cycle still call this.
    */
   continueFromJump(): void {
     if (this.phase !== 'running') return;
     this.scene.stop();
-    this.heldCardId = null;
     this.pendingEvents.push(...this.game.continueFromJump());
   }
 
   /**
-   * Chooses a Recovering card. During the scene the choice is held, and the next cycle starts
-   * once the scene has finished (PRD 5.1). A later tap replaces the hold. No timer.
+   * Arms a Recovering card and starts the 3-2-1 (PRD 5.1). The sheet's highlight does not call
+   * this. The card is applied when the countdown ends, so a mouse pick can become a keyboard fight.
+   * Ignored unless that card is on the table.
    */
   pickUpgrade(cardId: string): void {
     if (this.phase !== 'running') return;
+    if (this.game.view.cycle.phase !== 'recovering') return;
     const offered = this.game.view.upgradeOffer?.cardIds ?? [];
     if (!offered.some((id) => id === cardId)) return;
-    if (this.scene.active) {
-      this.heldCardId = cardId;
-      this.publish();
-      return;
-    }
-    this.heldCardId = null;
-    this.pendingEvents.push(...this.game.pickUpgrade(cardId));
+    this.pendingUpgradeId = cardId;
+    this.phase = 'resuming';
+    this.reason = null;
+    this.countdownRemainingSeconds = RESUME_COUNTDOWN_SECONDS;
+    this.accumulatorSeconds = 0;
+    this.input.clear();
+    this.publish();
   }
 
-  /** One free reroll of the Recovering table. A held choice does not survive a new hand. */
+  /** One free reroll of the Recovering table (PRD 10.1). The sheet clears its own highlight. */
   rerollOffer(): void {
     if (this.phase !== 'running') return;
-    const events = this.game.rerollOffer();
-    if (events.length > 0) this.heldCardId = null;
-    this.pendingEvents.push(...events);
-    this.publish();
+    this.pendingEvents.push(...this.game.rerollOffer());
   }
 
   /** Leaves the win or lose screen for the title. The next Launch starts a new run. */
@@ -216,6 +222,12 @@ export class GameSession {
       this.countdownRemainingSeconds -= delta;
       if (this.countdownRemainingSeconds <= 0) {
         this.countdownRemainingSeconds = 0;
+        const cardId = this.pendingUpgradeId;
+        this.pendingUpgradeId = null;
+        if (cardId !== null) {
+          this.scene.stop();
+          this.pendingEvents.push(...this.game.pickUpgrade(cardId));
+        }
         this.phase = 'running';
         this.reason = null;
         // Start the loop from zero, so resuming never hands the domain a backlog of ticks.
@@ -278,7 +290,7 @@ export class GameSession {
   private resetChatter(): void {
     this.banter = this.freshBanter();
     this.scene.stop();
-    this.heldCardId = null;
+    this.pendingUpgradeId = null;
     this.sixRemarkOwed = false;
     this.sixWasPresent = false;
     this.cues.reset();
@@ -299,19 +311,16 @@ export class GameSession {
       offeredCardIds: view.upgradeOffer?.cardIds ?? [],
     };
 
-    if (events.some((event) => event.type === 'CyclePhaseChanged' && event.phase === 'recovering')) {
-      this.heldCardId = null;
-      this.scene.start(view.recoveryBand, this.sceneRandom);
-    }
+    const enteredRecovering = events.some((event) => event.type === 'CyclePhaseChanged' && event.phase === 'recovering');
+    if (enteredRecovering) this.scene.start(view.recoveryBand, this.sceneRandom);
 
     this.banter.observe(events, context);
     if (!this.scene.active) this.playCues(events, view, context, deltaSeconds);
     this.banter.advance(deltaSeconds);
     const justLeftTheScene = this.scene.active && this.scene.advance(deltaSeconds);
-    if (justLeftTheScene) this.commitHeldPick();
     // The arriving line is in next frame's events. Let it speak before anyone asks about Six.
     if (!this.scene.active && !justLeftTheScene) this.maybeMentionSix(context);
-    if (commsKey(this.status.comms) !== before) this.publish();
+    if (enteredRecovering || commsKey(this.status.comms) !== before) this.publish();
   }
 
   /**
@@ -333,14 +342,6 @@ export class GameSession {
       if (heard) spoken = cue;
     }
     if (spoken) this.cues.accept(spoken);
-  }
-
-  /** The next cycle, once the scene has had its say and a card is waiting. */
-  private commitHeldPick(): void {
-    const cardId = this.heldCardId;
-    if (cardId === null) return;
-    this.heldCardId = null;
-    this.pendingEvents.push(...this.game.pickUpgrade(cardId));
   }
 
   /**

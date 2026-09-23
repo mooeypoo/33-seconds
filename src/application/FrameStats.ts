@@ -41,6 +41,10 @@ export interface FrameStats {
   readonly speechRemainingSeconds: number;
   readonly speechJumpsUntilReady: number;
   readonly cards: number;
+  /** The bonus taken most recently, or null before the first Apply. */
+  readonly latestUpgradeId: string | null;
+  /** How many older bonuses sit behind that name. */
+  readonly olderUpgradeCount: number;
   readonly cylonEye: boolean;
   readonly raptorHp: number;
   readonly raptorHpMax: number;

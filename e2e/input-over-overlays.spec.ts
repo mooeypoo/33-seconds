@@ -81,24 +81,34 @@ test.describe('steering works wherever the finger lands', () => {
     await expect(page.getByText('Drag anywhere to fly')).toBeHidden();
   });
 
-  test('the pick names both advisors and still speaks', async ({ page }) => {
+  test('a title opens, and Apply is what leaves Recovering', async ({ page }) => {
     test.setTimeout(90_000);
     await startRun(page);
     await expect(page.getByText('Pick one. No timer.')).toBeVisible({ timeout: 70_000 });
-    // The play column is shorter than the window, so the advice can sit below the fold until scrolled.
-    const baltar = page.getByText('Baltar.').first();
-    const roslin = page.getByText('Roslin.').first();
-    await baltar.scrollIntoViewIfNeeded();
-    await expect(baltar).toBeVisible();
-    await roslin.scrollIntoViewIfNeeded();
-    await expect(roslin).toBeVisible();
+    await expect(page.getByTestId('advisor-baltar')).toHaveCount(0);
+    await expect(page.getByTestId('apply-upgrade')).toBeDisabled();
     await expect(page.getByTestId('comms')).toContainText(/Tyrol|Adama|Tigh|Gaeta|Dualla/);
 
     await page.locator('[data-testid^="upgrade-"]').first().click();
-    await expect(page.getByText('That one. The deck is still talking.')).toBeVisible();
-    await expect(page.getByText('Chosen', { exact: true })).toBeVisible();
-    await page.waitForTimeout(400);
+    await expect(page.getByText('Selected', { exact: true })).toBeVisible();
+    await expect(page.getByTestId('advisor-baltar')).toBeVisible();
+    await expect(page.getByTestId('advisor-roslin')).toBeVisible();
     await expect(page.getByText('Jump complete')).toBeVisible();
+
+    await page.locator('[data-testid^="upgrade-"]').first().click();
+    await expect(page.getByTestId('advisor-baltar')).toBeVisible();
+
+    await page.getByTestId('reroll-upgrades').click();
+    await expect(page.getByTestId('advisor-baltar')).toHaveCount(0);
+    await expect(page.getByTestId('reroll-upgrades')).toHaveCount(0);
+
+    await page.locator('[data-testid^="upgrade-"]').first().click();
+    const apply = page.getByTestId('apply-upgrade');
+    const title = (await apply.innerText()).replace(/^Apply\s+/, '');
+    await apply.click();
+    await expect(page.getByText('Jump complete')).toBeHidden();
+    await expect(page.getByTestId('countdown')).toBeVisible();
+    await expect(page.getByTestId('latest-upgrade')).toContainText(title, { timeout: 6_000 });
   });
 
   test('a drag that starts on a comms line still steers', async ({ page }) => {

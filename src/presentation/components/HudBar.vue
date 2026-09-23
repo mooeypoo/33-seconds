@@ -5,7 +5,7 @@ import MuteControl from './MuteControl.vue';
 import type { SessionPhase } from '../../application/GameSession';
 import { hudStore } from '../stores/hudStore';
 
-defineProps<{ phase: SessionPhase }>();
+defineProps<{ phase: SessionPhase; allowPause?: boolean }>();
 const emit = defineEmits<{ pause: []; about: [] }>();
 const settingsOpen = ref(false);
 
@@ -105,8 +105,12 @@ const stats = hudStore.state;
       </button>
       <div class="menu" :class="{ open: settingsOpen }" data-ui>
         <MuteControl compact />
-        <button v-if="phase === 'running'" data-ui class="hud-button" type="button" @click="pause">Pause</button>
-        <button v-if="phase === 'running'" data-ui class="hud-button" type="button" @click="about">About</button>
+        <button v-if="phase === 'running' && allowPause !== false" data-ui class="hud-button" type="button" @click="pause">
+          Pause
+        </button>
+        <button v-if="phase === 'running' && allowPause !== false" data-ui class="hud-button" type="button" @click="about">
+          About
+        </button>
       </div>
     </div>
   </div>

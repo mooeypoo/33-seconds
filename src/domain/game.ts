@@ -331,6 +331,7 @@ export class Game {
       playerShotScale: this.loadout.playerShotScale,
       upgradeOffer: this.loadout.offer,
       loadout: this.loadout.cards,
+      upgradeOrder: this.loadout.upgradeOrder,
       cycle: this.cycle.view,
       recoveryBand: this.recoveryBand,
     };

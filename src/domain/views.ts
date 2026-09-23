@@ -174,7 +174,9 @@ export interface GameView {
     readonly cardIds: readonly CardId[];
     readonly rerollAvailable: boolean;
   } | null;
-  readonly loadout: readonly { readonly id: CardId; readonly stacks: number }[];
+  readonly loadout: readonly { readonly id: CardId; readonly stacks: number; readonly maxStacks: number }[];
+  /** Distinct cards in the order they were last taken. The last one is the newest bonus. */
+  readonly upgradeOrder: readonly CardId[];
   readonly cycle: CycleView;
   /** Scene band for the cycle that just ended. Clean until the first jump. */
   readonly recoveryBand: DamageBand;

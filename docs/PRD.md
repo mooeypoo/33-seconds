@@ -37,7 +37,7 @@ Read this every session. The rest of the document is detail.
 - Cycle 1 teaches the loop. On cycle 2 the **resurrection ship** arrives **shielded** (visible, cannot be hurt). On cycle 4 the shield drops. Chip away at its persistent HP. Destroy it to stop the resurrections, then clear the remaining Raiders to win. It stations high on the right and drifts a little, slowly. Both cycle numbers are tunables.
 - You **lose** only when **Fleet Integrity** reaches zero. Strafing runs and stray bullets hurt the fleet. There is a per-cycle damage cap and a partial repair at each jump. Your Viper being destroyed costs time, not the run.
 - **Missiles** (3 per cycle) hit the first hostile thing they touch. Lock is the nearest hostile in a forward cone. Space, a large on-screen button, or a second finger fires one. **The Speech** (E or a button): 4 s of hover and invulnerability, ready again every 3 jumps.
-- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). The twelve MVP cards are live. One free reroll: Ask Baltar Again.
+- At each jump, **pick 1 of 3 upgrade cards**. A closed row is the name and the joke. Opening it shows the effect, and a line each from Baltar and Roslin. **Apply** counts 3-2-1, then starts the next cycle. One free reroll, labeled **Refresh the list**. That sheet is not covered by the pause menu.
 - **Comfort rules:** no shake, wobble, or flashing. Color is never the only cue. Pause works anywhere.
 - **Comms portraits and jokes** are data written later. Use clearly labeled placeholders first.
 - Two difficulty tiers: **Civilian Run** (easier fleet math, same fight) and **Viper Pilot** (the default Launch). Ignoring the fleet on Viper Pilot can lose the run.
@@ -106,9 +106,11 @@ The countdown is part of the playfield, just above the fleet, drawn behind ships
 | **Building** | 5-25 s | Swarm ramps up to the Director's cap. You kill, collect, and position. |
 | **Spooling** | 25-33 s | FTL ring fills. Gaeta and Dualla count down. The swarm presses in. Your job flips from killing to surviving. |
 | **Jumping** | about 1 s | Fade, never a white flash (a still overlay in reduced-effects mode). Bullets clear. |
-| **Recovering** | 8-12 s | Invulnerable. Tyrol resets your Viper hull and missiles. The fleet gets a partial repair. You pick 1 of 3 upgrades. A short comms scene plays. |
+| **Recovering** | 8-12 s | Invulnerable. Tyrol resets your Viper hull and missiles. The fleet gets a partial repair. You pick 1 of 3 upgrades, then Apply. A short comms scene plays in the strip and does not have to finish. |
 
-The next cycle starts when **both** the scene has ended **and** the upgrade is chosen. There is no timer on the pick. A player who wants to think can. **Live now:** the scene plays over the table. A tap during it is held, and a later tap can change it. The cycle starts when the scene has finished and a card is chosen. Ask Baltar Again clears a held choice.
+The next cycle starts when the player presses **Apply**, after the same 3-2-1 used to resume from pause. There is no timer on the pick. A player who wants to think can. A closed row shows the card's name and its joke. Opening it shows the exact effect, and Baltar and Roslin. A second tap on the same title leaves it selected. **Apply** ends the Recovering scene if it is still speaking, counts 3-2-1, and only then starts the cycle. **Refresh the list** deals one new hand, clears the selection, and then is gone.
+
+**Live now:** the pick is a full-screen sheet of three rows, in the same quiet style as pause. The open row adds the plain effect and Baltar and Roslin with their portraits and names. The pause menu does not cover this sheet: not from focus loss, a hidden tab, Esc, or the Pause button. Mute stays. Phaser still pauses its own loop while the tab is hidden, and resumes it when the tab is visible, so the sheet is where you left it. A blur that leaves the tab visible does not stop Phaser. The scene plays in the strip under the playfield while the sheet is up. The newest bonus name sits between fleet health and mute. Older bonuses show as a count beside that name. A card you already own shows the stack this pick would become, such as 2/3.
 
 A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 
@@ -270,7 +272,7 @@ These rules exist so "smarter and angrier" never becomes "a big mass mess."
 2. **Every card has a tradeoff or a synergy.** No plain "+10% damage."
 3. **Rarities:** Common (stacks to 3), Uncommon (stacks to 2), **Questionable** (one copy, large benefit, a cosmetic downside).
 4. **Cosmetic downsides never involve camera motion, flashing, or contrast changes.** They can be text, audio, or a sprite gag.
-5. **Three cards at each jump,** plus one free reroll, "Ask Baltar Again," which gives a fresh (more panicky) opinion.
+5. **Three cards at each jump,** plus one free reroll. The button says **Refresh the list**. It deals a fresh hand once. A dealt hand can still speak about a card on that table.
 6. **Advice is honest.** Baltar and Roslin tag cards with soft hints. A hint never misleads.
 7. **Cards that depend on a later feature are not offered until that feature ships.**
 
@@ -323,7 +325,7 @@ Rarities are initial proposals. **MVP** marks the launch set of 12.
 | *Raptor Escort* | A Raptor patrols the fleet line and soaks strays. After 3 hits it returns to hangar and comes back next cycle. | Uncommon | MVP |
 | *Imaginary Six* | See below. | Questionable | MVP |
 
-**Live now:** twelve MVP cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, and a line each from Baltar and Roslin on the card. Dealing the hand can speak about a card on that table; the Recovering scene takes the strip while it plays. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. *Flak Enthusiast* is Galactica eating strays (40% then +15% per extra stack); without it every stray still hits. *Hangar Door Slam* is +30% factory damage while bays are open. *Raptor Escort* is one body per stack on the fleet line (3 HP, hangar, relaunch next cycle). *Imaginary Six* is a formation wingman: thin beam, half a gun hit, strafes then strays, in range, untouchable. Once each time she appears, someone asks who the pilot is talking to, after the louder line has finished. Later cards wait.
+**Live now:** twelve MVP cards at Recovering, pick 1 of 3, one free **Refresh the list**. A closed row is the name and the joke in italics. The open row adds the exact effect in plain text, and a line each from Baltar and Roslin, with their portraits. **Apply** counts 3-2-1, then starts the next cycle. Dealing the hand can speak about a card on that table; the Recovering scene takes the strip while it plays, and Apply ends that scene. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. *Flak Enthusiast* is Galactica eating strays (40% then +15% per extra stack); without it every stray still hits. *Hangar Door Slam* is +30% factory damage while bays are open. *Raptor Escort* is one body per stack on the fleet line (3 HP, hangar, relaunch next cycle). *Imaginary Six* is a formation wingman: thin beam, half a gun hit, strafes then strays, in range, untouchable. Once each time she appears, someone asks who the pilot is talking to, after the louder line has finished. Later cards wait.
 
 ### 10.3 *Imaginary Six* (Questionable, one copy) `[Tunable]`
 
@@ -410,7 +412,7 @@ The line under the playfield is live (12.2). Still later, for a UI pass:
 ### 12.3 Recovering scenes
 8-12 seconds, 2-4 beats, two portraits trading lines. Tyrol anchors. The closing beat points at the next jump. Each beat uses the same reading time as a line. If that would run past 12 seconds, the beats shrink together so the scene still finishes.
 
-The scene is the top of the Recovering screen, above the cards. Touches on the scene pass through.
+The scene plays in the comms strip while the pick is up. Apply does not wait for it. Touches on the strip still steer.
 
 The band is how the cycle that just ended went, remembered through the jump repair. **Clean:** the fleet took nothing and the Viper lost no hull. **Wrecked:** the fleet took 16 or more, or the Viper lost 3 or more hull, or the pilot ejected (a download that puts them back still counts). **Rough:** anything else. Those two numbers are assumptions until play says otherwise.
 
@@ -461,7 +463,7 @@ Shift is deliberately not used for the special. On Windows, pressing it five tim
 - **The play area is one portrait world.** A phone is 270 x 480. A wide window is 324 x 480, so the column is wider, and the Viper and the Raiders are a quarter larger there (pictures and hitboxes). The fleet and the shots stay the phone size on both. On a phone the column is the screen width, with thumbs at the bottom corners of the playfield, the fleet score and Settings at the top, and comms in a fixed band under the playfield. On a wide window the column is centered. Phone landscape pillarboxes. (Default, see section 19.)
 
 ### 13.3 Pause
-- Triggers: Pause, About, Esc or P, and **auto-pause** when the tab is hidden, the window loses focus, the orientation changes, or a pointer is cancelled (a notification or an edge swipe). About opens the how-to sheet instead of the pause menu. Resume on that sheet returns to the run.
+- Triggers: Pause, About, Esc or P, and **auto-pause** when the tab is hidden, the window loses focus, the orientation changes, or a pointer is cancelled (a notification or an edge swipe). About opens the how-to sheet instead of the pause menu. Resume on that sheet returns to the run. **The Recovering pick does not pause.** The sheet already waits for Apply, so Esc, Pause, and About stay out of it. Mute stays. The 3-2-1 after Apply does pause, because the fight is about to start.
 - Resume with a 3-2-1 countdown, which also clears any stuck keys or phantom stick.
 - The pause menu shows mute, a reduced-effects toggle, and later the full settings screen, the comms log, and the Cylon Complaints Board. **Live now:** mute and reduced-effects. The full settings screen waits for M6.
 - **Abandon run** (back to title, discard the current run) lives on that pause menu. **Live now:** one button, only while paused, not during the resume countdown. The next Launch starts a new run. Distinct from the lose screen's Retry, and from retry-from-last-jump, which still waits. Win and lose already return to title.
@@ -652,3 +654,5 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-23 | Comms shows the 64×64 portraits: closed, open, and blink on the game clock, two changes a second. Reduced effects holds closed. Signature uses the closed file until those drawings exist. The line still sits above the playfield. | The faces are drawn. The signature pose and the bottom strip can wait. |
 | 2026-09-23 | The line and its portrait sit in a fixed-height band under the playfield, so a longer line does not resize the playfield. Mute stays above. Pause and About sit with it. About pauses and opens how to play and what the game is. On a phone the column is the screen width. When that top band is narrow, Mute, Pause, and About fold under Settings. Missile and Speech sit on the playfield, not under the dialogue. | The dialogue was shoving the playfield around, and on a phone the column had gone thin with buttons left behind the strip. |
 | 2026-09-23 | A wide window plays a 324-wide lane. The Viper and the Raiders are a quarter larger there, pictures and hitboxes. The fleet and the shots stay the phone size. The same seed is the same scenario on the same playfield. A shared result carries the run's numbers, not a replay. | The fighters were about 28 pixels on a monitor. A phone and a desktop do not have to play the same lane. |
+| 2026-09-23 | Recovering is a sheet of three titles. Opening a title shows the effect, the joke, and Baltar and Roslin. Apply starts the next cycle immediately and ends the scene if it is still speaking. The reroll button says Refresh the list. The newest bonus name sits between fleet health and mute. | The old table showed every line at once, and a tap only held a choice until the scene finished, so a second tap could change it. |
+| 2026-09-23 | A closed Recovering row shows the name and the joke. The effect and the two advisors stay behind the row. Apply counts 3-2-1 before the next cycle. The pause menu does not cover that sheet, including Esc and the Pause button. Mute stays. | The joke is the line you choose from. The countdown is time to get back to the keyboard. The sheet was already a wait, so a second menu on top of it was in the way. |

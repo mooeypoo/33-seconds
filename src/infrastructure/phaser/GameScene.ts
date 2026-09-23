@@ -173,6 +173,8 @@ export class GameScene extends Phaser.Scene {
       speechRemainingSeconds: view.speechRemainingSeconds,
       speechJumpsUntilReady: view.speechJumpsUntilReady,
       cards: view.loadout.reduce((sum, card) => sum + card.stacks, 0),
+      latestUpgradeId: view.upgradeOrder.at(-1) ?? null,
+      olderUpgradeCount: view.upgradeOrder.length > 0 ? view.upgradeOrder.length - 1 : 0,
       cylonEye: view.viper.cylonEye,
       raptorHp: view.raptors.reduce((sum, raptor) => sum + (raptor.hangared ? 0 : raptor.hp), 0),
       raptorHpMax: view.raptors.reduce((sum, raptor) => sum + raptor.hpMax, 0),

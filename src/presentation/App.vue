@@ -10,6 +10,7 @@ import DragHint from './components/DragHint.vue';
 import FleetReadout from './components/FleetReadout.vue';
 import HudBar from './components/HudBar.vue';
 import JumpFade from './components/JumpFade.vue';
+import LatestUpgrade from './components/LatestUpgrade.vue';
 import PauseOverlay from './components/PauseOverlay.vue';
 import RecoveringOverlay from './components/RecoveringOverlay.vue';
 import TitleOverlay from './components/TitleOverlay.vue';
@@ -43,6 +44,7 @@ function beginRun(tier: TierId): void {
 }
 
 function openAbout(): void {
+  if (session?.status.choosingUpgrade) return;
   aboutOpen.value = true;
   session?.pause('player');
 }
@@ -85,15 +87,18 @@ onUnmounted(() => {
     <header v-if="inRun" class="top-band">
       <div class="status-row">
         <FleetReadout v-if="showFleet" />
-        <HudBar :phase="status.phase" @pause="session.pause('player')" @about="openAbout" />
+        <LatestUpgrade v-if="showFleet" />
+        <HudBar
+          :phase="status.phase"
+          :allow-pause="!status.choosingUpgrade"
+          @pause="session.pause('player')"
+          @about="openAbout"
+        />
       </div>
     </header>
     <div class="play">
       <div ref="canvasHost" class="canvas-host" aria-hidden="true" />
-      <RecoveringOverlay
-        v-if="status.phase === 'running' && cyclePhase === 'recovering'"
-        :held-card-id="status.heldCardId"
-      />
+      <RecoveringOverlay v-if="status.choosingUpgrade" />
       <MissileButton
         v-if="status.phase === 'running' && cyclePhase !== 'recovering' && cyclePhase !== 'jumping'"
       />
