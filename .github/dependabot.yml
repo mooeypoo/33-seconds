@@ -13,6 +13,13 @@ updates:
       runtime:
         patterns: ['*']
         dependency-type: production
+    # TypeScript 7.0 is the Go compiler and ships no JavaScript API.
+    # typescript-eslint and vue-tsc both need that API, so a major bump
+    # fails npm ci. Drop this ignore once both declare TypeScript 7 support.
+    # Patch and minor updates inside 6.x still open.
+    ignore:
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: github-actions
     directory: /
