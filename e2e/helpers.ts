@@ -18,7 +18,8 @@ export async function startRun(page: Page): Promise<void> {
   await page.goto('/');
   await page.getByRole('button', { name: 'Launch' }).click();
   // The readout only appears once the loop is running and has published once.
-  await expect(page.getByTestId('viper-x')).toBeVisible();
+  // Present in the test build. On a phone it is not shown, so visibility is the wrong check.
+  await expect(page.getByTestId('viper-x')).toBeAttached();
 }
 
 /** Presses a pointer down and drags in steps, leaving the pointer down for the caller to release. */

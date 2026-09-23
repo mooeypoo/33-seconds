@@ -20,6 +20,7 @@ const emit = defineEmits<{ continue: [] }>();
 .won {
   position: absolute;
   inset: 0;
+  z-index: 4;
   display: grid;
   place-items: center;
   pointer-events: none;

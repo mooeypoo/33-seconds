@@ -12,7 +12,7 @@ This guide is for writers, human or AI. It is not loaded by the game. Lines that
 
 **Spoiler cutoff.** `[FILL IN]` Lines must make sense to someone who has watched only up to: ______ (for example, the miniseries and the first N episodes). Anything past that needs the owner's explicit approval. No line implies a specific named character is a Cylon. Suspicion gags always point at the *player*.
 
-**Catchphrases.** Used sparingly, and never as the whole joke. `[FILL IN]` Which are allowed? (Candidates: "so say we all," "frak.")
+**Catchphrases.** "Frak" is uncapped — use it wherever a line genuinely calls for it, in any speaker's voice, as often as the moment warrants. It still shouldn't carry a joke on its own; it's seasoning, not the punchline. "So say we all" is the opposite case: it's the heavier, more identifiable line, so it stays rare — once per batch, reserved for a moment that earns it (a win, a rallying beat).
 
 **Originality.** No quotes from show scripts. Write original lines that *feel* like the show.
 
@@ -42,7 +42,7 @@ For each one: fill in the voice, then approve five sample lines. A line is good 
 - **Sample lines:** `[FILL IN]`
 
 ### Starbuck
-- **Job:** multi-kills, close calls, resurrection quips, missile launches.
+- **Job:** multi-kills, close calls, resurrection quips, missile launches, and a couple of cycle-start asides. Those asides use `chance` 0.25, so she opens a cycle sometimes and Adama still opens the rest. Whether other lines should address her by name, or a wingman squad, is parked in PRD 12.5. Do not rewrite those lines until that choice is made.
 - **Voice:** `[FILL IN]` (Starting point: cocky, a bit reckless, funny when things go badly.)
 - **Habits:** `[FILL IN]`
 - **Never:** `[FILL IN]` (Note: she is drawn by costume and silhouette, and no line uses a real person's name or likeness.)

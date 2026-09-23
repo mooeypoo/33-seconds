@@ -1,11 +1,31 @@
-[
-  {
-    "id": "dualla-ftl-spool-01",
-    "speaker": "dualla",
-    "trigger": "FtlSpoolProgress",
-    "text": "PLACEHOLDER: The fleet is still with you.",
-    "weight": 1,
-    "cooldownSeconds": 20,
-    "priority": "critical"
-  }
-]
+{
+  "speaker": "dualla",
+  "pools": [
+    {
+      "trigger": "FtlSpoolProgress",
+      "priority": "critical",
+      "cooldownSeconds": 10,
+      "lines": [
+        { "id": "dualla-ftl-spool-progress-01", "text": "{count} of {total} ships ready to jump.", "weight": 2 },
+        { "id": "dualla-ftl-spool-progress-02", "text": "Last ship's always last. She'll make it.", "weight": 2 },
+        { "id": "dualla-ftl-spool-progress-03", "text": "All hands report ready. Mostly." },
+        { "id": "dualla-ftl-spool-progress-04", "text": "{count} of {total} report ready." },
+        { "id": "dualla-ftl-spool-progress-05", "text": "Fleet's spooling. Everyone's accounted for." },
+        { "id": "dualla-ftl-spool-progress-06", "text": "Readiness holding steady." },
+        { "id": "dualla-ftl-spool-progress-07", "text": "One ship still catching up. As always." },
+        { "id": "dualla-ftl-spool-progress-08", "text": "All ships report in. Jump when ready." }
+      ]
+    },
+    {
+      "trigger": "FleetHit",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "lines": [
+        { "id": "dualla-fleet-hit-01", "text": "We took a hit. Casualties being counted." },
+        { "id": "dualla-fleet-hit-02", "text": "Minor damage reported. Nobody panic." },
+        { "id": "dualla-fleet-hit-03", "text": "We're patched. Moving on." },
+        { "id": "dualla-fleet-hit-04", "text": "Hit confirmed. Crews responding." }
+      ]
+    }
+  ]
+}

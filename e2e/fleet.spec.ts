@@ -6,6 +6,6 @@ test.describe('fleet integrity', () => {
     await startRun(page);
 
     await expect(page.getByTestId('fleet-readout')).toBeVisible();
-    await expect(page.getByTestId('fleet')).toHaveText('100/100');
+    await expect(page.getByTestId('fleet')).toHaveText('100%');
   });
 });

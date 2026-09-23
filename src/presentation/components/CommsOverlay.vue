@@ -2,15 +2,17 @@
 import { computed } from 'vue';
 import type { CommsLine } from '../../application/banter/Banter';
 
-const props = defineProps<{ comms: CommsLine }>();
+const props = defineProps<{ comms: CommsLine; embedded?: boolean; docked?: boolean }>();
 
 /** The letter is a stand-in portrait. The name next to it is the cue, not the color. */
 const initial = computed(() => props.comms.speakerName.slice(0, 1));
+const partnerInitial = computed(() => props.comms.partnerName?.slice(0, 1) ?? '');
 </script>
 
 <template>
   <!-- Not data-ui: a touch here still steers (PRD 12.2). -->
-  <p class="comms" data-testid="comms" role="status" aria-live="polite">
+  <p class="comms" :class="{ embedded, docked }" data-testid="comms" role="status" aria-live="polite">
+    <span v-if="comms.partnerName" class="portrait partner" aria-hidden="true">{{ partnerInitial }}</span>
     <span class="portrait" aria-hidden="true">{{ initial }}</span>
     <span class="body">
       <span class="name">{{ comms.speakerName }}</span>
@@ -21,23 +23,23 @@ const initial = computed(() => props.comms.speakerName.slice(0, 1));
 
 <style scoped>
 .comms {
+  /* Top band, above menus, so the swarm and the card table both leave it readable (PRD 12.2). */
   position: absolute;
-  top: max(108px, calc(env(safe-area-inset-top) + 100px));
-  left: max(12px, env(safe-area-inset-left));
-  /* Stay off the mute and pause column. */
-  max-width: min(68%, 280px);
+  z-index: 4;
+  top: max(8px, env(safe-area-inset-top));
+  left: max(8px, env(safe-area-inset-left));
+  right: max(8px, env(safe-area-inset-right));
   margin: 0;
   pointer-events: none;
   display: flex;
   gap: 8px;
   align-items: flex-start;
-  padding: 8px;
+  padding: 6px 8px;
   color: #e8d8cf;
-  background: rgb(8 12 16 / 82%);
-  border: 1px solid #3a4a44;
-  border-radius: 6px;
+  background: rgb(8 12 16 / 88%);
+  border-left: 3px solid #c4b08a;
   font-family: ui-sans-serif, system-ui, sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.35;
 }
 
@@ -51,6 +53,21 @@ const initial = computed(() => props.comms.speakerName.slice(0, 1));
   background: #c4b08a;
   font-family: ui-monospace, monospace;
   font-size: 16px;
+}
+
+.partner {
+  opacity: 0.55;
+}
+
+.embedded,
+.docked {
+  position: static;
+  z-index: auto;
+  top: auto;
+  left: auto;
+  right: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .body {

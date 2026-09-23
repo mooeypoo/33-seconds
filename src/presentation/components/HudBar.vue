@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import CycleClock from './CycleClock.vue';
-import FleetReadout from './FleetReadout.vue';
 import MuteControl from './MuteControl.vue';
 import type { SessionPhase } from '../../application/GameSession';
 import { hudStore } from '../stores/hudStore';
@@ -14,10 +13,10 @@ const stats = hudStore.state;
 <template>
   <div class="hud">
     <!--
-      Debug readout for the platform check (ADR-0001 D4), and how the end-to-end tests observe the
-      simulation without a hook into the game. It goes away once the real HUD arrives.
+      Development aid, and the window the end-to-end tests read. A shipped build leaves showDebug
+      false, so this is not part of the game. On a wide window it floats in the side margin.
     -->
-    <p v-if="stats.showDebug && stats.stats" class="debug" data-testid="debug">
+    <p v-if="stats.showDebug && stats.stats && phase !== 'title'" class="debug" data-testid="debug">
       {{ stats.stats.fps }} fps · {{ stats.stats.ticks }} ticks · {{ stats.stats.renderWidth }}×{{
         stats.stats.renderHeight
       }}
@@ -74,11 +73,11 @@ const stats = hudStore.state;
       <span v-if="stats.stats.cylonEye" data-testid="cylon-eye"> · two transponders</span>
     </p>
 
-    <FleetReadout v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" />
-    <CycleClock v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" />
+    <!-- The visible 33 is painted in the playfield. This copy is for assistive tech and tests. -->
+    <CycleClock v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" class="clock-mirror" />
 
-    <div class="controls">
-      <MuteControl v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" compact />
+    <div v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" class="controls">
+      <MuteControl compact />
       <button
         v-if="phase === 'running'"
         data-ui
@@ -95,33 +94,53 @@ const stats = hudStore.state;
 
 <style scoped>
 .hud {
-  position: absolute;
-  inset: 0;
-  /* Transparent to pointer input, so a thumb landing here still steers (ADR-0001 D5). */
+  position: relative;
+  /* Transparent to pointer input, so a thumb landing here still steers (ADR-0001 D6). */
   pointer-events: none;
+  flex: none;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
-  /* Keep out of the notch and the home bar. */
-  padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right)) 0
-    max(8px, env(safe-area-inset-left));
   font-family: ui-monospace, monospace;
-  color: #7fd6a0;
+  color: #b8ffdc;
 }
 
 .debug {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 6;
+  width: 220px;
   margin: 0;
-  flex: 1;
-  font-size: 12px;
-  line-height: 1.4;
+  pointer-events: none;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #8a9b58;
   text-shadow: 0 1px 0 #000;
+}
+
+@media (max-width: 959px) {
+  .debug {
+    display: none;
+  }
+}
+
+.hud :deep(.clock-mirror) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .controls {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex: none;
+  align-items: center;
   gap: 8px;
 }
 

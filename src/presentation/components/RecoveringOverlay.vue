@@ -4,18 +4,21 @@ import { SESSION_KEY } from '../injection';
 import flair from '../../content/upgrades.flair.json';
 
 /**
- * Recovering pick (PRD 5.1, 10). No timer. The chosen card starts the next cycle. A comms line
- * may show over this; it does not have to finish first. Full scenes wait.
+ * Recovering pick (PRD 5.1, 10). No timer. A tap during the scene is held, and the next cycle
+ * starts when the scene has finished and a card is chosen.
  */
 const session = inject(SESSION_KEY);
 if (!session) throw new Error('RecoveringOverlay needs SESSION_KEY from main.ts');
 const play = session;
+
+const props = defineProps<{ heldCardId: string | null }>();
 
 interface CardFlair {
   readonly id: string;
   readonly title: string;
   readonly joke: string;
   readonly plain: string;
+  readonly advice?: { readonly baltar?: string; readonly roslin?: string };
 }
 
 const FLAIR = flair as CardFlair[];
@@ -49,7 +52,7 @@ function reroll(): void {
   <div class="recovering">
     <div class="panel" data-ui>
       <h2>Jump complete</h2>
-      <p class="lead">Pick one. No timer. PLACEHOLDER comms scene waits.</p>
+      <p class="lead">{{ props.heldCardId ? 'That one. The deck is still talking.' : 'Pick one. No timer.' }}</p>
 
       <div class="cards">
         <button
@@ -58,12 +61,17 @@ function reroll(): void {
           data-ui
           type="button"
           class="card"
+          :class="{ chosen: card.id === props.heldCardId }"
+          :aria-pressed="card.id === props.heldCardId"
           :data-testid="`upgrade-${card.id}`"
           @click="pick(card.id)"
         >
           <em class="title">{{ card.title }}</em>
+          <span v-if="card.id === props.heldCardId" class="chosen-label">Chosen</span>
           <span class="joke">{{ card.joke }}</span>
           <span class="plain">{{ card.plain }}</span>
+          <span v-if="card.advice?.baltar" class="advice"><span class="who">Baltar.</span> {{ card.advice.baltar }}</span>
+          <span v-if="card.advice?.roslin" class="advice"><span class="who">Roslin.</span> {{ card.advice.roslin }}</span>
         </button>
       </div>
 
@@ -85,8 +93,11 @@ function reroll(): void {
 .recovering {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: auto;
   pointer-events: none;
   background: rgb(8 12 16 / 55%);
   padding: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
@@ -95,6 +106,8 @@ function reroll(): void {
 
 .panel {
   pointer-events: auto;
+  margin-top: auto;
+  margin-bottom: auto;
   width: min(320px, 100%);
   max-height: 100%;
   overflow: auto;
@@ -135,6 +148,17 @@ h2 {
   cursor: pointer;
 }
 
+.chosen {
+  outline: 2px solid #06110c;
+}
+
+.chosen-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .card:focus-visible,
 .reroll:focus-visible {
   outline: 2px solid #cfe8d8;
@@ -155,6 +179,16 @@ h2 {
 .plain {
   font-size: 13px;
   line-height: 1.35;
+}
+
+.advice {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #24343f;
+}
+
+.who {
+  font-weight: 700;
 }
 
 .reroll {

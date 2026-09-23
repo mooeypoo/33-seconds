@@ -1,11 +1,92 @@
-[
-  {
-    "id": "starbuck-missile-01",
-    "speaker": "starbuck",
-    "trigger": "MissileLaunched",
-    "text": "PLACEHOLDER: That one is away.",
-    "weight": 1,
-    "cooldownSeconds": 8,
-    "priority": "flavor"
-  }
-]
+{
+  "speaker": "starbuck",
+  "pools": [
+    {
+      "trigger": "BigRaiderEntered",
+      "priority": "normal",
+      "cooldownSeconds": 30,
+      "chance": 0.3,
+      "lines": [
+        { "id": "starbuck-big-raider-entered-01", "text": "Nuggets, eyes open. This isn't a drill." }
+      ]
+    },
+    {
+      "trigger": "CycleStarted",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "chance": 0.25,
+      "lines": [
+        { "id": "starbuck-cycle-started-01", "text": "Dibs on first kill.", "weight": 2 },
+        { "id": "starbuck-cycle-started-02", "text": "Try to keep up out there.", "weight": 2 },
+        { "id": "starbuck-cycle-started-03", "text": "Cylons again? I'm almost flattered." },
+        { "id": "starbuck-cycle-started-04", "text": "Bet you can't out-jump me today." },
+        { "id": "starbuck-cycle-started-05", "text": "Another 33. I was just getting comfortable." },
+        { "id": "starbuck-cycle-started-06", "text": "Somebody wake up the Raiders. I'm bored." },
+        { "id": "starbuck-cycle-started-07", "text": "Light a cigar. This won't take long." }
+      ]
+    },
+    {
+      "trigger": "MissileLaunched",
+      "priority": "flavor",
+      "cooldownSeconds": 15,
+      "lines": [
+        { "id": "starbuck-missile-launched-01", "text": "Fox two. Try not to come back from that.", "weight": 2 },
+        { "id": "starbuck-missile-launched-02", "text": "Special delivery, right in the head.", "weight": 2 },
+        { "id": "starbuck-missile-launched-03", "text": "That's for the last one. And the one before." },
+        { "id": "starbuck-missile-launched-04", "text": "Incoming regret." },
+        { "id": "starbuck-missile-launched-05", "text": "Catch." },
+        { "id": "starbuck-missile-launched-06", "text": "Hope you weren't attached to that ship." },
+        { "id": "starbuck-missile-launched-07", "text": "One missile, zero apologies." },
+        { "id": "starbuck-missile-launched-08", "text": "That one's got your name on it. Not really." },
+        { "id": "starbuck-missile-launched-09", "text": "Frak off and stay off." },
+        { "id": "starbuck-missile-launched-10", "text": "Higher stakes than Triad, but I'll take it." }
+      ]
+    },
+    {
+      "trigger": "MultiKill",
+      "priority": "flavor",
+      "cooldownSeconds": 15,
+      "lines": [
+        { "id": "starbuck-multi-kill-01", "text": "Wooooooooooooooooooooooooooooooo!" },
+        { "id": "starbuck-multi-kill-02", "text": "Frak yeah! Somebody get a spotter!" },
+        { "id": "starbuck-multi-kill-03", "text": "Three down before you blinked." },
+        { "id": "starbuck-multi-kill-04", "text": "Clean sweep. Try to keep count." },
+        { "id": "starbuck-multi-kill-05", "text": "Multiple confirmed. I'm just showing off now." }
+      ]
+    },
+    {
+      "trigger": "CloseCall",
+      "priority": "flavor",
+      "cooldownSeconds": 15,
+      "lines": [
+        { "id": "starbuck-close-call-01", "text": "That one had my name on it. Missed." },
+        { "id": "starbuck-close-call-02", "text": "Too close. I'm counting that as a win." },
+        { "id": "starbuck-close-call-03", "text": "Okay, that one actually scared me a little." },
+        { "id": "starbuck-close-call-04", "text": "Nice try. Better luck next explosion." },
+        { "id": "starbuck-close-call-05", "text": "I felt that one. Didn't love it." }
+      ]
+    },
+    {
+      "trigger": "RaiderResurrected",
+      "priority": "flavor",
+      "cooldownSeconds": 15,
+      "lines": [
+        { "id": "starbuck-raider-resurrected-01", "text": "Oh, you're back? Cute." },
+        { "id": "starbuck-raider-resurrected-02", "text": "Guess dying's not a deterrent anymore." },
+        { "id": "starbuck-raider-resurrected-03", "text": "You again? We really need to stop meeting like this." },
+        { "id": "starbuck-raider-resurrected-04", "text": "This guy just doesn't quit." },
+        { "id": "starbuck-raider-resurrected-05", "text": "Again? Didn't I see you before?" }
+      ]
+    },
+    {
+      "trigger": "ResurrectionShipDestroyed",
+      "priority": "normal",
+      "cooldownSeconds": 30,
+      "lines": [
+        { "id": "starbuck-resurrection-ship-destroyed-01", "text": "Factory's closed. Try dying somewhere else." },
+        { "id": "starbuck-resurrection-ship-destroyed-02", "text": "Try coming back from that one." },
+        { "id": "starbuck-resurrection-ship-destroyed-03", "text": "Factory's toast. You're welcome." }
+      ]
+    }
+  ]
+}

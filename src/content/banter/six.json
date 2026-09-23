@@ -1,0 +1,17 @@
+{
+  "speaker": "six",
+  "pools": [
+    {
+      "trigger": "SpecialUsed",
+      "priority": "flavor",
+      "cooldownSeconds": 40,
+      "lines": [
+        { "id": "six-special-used-01", "text": "You didn't need me for that. But I liked watching." },
+        { "id": "six-special-used-02", "text": "You didn't need to hear that from me. But here we are." },
+        { "id": "six-special-used-03", "text": "Careful. That almost looked like faith." },
+        { "id": "six-special-used-04", "text": "Everything happens for a reason. Mine, usually." },
+        { "id": "six-special-used-05", "text": "You can thank the red dress later." }
+      ]
+    }
+  ]
+}

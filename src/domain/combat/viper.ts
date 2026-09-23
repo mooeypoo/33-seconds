@@ -49,6 +49,11 @@ export class Viper {
   private previousPositionX = VIPER_SPAWN_X_UNITS;
   private previousPositionY = VIPER_SPAWN_Y_UNITS;
   private hull = VIPER_HULL_HIT_POINTS;
+  /** Hits since the last jump, including ones a download put back. The scene reads this. */
+  private hullLostSinceJump = 0;
+  private ejectedSinceJump = false;
+  private lastHullLost = 0;
+  private lastEjected = false;
   private missiles = MISSILE_CAPACITY;
   private ejected = false;
   private ejectRemainingSeconds = 0;
@@ -95,6 +100,16 @@ export class Viper {
 
   get isEjected(): boolean {
     return this.ejected;
+  }
+
+  /** Hull lost in the cycle that just jumped. Still set after `resetAtJump`. */
+  get scarHullLost(): number {
+    return this.lastHullLost;
+  }
+
+  /** True if this cycle ejected the pilot, even when a download put them back. */
+  get scarEjected(): boolean {
+    return this.lastEjected;
   }
 
   get canFight(): boolean {
@@ -153,8 +168,10 @@ export class Viper {
   takeHit(): boolean {
     if (!this.isVulnerable) return false;
     this.hull -= 1;
+    this.hullLostSinceJump += 1;
     if (this.hull > 0) return false;
     this.ejected = true;
+    this.ejectedSinceJump = true;
     this.ejectRemainingSeconds = VIPER_EJECT_SECONDS;
     this.velocityX = 0;
     this.velocityY = 0;
@@ -195,6 +212,10 @@ export class Viper {
 
   /** Tyrol at the jump: full hull and a fresh rack of missiles, and a pilot in a Raptor is back. */
   resetAtJump(): void {
+    this.lastHullLost = this.hullLostSinceJump;
+    this.lastEjected = this.ejectedSinceJump;
+    this.hullLostSinceJump = 0;
+    this.ejectedSinceJump = false;
     this.ejected = false;
     this.ejectRemainingSeconds = 0;
     this.hull = VIPER_HULL_HIT_POINTS;

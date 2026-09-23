@@ -1,11 +1,19 @@
-[
-  {
-    "id": "tyrol-cycle-recovering-01",
-    "speaker": "tyrol",
-    "trigger": "CycleRecovering",
-    "text": "PLACEHOLDER: Not a scratch on her. I'm suspicious.",
-    "weight": 1,
-    "cooldownSeconds": 20,
-    "priority": "normal"
-  }
-]
+{
+  "speaker": "tyrol",
+  "pools": [
+    {
+      "trigger": "CycleRecovering",
+      "priority": "flavor",
+      "cooldownSeconds": 20,
+      "lines": [
+        { "id": "tyrol-cycle-recovering-01", "text": "Thirty-three seconds to patch a hull. Sure. Why not." },
+        { "id": "tyrol-cycle-recovering-02", "text": "Nothing's on fire. I don't trust it." },
+        { "id": "tyrol-cycle-recovering-03", "text": "Give me thirty-three seconds and a miracle." },
+        { "id": "tyrol-cycle-recovering-04", "text": "Hull's holding. Don't test it." },
+        { "id": "tyrol-cycle-recovering-05", "text": "I fix ships, not luck. Both are running low." },
+        { "id": "tyrol-cycle-recovering-06", "text": "Duct tape and prayer. In that order." },
+        { "id": "tyrol-cycle-recovering-07", "text": "Chief by title. Miracle worker by necessity." }
+      ]
+    }
+  ]
+}

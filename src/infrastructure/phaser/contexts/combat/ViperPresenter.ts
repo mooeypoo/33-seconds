@@ -1,23 +1,22 @@
 import Phaser from 'phaser';
 import type { DomainEvent } from '../../../../domain/shared/events';
 import type { GameView } from '../../../../domain/views';
-import {
-  VIPER_HALF_HEIGHT_UNITS,
-  VIPER_HALF_WIDTH_UNITS,
-  VIPER_HULL_HIT_POINTS,
-  VIPER_MAX_SPEED_UNITS_PER_SECOND,
-} from '../../../../domain/combat/viper';
+import { VIPER_HULL_HIT_POINTS, VIPER_MAX_SPEED_UNITS_PER_SECOND } from '../../../../domain/combat/viper';
 import type { Presenter } from '../../Presenter';
 import { PALETTE } from '../../shared/palette';
+import { SHIP_SHOWN_UNITS, VIPER_BANK_LEFT, VIPER_BANK_RIGHT, VIPER_FLICKER, VIPER_NEUTRAL } from '../../sprites';
+
+/** Sideways speed, as a fraction of top speed, before the bank frame replaces neutral. */
+const BANK_AT = 0.4;
 
 /**
- * Draws the Viper. Placeholder art: a flat hull with a cockpit and an engine glow, sized in world
- * units so swapping in a sprite later changes nothing else (AGENTS.md: placeholders are fine).
+ * Draws the Viper from the 64×64 frames, shown at 16 world units. Hull pips stay, because the
+ * picture is not the health readout (PRD 8.1).
  */
 export class ViperPresenter implements Presenter {
   private readonly scene: Phaser.Scene;
   private hull: Phaser.GameObjects.Container | null = null;
-  private engine: Phaser.GameObjects.Rectangle | null = null;
+  private body: Phaser.GameObjects.Image | null = null;
   private cover: Phaser.GameObjects.Arc | null = null;
   private eye: Phaser.GameObjects.Rectangle | null = null;
   private pips: Phaser.GameObjects.Rectangle[] = [];
@@ -66,35 +65,28 @@ export class ViperPresenter implements Presenter {
     hull.x = x;
     hull.y = y;
 
-    // The Viper banks rather than rotating (PRD decision 13). A horizontal squeeze reads as a bank
-    // at this size and costs nothing; the real sprite will have bank frames.
-    const bank = Phaser.Math.Clamp(viper.velocityX / VIPER_MAX_SPEED_UNITS_PER_SECOND, -1, 1);
-    hull.scaleX = (1 - Math.abs(bank) * 0.3) * viper.scale;
-    hull.scaleY = viper.scale;
-
-    // Engine glow leans the other way and stretches with forward speed. Steady, never flickering
-    // (PRD 15: no rapid flashing).
-    if (this.engine) {
-      const thrust = Phaser.Math.Clamp(-viper.velocityY / VIPER_MAX_SPEED_UNITS_PER_SECOND, 0, 1);
-      this.engine.scaleY = 1 + thrust * 0.8;
-      this.engine.x = bank * 1.5;
-    }
+    // Bank frames replace the squeeze. The brighter engines are the thrust pose, held while
+    // climbing, so the picture does not blink (PRD 15).
+    const bank = viper.velocityX / VIPER_MAX_SPEED_UNITS_PER_SECOND;
+    const frame = frameFor(bank, viper.velocityY < 0);
+    this.showFrame(frame, viper.scale);
 
     this.drawPips(viper.hp);
     this.cover?.setVisible(view.speechActive);
     this.eye?.setVisible(viper.cylonEye);
   }
 
-  private buildViper(x: number, y: number): Phaser.GameObjects.Container {
-    const width = VIPER_HALF_WIDTH_UNITS * 2;
-    const height = VIPER_HALF_HEIGHT_UNITS * 2;
+  private showFrame(key: string, scale: number): void {
+    const body = this.body;
+    if (!body) return;
+    if (body.texture.key !== key) body.setTexture(key);
+    body.setDisplaySize(SHIP_SHOWN_UNITS * scale, SHIP_SHOWN_UNITS * scale);
+  }
 
-    const body = this.scene.add.rectangle(0, 0, width, height, PALETTE.viperHull);
-    const nose = this.scene.add.rectangle(0, -height / 2 - 2, 4, 4, PALETTE.viperHull);
-    const cockpit = this.scene.add.rectangle(0, -2, 4, 5, PALETTE.viperCockpit);
-    const engine = this.scene.add.rectangle(0, height / 2 + 2, 6, 3, PALETTE.engineGlow);
-    engine.setOrigin(0.5, 0);
-    this.engine = engine;
+  private buildViper(x: number, y: number): Phaser.GameObjects.Container {
+    const body = this.scene.add.image(0, 0, VIPER_NEUTRAL);
+    body.setDisplaySize(SHIP_SHOWN_UNITS, SHIP_SHOWN_UNITS);
+    this.body = body;
 
     // Count of pips is the hull tell. Not red: only Cylons are (PRD 9). The debug line also names
     // the number, so colour is never the only cue.
@@ -102,11 +94,11 @@ export class ViperPresenter implements Presenter {
     const pipSpacing = 3;
     const pipOrigin = ((VIPER_HULL_HIT_POINTS - 1) * pipSpacing) / 2;
     for (let i = 0; i < VIPER_HULL_HIT_POINTS; i++) {
-      pips.push(this.scene.add.rectangle(i * pipSpacing - pipOrigin, -height / 2 - 6, 2, 2, PALETTE.playerShot));
+      pips.push(this.scene.add.rectangle(i * pipSpacing - pipOrigin, -SHIP_SHOWN_UNITS / 2 - 4, 2, 2, PALETTE.playerShot));
     }
     this.pips = pips;
 
-    const cover = this.scene.add.circle(0, 0, Math.max(width, height) / 2 + 3, PALETTE.viperCockpit, 0);
+    const cover = this.scene.add.circle(0, 0, SHIP_SHOWN_UNITS / 2 + 3, PALETTE.viperCockpit, 0);
     cover.setStrokeStyle(1, PALETTE.viperCockpit, 0.9);
     cover.setVisible(false);
     this.cover = cover;
@@ -116,7 +108,7 @@ export class ViperPresenter implements Presenter {
     eye.setVisible(false);
     this.eye = eye;
 
-    return this.scene.add.container(x, y, [engine, body, nose, cockpit, cover, eye, ...pips]);
+    return this.scene.add.container(x, y, [body, cover, eye, ...pips]);
   }
 
   /**
@@ -139,4 +131,11 @@ export class ViperPresenter implements Presenter {
       pip.setVisible(index < hp);
     }
   }
+}
+
+function frameFor(bank: number, climbing: boolean): string {
+  if (bank > BANK_AT) return VIPER_BANK_RIGHT;
+  if (bank < -BANK_AT) return VIPER_BANK_LEFT;
+  if (climbing) return VIPER_FLICKER;
+  return VIPER_NEUTRAL;
 }

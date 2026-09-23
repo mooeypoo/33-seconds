@@ -1,0 +1,70 @@
+{
+  "speaker": "tigh",
+  "pools": [
+    {
+      "trigger": "FleetHit",
+      "priority": "flavor",
+      "cooldownSeconds": 25,
+      "lines": [
+        { "id": "tigh-fleet-hit-01", "text": "Somebody's filing a report on this." },
+        { "id": "tigh-fleet-hit-02", "text": "That's coming out of somebody's pay." },
+        { "id": "tigh-fleet-hit-03", "text": "Vipers. Always the Vipers." },
+        { "id": "tigh-fleet-hit-04", "text": "I've dealt with worse before breakfast." },
+        { "id": "tigh-fleet-hit-05", "text": "Frak, that's gonna leave a mark." },
+        { "id": "tigh-fleet-hit-06", "text": "Gods-frakking-damnit, Starbuck!" },
+        { "id": "tigh-fleet-hit-07", "text": "Frakking hell, Starbuck, watch your six!" },
+        { "id": "tigh-fleet-hit-08", "text": "That was avoidable, Kara. Frakking avoidable." }
+      ]
+    },
+    {
+      "trigger": "CycleRecovering",
+      "priority": "flavor",
+      "cooldownSeconds": 25,
+      "lines": [
+        { "id": "tigh-cycle-recovering-01", "text": "Thirty-three seconds isn't a nap. Move." },
+        { "id": "tigh-cycle-recovering-02", "text": "Paperwork doesn't file itself. Move it." },
+        { "id": "tigh-cycle-recovering-03", "text": "Thirty-three seconds. Not a coffee break." },
+        { "id": "tigh-cycle-recovering-04", "text": "This job needs a stiff drink. Later." },
+        { "id": "tigh-cycle-recovering-05", "text": "The Old Man says move. So move." },
+        { "id": "tigh-cycle-recovering-06", "text": "Starbuck, if you break another wing I swear to the gods—" },
+        { "id": "tigh-cycle-recovering-07", "text": "Frakking patience, Thrace. That's all I ask." }
+      ]
+    },
+    {
+      "trigger": "HullLow",
+      "priority": "normal",
+      "cooldownSeconds": 25,
+      "lines": [
+        { "id": "tigh-hull-low-01", "text": "Hull's thin. Watch yourself out there." },
+        { "id": "tigh-hull-low-02", "text": "We're running low on ship. Land it careful." },
+        { "id": "tigh-hull-low-03", "text": "Damage control's stretched thin. Don't test it." },
+        { "id": "tigh-hull-low-04", "text": "Hull integrity's dropping. I don't like the numbers." },
+        { "id": "tigh-hull-low-05", "text": "We're patched together with hope at this point." },
+        { "id": "tigh-hull-low-06", "text": "Starbuck, ease up before you gods-damned kill us." },
+        { "id": "tigh-hull-low-07", "text": "Frak me, this hull's had enough of your stunts, Starbuck." }
+      ]
+    },
+    {
+      "trigger": "KillDrought",
+      "priority": "flavor",
+      "cooldownSeconds": 25,
+      "lines": [
+        { "id": "tigh-kill-drought-01", "text": "You planning on shooting something today, Starbuck?" },
+        { "id": "tigh-kill-drought-02", "text": "Frak, are they hiding from you now?" },
+        { "id": "tigh-kill-drought-03", "text": "That's a long dry spell up there." },
+        { "id": "tigh-kill-drought-04", "text": "Something wrong with the trigger, Lieutenant?" },
+        { "id": "tigh-kill-drought-05", "text": "Kids these days can't hit the broad side of a Battlestar." }
+      ]
+    },
+    {
+      "trigger": "ImaginarySixActive",
+      "priority": "flavor",
+      "cooldownSeconds": 25,
+      "lines": [
+        { "id": "tigh-imaginary-six-active-01", "text": "Who in the frak are you talking to?" },
+        { "id": "tigh-imaginary-six-active-02", "text": "That did it. Starbuck finally lost it." },
+        { "id": "tigh-imaginary-six-active-03", "text": "You feeling alright up there?" }
+      ]
+    }
+  ]
+}

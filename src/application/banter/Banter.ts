@@ -3,15 +3,26 @@ import type { DomainEvent } from '../../domain/shared/events';
 import type { BanterLine, BanterPriority, BanterTrigger } from './lines';
 import { speakerName } from './lines';
 
-/** What the overlay shows. No ids, no markup. */
+/** What the overlay shows. No ids, no markup. `partnerName` is the other portrait in a scene. */
 export interface CommsLine {
   readonly speakerName: string;
   readonly text: string;
+  readonly partnerName?: string | null;
 }
 
 export interface BanterContext {
   readonly secondsRemaining: number;
   readonly hull: number;
+  /** 0–100. Spool lines use this for `{percent}`. Omitted means 0. */
+  readonly spoolPercent?: number;
+  /** Healthy civilian hulls. Dualla's `{count}`. Omitted means 0. */
+  readonly readyShips?: number;
+  /** Civilian hulls on the line. Dualla's `{total}`. Omitted means 0. */
+  readonly shipTotal?: number;
+  /** Card ids on the Recovering table. An offer line plays only when its card is here. */
+  readonly offeredCardIds?: readonly string[];
+  /** Resurrection-ship hull remaining, 0–100. Milestone lines use this for `{percent}`. */
+  readonly shipPercent?: number;
 }
 
 /** XOR'd with the run seed so a joke never consumes the scenario stream (ADR-0001 D3). */
@@ -35,6 +46,7 @@ function priorityRank(priority: BanterPriority): number {
 
 interface ShownLine {
   readonly id: string;
+  readonly trigger: BanterTrigger;
   readonly priority: BanterPriority;
   readonly line: CommsLine;
   remainingSeconds: number;
@@ -60,25 +72,59 @@ export class Banter {
 
   observe(events: readonly DomainEvent[], context: BanterContext): void {
     const crisis = context.hull <= 1 || events.some((event) => event.type === 'ResurrectionShipArrived');
+    const poolOpen = new Map<string, boolean>();
     const candidates: BanterLine[] = [];
     for (const event of events) {
-      const trigger = triggerFor(event);
-      if (trigger === null) continue;
-      for (const line of this.lines) {
-        if (line.trigger !== trigger) continue;
-        if (line.priority === 'flavor' && crisis) continue;
-        if ((this.readyAtSeconds.get(line.id) ?? 0) > this.elapsedSeconds) continue;
-        candidates.push(line);
+      for (const trigger of triggersFor(event)) {
+        for (const line of this.lines) {
+          if (line.trigger !== trigger) continue;
+          if (line.priority === 'flavor' && crisis) continue;
+          if ((this.readyAtSeconds.get(line.id) ?? 0) > this.elapsedSeconds) continue;
+          if (!this.poolIsOpen(line, poolOpen)) continue;
+          if (!offerMatches(line, context.offeredCardIds)) continue;
+          candidates.push(line);
+        }
       }
     }
 
     const chosen = this.pickHighest(candidates);
     if (chosen === null) return;
-    if (this.shown !== null && priorityRank(chosen.priority) <= priorityRank(this.shown.priority)) return;
+    // A new hand replaces whatever was still on the strip. The jump is over.
+    if (chosen.trigger !== 'UpgradeOffered') {
+      if (this.shown !== null && priorityRank(chosen.priority) <= priorityRank(this.shown.priority)) return;
+    }
 
-    const text = chosen.text.replaceAll('{seconds}', String(Math.max(0, Math.ceil(context.secondsRemaining))));
+    this.show(chosen, context);
+  }
+
+  /**
+   * A derived line. A louder one can replace what is showing. The same trigger can replace itself,
+   * so a later spool call updates the countdown. Anything else waits.
+   */
+  mention(trigger: BanterTrigger, context: BanterContext): boolean {
+    const crisis = context.hull <= 1;
+    const ready = this.lines.filter((line) => {
+      if (line.trigger !== trigger) return false;
+      if (line.priority === 'flavor' && crisis) return false;
+      return (this.readyAtSeconds.get(line.id) ?? 0) <= this.elapsedSeconds;
+    });
+    const best = ready.reduce((rank, line) => Math.max(rank, priorityRank(line.priority)), 0);
+    if (best === 0) return false;
+    if (this.shown !== null && !replaces(best, this.shown, trigger)) return false;
+
+    const poolOpen = new Map<string, boolean>();
+    const candidates = ready.filter((line) => this.poolIsOpen(line, poolOpen));
+    const chosen = this.pickHighest(candidates);
+    if (chosen === null) return false;
+    this.show(chosen, context);
+    return true;
+  }
+
+  private show(chosen: BanterLine, context: BanterContext): void {
+    const text = fillPlaceholders(chosen.text, context, chosen.trigger);
     this.shown = {
       id: chosen.id,
+      trigger: chosen.trigger,
       priority: chosen.priority,
       line: { speakerName: speakerName(chosen.speaker), text },
       remainingSeconds: commsDurationSeconds(text),
@@ -97,6 +143,15 @@ export class Banter {
     if (this.shown.remainingSeconds <= 0) this.shown = null;
   }
 
+  /** One roll per pool per observe. Chance 1 does not touch the stream. */
+  private poolIsOpen(line: BanterLine, poolOpen: Map<string, boolean>): boolean {
+    const known = poolOpen.get(line.poolId);
+    if (known !== undefined) return known;
+    const open = line.chance >= 1 || this.random.next() < line.chance;
+    poolOpen.set(line.poolId, open);
+    return open;
+  }
+
   private pickHighest(candidates: readonly BanterLine[]): BanterLine | null {
     const first = candidates[0];
     if (!first) return null;
@@ -107,25 +162,53 @@ export class Banter {
   }
 }
 
-function triggerFor(event: DomainEvent): BanterTrigger | null {
+function replaces(best: number, shown: ShownLine, trigger: BanterTrigger): boolean {
+  const rank = priorityRank(shown.priority);
+  if (best > rank) return true;
+  return best === rank && shown.trigger === trigger;
+}
+
+function fillPlaceholders(text: string, context: BanterContext, trigger: BanterTrigger): string {
+  const percent = trigger === 'ResurrectionShipMilestone' ? (context.shipPercent ?? 0) : (context.spoolPercent ?? 0);
+  return text
+    .replaceAll('{seconds}', String(Math.max(0, Math.ceil(context.secondsRemaining))))
+    .replaceAll('{percent}', String(percent))
+    .replaceAll('{count}', String(context.readyShips ?? 0))
+    .replaceAll('{total}', String(context.shipTotal ?? 0));
+}
+
+function offerMatches(line: BanterLine, offered: readonly string[] | undefined): boolean {
+  if (line.upgradeId === undefined) return true;
+  return (offered ?? []).includes(line.upgradeId);
+}
+
+function triggersFor(event: DomainEvent): readonly BanterTrigger[] {
   switch (event.type) {
     case 'CyclePhaseChanged':
-      if (event.phase === 'arriving') return 'CycleStarted';
-      if (event.phase === 'spooling') return 'FtlSpoolProgress';
-      if (event.phase === 'recovering') return 'CycleRecovering';
-      return null;
+      if (event.phase === 'arriving') return ['CycleStarted'];
+      if (event.phase === 'spooling') return ['FtlSpoolProgress'];
+      if (event.phase === 'recovering') return ['CycleRecovering', 'UpgradeOffered'];
+      return [];
+    case 'UpgradeRerolled':
+      return ['UpgradeOffered'];
     case 'ResurrectionShipArrived':
-      return 'ResurrectionShipArrived';
+      return ['ResurrectionShipArrived'];
     case 'SpeechStarted':
-      return 'SpecialUsed';
+      return ['SpecialUsed'];
     case 'RunWon':
-      return 'RunWon';
+      return ['RunWon'];
     case 'RunLost':
-      return 'FleetLost';
+      return ['FleetLost'];
     case 'MissileFired':
-      return 'MissileLaunched';
+      return ['MissileLaunched'];
+    case 'FleetHit':
+      return ['FleetHit'];
+    case 'ResurrectionShipDestroyed':
+      return ['ResurrectionShipDestroyed'];
+    case 'RaiderSpawned':
+      return event.returned ? ['RaiderResurrected'] : [];
     default:
-      return null;
+      return [];
   }
 }
 

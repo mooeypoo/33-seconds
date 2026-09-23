@@ -18,7 +18,8 @@ test.describe('steering works wherever the finger lands', () => {
     await releaseDrag(page);
   });
 
-  test('a drag that starts on the debug readout still steers', async ({ page }) => {
+  test('a drag that starts on the debug readout still steers', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === 'mobile-chrome', 'The debug readout floats in the desktop margin only');
     await startRun(page);
     const before = await viperPosition(page);
 
@@ -80,11 +81,31 @@ test.describe('steering works wherever the finger lands', () => {
     await expect(page.getByText('Drag anywhere to fly')).toBeHidden();
   });
 
+  test('the pick names both advisors and still speaks', async ({ page }) => {
+    test.setTimeout(90_000);
+    await startRun(page);
+    await expect(page.getByText('Pick one. No timer.')).toBeVisible({ timeout: 70_000 });
+    // The play column is shorter than the window, so the advice can sit below the fold until scrolled.
+    const baltar = page.getByText('Baltar.').first();
+    const roslin = page.getByText('Roslin.').first();
+    await baltar.scrollIntoViewIfNeeded();
+    await expect(baltar).toBeVisible();
+    await roslin.scrollIntoViewIfNeeded();
+    await expect(roslin).toBeVisible();
+    await expect(page.getByTestId('comms')).toContainText(/Tyrol|Adama|Tigh|Gaeta|Dualla/);
+
+    await page.locator('[data-testid^="upgrade-"]').first().click();
+    await expect(page.getByText('That one. The deck is still talking.')).toBeVisible();
+    await expect(page.getByText('Chosen', { exact: true })).toBeVisible();
+    await page.waitForTimeout(400);
+    await expect(page.getByText('Jump complete')).toBeVisible();
+  });
+
   test('a drag that starts on a comms line still steers', async ({ page }) => {
     await startRun(page);
     const comms = page.getByTestId('comms');
     await expect(comms).toBeVisible();
-    await expect(comms).toContainText('Adama');
+    await expect(comms).toContainText(/Adama|Starbuck/);
 
     const before = await viperPosition(page);
     const box = (await comms.boundingBox())!;
