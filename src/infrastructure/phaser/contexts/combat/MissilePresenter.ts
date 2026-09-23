@@ -8,10 +8,14 @@ import type { GameView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
 import { PALETTE } from '../../shared/palette';
 
-/** Ring radius. The crossarms stick out a little so it reads as a lock, not a halo. */
-const RETICLE_RADIUS = 8;
-const RETICLE_ARM = 11;
+/**
+ * Ring radius. The crossarms stick out a little so it reads as a lock, not a halo.
+ * Small and half transparent so the mark does not cover the ship it is pointing at.
+ */
+const RETICLE_RADIUS = 5;
+const RETICLE_ARM = 7;
 const RETICLE_LINE = 1;
+const RETICLE_ALPHA = 0.5;
 
 /** Draws missiles and the lock reticle. Colour is never the only cue: ring plus a four-quadrant cross. */
 export class MissilePresenter implements Presenter {
@@ -22,9 +26,9 @@ export class MissilePresenter implements Presenter {
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     const ring = scene.add.circle(0, 0, RETICLE_RADIUS, PALETTE.missileLock, 0);
-    ring.setStrokeStyle(RETICLE_LINE, PALETTE.missileLock, 0.95);
-    const horizontal = scene.add.rectangle(0, 0, RETICLE_ARM * 2, RETICLE_LINE, PALETTE.missileLock, 0.95);
-    const vertical = scene.add.rectangle(0, 0, RETICLE_LINE, RETICLE_ARM * 2, PALETTE.missileLock, 0.95);
+    ring.setStrokeStyle(RETICLE_LINE, PALETTE.missileLock, RETICLE_ALPHA);
+    const horizontal = scene.add.rectangle(0, 0, RETICLE_ARM * 2, RETICLE_LINE, PALETTE.missileLock, RETICLE_ALPHA);
+    const vertical = scene.add.rectangle(0, 0, RETICLE_LINE, RETICLE_ARM * 2, PALETTE.missileLock, RETICLE_ALPHA);
     this.reticle = scene.add.container(0, 0, [ring, horizontal, vertical]);
     this.reticle.setDepth(3);
     this.reticle.setVisible(false);
