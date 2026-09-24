@@ -21,8 +21,7 @@ export const PALETTE = {
   civilianDinged: 0x2f4536,
   /** Glass bubble around a shielded resurrection ship. Not Cylon red (PRD 9, 15). */
   shipShield: 0x9ec8dc,
-  /** Missiles and their lock reticle (ring plus four-quadrant cross). Dradis green, never Cylon red (PRD 9, 15). */
-  missile: 0xb8ffdc,
+  /** The missile lock reticle (ring plus four-quadrant cross). Dradis green, never Cylon red (PRD 9, 15). */
   missileLock: 0x4fe19a,
   /** Imaginary Six outline and beam. Pale Dradis, never Cylon red, never a flicker (PRD 10.3, 15). */
   sixGlow: 0xb8ffdc,

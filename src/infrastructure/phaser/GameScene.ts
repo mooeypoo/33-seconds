@@ -96,7 +96,7 @@ export class GameScene extends Phaser.Scene {
       new ViperPresenter(this, this.reducedEffects),
       new ImaginarySixPresenter(this),
       new ProjectilePresenter(this),
-      new MissilePresenter(this),
+      new MissilePresenter(this, this.reducedEffects),
       new RaiderPresenter(this, this.reducedEffects),
       new ExplosionPresenter(this, this.reducedEffects),
       new ImpactPresenter(this, this.reducedEffects),

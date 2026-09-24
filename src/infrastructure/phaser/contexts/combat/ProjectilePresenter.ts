@@ -6,16 +6,18 @@ import {
 import type { DomainEvent } from '../../../../domain/shared/events';
 import type { GameView, ProjectileView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
-import { BULLET_AIMED, BULLET_PLAYER, BULLET_STRAY } from '../../sprites';
+import { BULLET_AIMED, BULLET_PLAYER, BULLET_PLAYER_BIG, BULLET_PLAYER_BIG_SHOWN, BULLET_STRAY } from '../../sprites';
+import { CANNON_RADIUS_PER_STACK } from '../../../../domain/progression/catalog';
 
-/** 12×28 file, nearest-neighbored by 4. Taller than the 3×5 shots, so orange is not the only cue. */
+/** 6×14 file at two art pixels per unit. Taller than the 3×5 shots, so orange is not the only cue. */
 const STRAY_SHOWN_HEIGHT_UNITS = 7;
 
 /**
- * Draws the shot pictures. Player rounds and aimed rounds are 12×20, shown at 3×5. A stray is
- * 12×28, shown at 3×7 (PRD 7.1). Player rounds point up. Cylon rounds point down. They stay
- * upright: rotating a picture this small off the pixel grid smears it, and the path still shows
- * where the round goes.
+ * Draws the shot pictures. Player rounds and aimed rounds are 6×10, shown at 3×5. A stray is
+ * 6×14, shown at 3×7 (PRD 7.1). Once *Overcompensating Cannon* is taken, player rounds switch to
+ * the 10×16 big shot: 5×8 at one stack, growing with each stack after. Player rounds point up.
+ * Cylon rounds point down. They stay upright: rotating a picture this small off the pixel grid
+ * smears it, and the path still shows where the round goes.
  */
 export class ProjectilePresenter implements Presenter {
   private readonly scene: Phaser.Scene;
@@ -67,7 +69,13 @@ export class ProjectilePresenter implements Presenter {
 
   private paint(sprite: Phaser.GameObjects.Image, shot: ProjectileView, playerScale: number): void {
     if (shot.owner === 'player') {
-      this.show(sprite, BULLET_PLAYER, VIPER_SHOT_WIDTH_UNITS * playerScale, VIPER_SHOT_HEIGHT_UNITS * playerScale);
+      if (playerScale > 1) {
+        // The big file is drawn at one stack's size; later stacks grow it by the same ratio.
+        const growth = playerScale / CANNON_RADIUS_PER_STACK;
+        this.show(sprite, BULLET_PLAYER_BIG, BULLET_PLAYER_BIG_SHOWN.width * growth, BULLET_PLAYER_BIG_SHOWN.height * growth);
+        return;
+      }
+      this.show(sprite, BULLET_PLAYER, VIPER_SHOT_WIDTH_UNITS, VIPER_SHOT_HEIGHT_UNITS);
       return;
     }
     if (shot.stray) {
