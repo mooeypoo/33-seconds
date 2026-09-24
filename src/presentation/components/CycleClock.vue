@@ -7,16 +7,16 @@ import { hudStore } from '../stores/hudStore';
  * only: a ticking tenth would look like a bomb, and this is a clock you work around, not against.
  * Quiet on purpose: a louder countdown waits for the M5 HUD (PRD 5.1).
  */
-const stats = hudStore.state;
+const state = hudStore.state;
 
-const remaining = computed(() => stats.stats?.secondsRemaining ?? 33);
-const spooling = computed(() => stats.stats?.cyclePhase === 'spooling');
+const remaining = computed(() => state.hud?.secondsRemaining ?? 33);
+const spooling = computed(() => state.hud?.cyclePhase === 'spooling');
 const label = computed(() => {
-  const phase = stats.stats?.cyclePhase;
+  const phase = state.hud?.cyclePhase;
   if (phase === 'spooling') return 'Spooling';
   if (phase === 'jumping') return 'Jumping';
   if (phase === 'recovering') return 'Recovering';
-  return `Cycle ${String(stats.stats?.cycleIndex ?? 1)}`;
+  return `Cycle ${String(state.hud?.cycleIndex ?? 1)}`;
 });
 </script>
 
@@ -27,7 +27,7 @@ const label = computed(() => {
       {{ remaining }}
     </p>
     <div class="spool" aria-hidden="true">
-      <div class="spool-fill" :style="{ transform: `scaleX(${stats.stats?.spoolProgress ?? 0})` }" />
+      <div class="spool-fill" :style="{ transform: `scaleX(${state.hud?.spoolProgress ?? 0})` }" />
     </div>
   </div>
 </template>

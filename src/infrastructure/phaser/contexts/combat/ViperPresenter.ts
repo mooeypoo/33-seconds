@@ -1,12 +1,6 @@
 import Phaser from 'phaser';
 import type { DomainEvent } from '../../../../domain/shared/events';
 import type { GameView } from '../../../../domain/views';
-import {
-  VIPER_EJECT_SECONDS,
-  VIPER_HULL_HIT_POINTS,
-  VIPER_MAX_SPEED_UNITS_PER_SECOND,
-} from '../../../../domain/combat/viper';
-import { TICKS_PER_SECOND } from '../../../../domain/shared/time';
 import type { Presenter } from '../../Presenter';
 import { PALETTE } from '../../shared/palette';
 import { SHIP_SHOWN_UNITS, VIPER_BANK_LEFT, VIPER_BANK_RIGHT, VIPER_FLICKER, VIPER_NEUTRAL } from '../../sprites';
@@ -31,8 +25,6 @@ export class ViperPresenter implements Presenter {
   private pips: Phaser.GameObjects.Rectangle[] = [];
   /** Placeholder parachute. Not a child of the hull, or hiding the Viper would hide it too. */
   private ejectSeat: Phaser.GameObjects.Container | null = null;
-  /** Game tick when this eject started, so the arc follows the clock and pause freezes it. */
-  private ejectFromTick: number | null = null;
   private readonly reducedEffects: boolean;
 
   constructor(scene: Phaser.Scene, reducedEffects: boolean) {
@@ -45,7 +37,7 @@ export class ViperPresenter implements Presenter {
       this.hull?.destroy();
       this.ejectSeat?.destroy();
       this.ejectSeat = null;
-      this.ejectFromTick = null;
+      this.pips = [];
       this.hull = this.buildViper(event.x, event.y);
       return;
     }
@@ -69,14 +61,12 @@ export class ViperPresenter implements Presenter {
       hull.setVisible(false);
       const seat = this.ensureEjectSeat();
       seat.setVisible(true);
-      this.ejectFromTick ??= view.tickCount;
-      const drift = this.chuteDrift(view.tickCount);
+      const drift = this.chuteDrift(viper.ejectProgress);
       seat.x = x + drift.x;
       seat.y = y + drift.y;
       return;
     }
 
-    this.ejectFromTick = null;
     this.ejectSeat?.setVisible(false);
     hull.setVisible(true);
     hull.x = x;
@@ -84,10 +74,11 @@ export class ViperPresenter implements Presenter {
 
     // Bank frames replace the squeeze. The brighter engines are the thrust pose, held while
     // climbing, so the picture does not blink (PRD 15).
-    const bank = viper.velocityX / VIPER_MAX_SPEED_UNITS_PER_SECOND;
+    const bank = viper.maxSpeed > 0 ? viper.velocityX / viper.maxSpeed : 0;
     const frame = frameFor(bank, viper.velocityY < 0);
     this.showFrame(frame, viper.scale);
 
+    this.ensurePips(hull, viper.hpMax);
     this.drawPips(viper.hp);
     this.cover?.setVisible(view.speechActive);
     this.eye?.setVisible(viper.cylonEye);
@@ -105,16 +96,6 @@ export class ViperPresenter implements Presenter {
     body.setDisplaySize(SHIP_SHOWN_UNITS, SHIP_SHOWN_UNITS);
     this.body = body;
 
-    // Count of pips is the hull tell. Not red: only Cylons are (PRD 9). The debug line also names
-    // the number, so colour is never the only cue.
-    const pips: Phaser.GameObjects.Rectangle[] = [];
-    const pipSpacing = 3;
-    const pipOrigin = ((VIPER_HULL_HIT_POINTS - 1) * pipSpacing) / 2;
-    for (let i = 0; i < VIPER_HULL_HIT_POINTS; i++) {
-      pips.push(this.scene.add.rectangle(i * pipSpacing - pipOrigin, -SHIP_SHOWN_UNITS / 2 - 4, 2, 2, PALETTE.playerShot));
-    }
-    this.pips = pips;
-
     const cover = this.scene.add.circle(0, 0, SHIP_SHOWN_UNITS / 2 + 3, PALETTE.viperCockpit, 0);
     cover.setStrokeStyle(1, PALETTE.viperCockpit, 0.9);
     cover.setVisible(false);
@@ -125,7 +106,23 @@ export class ViperPresenter implements Presenter {
     eye.setVisible(false);
     this.eye = eye;
 
-    return this.scene.add.container(x, y, [body, cover, eye, ...pips]);
+    return this.scene.add.container(x, y, [body, cover, eye]);
+  }
+
+  /**
+   * Count of pips is the hull tell. Not red: only Cylons are (PRD 9). The debug line also names
+   * the number, so colour is never the only cue. Built from the view's full hull on first sync.
+   */
+  private ensurePips(hull: Phaser.GameObjects.Container, count: number): void {
+    if (this.pips.length === count) return;
+    for (const pip of this.pips) pip.destroy();
+    const pipSpacing = 3;
+    const pipOrigin = ((count - 1) * pipSpacing) / 2;
+    this.pips = [];
+    for (let i = 0; i < count; i++) {
+      this.pips.push(this.scene.add.rectangle(i * pipSpacing - pipOrigin, -SHIP_SHOWN_UNITS / 2 - 4, 2, 2, PALETTE.playerShot));
+    }
+    hull.add(this.pips);
   }
 
   /**
@@ -150,10 +147,8 @@ export class ViperPresenter implements Presenter {
    * One half-swing out and a short drop across the eject. Reduced effects holds still: the chute
    * is the cue, the arc is not (PRD 15).
    */
-  private chuteDrift(tickCount: number): { x: number; y: number } {
-    if (this.reducedEffects || this.ejectFromTick === null) return { x: 0, y: 0 };
-    const elapsed = Math.max(0, tickCount - this.ejectFromTick) / TICKS_PER_SECOND;
-    const along = Math.min(1, elapsed / VIPER_EJECT_SECONDS);
+  private chuteDrift(along: number): { x: number; y: number } {
+    if (this.reducedEffects) return { x: 0, y: 0 };
     return {
       x: Math.sin(along * Math.PI) * CHUTE_ARC_WIDTH_UNITS,
       y: along * CHUTE_ARC_DROP_UNITS,

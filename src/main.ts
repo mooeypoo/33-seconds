@@ -61,6 +61,10 @@ const detachAutoPause = attachAutoPause((reason) => {
   session.pause(reason);
 });
 
+session.subscribeHud((hud) => {
+  hudStore.setHud(hud);
+});
+
 const app = createApp(App);
 app.provide(SESSION_KEY, session);
 app.provide(MISSILE_PRESS_KEY, () => {

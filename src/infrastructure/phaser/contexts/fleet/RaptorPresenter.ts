@@ -3,7 +3,6 @@ import type { DomainEvent } from '../../../../domain/shared/events';
 import {
   RAPTOR_HALF_HEIGHT_UNITS,
   RAPTOR_HALF_WIDTH_UNITS,
-  RAPTOR_HIT_POINTS,
 } from '../../../../domain/fleet/raptor';
 import type { GameView, RaptorView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
@@ -46,8 +45,8 @@ export class RaptorPresenter implements Presenter {
     const body = this.scene.add.rectangle(0, 0, width, height, PALETTE.civilianHull);
     const nose = this.scene.add.rectangle(0, -height / 2 - 1, 4, 3, PALETTE.viperCockpit);
     const pips: Phaser.GameObjects.Rectangle[] = [];
-    for (let i = 0; i < RAPTOR_HIT_POINTS; i++) {
-      pips.push(this.scene.add.rectangle((i - 1) * 4, height / 2 + 3, 3, 2, PALETTE.civilianHull));
+    for (let i = 0; i < raptor.hpMax; i++) {
+      pips.push(this.scene.add.rectangle((i - (raptor.hpMax - 1) / 2) * 4, height / 2 + 3, 3, 2, PALETTE.civilianHull));
     }
     const root = this.scene.add.container(raptor.x, raptor.y, [body, nose, ...pips]);
     root.setDepth(1);

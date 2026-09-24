@@ -6,7 +6,7 @@ D4 (sustained frame rate, integer scaling, iOS audio, 2D lighting cost) are stil
 phone.
 **Date:** 2026-09-19 (last revised 2026-09-20)
 **Deciders:** Moriel (owner)
-**Related:** [PRD](../PRD.md), [AGENTS.md](../../AGENTS.md)
+**Related:** [PRD](../PRD.md), [AGENTS.md](../../AGENTS.md), [ADR-0002: review follow-up roadmap](0002-review-roadmap.md)
 
 ---
 
@@ -117,6 +117,8 @@ The domain does not know that screen effects, audio, or jokes exist. Presentatio
 **Alternatives:** variable timestep (rejected: physics feel and tests depend on frame rate); immutable state with a copy per tick (rejected: garbage collection pressure on phones, and harder to read for this kind of simulation).
 
 ### D3. Determinism and random streams
+
+**Under review (2026-09-24):** ADR-0002 D1 proposes dropping "same seed, same scenario" and keeping only an injected, seedable stream for tests plus a separate cosmetic stream. Until the owner confirms, this section stands.
 
 **Decision:**
 - A seedable RNG (for example a small mulberry32 or sfc32 implementation) with **separate streams**:
@@ -422,7 +424,7 @@ export interface CycleProfile {
 4. [x] Add `dependency-cruiser` and the domain lint bans to CI, and prove they fail on a violation (`npm run check:guardrails`). (2026-09-20)
 5. [ ] `netlify.toml` has the D11 headers, and `vite preview` mirrors them so the end-to-end tests boot under the real CSP. Still to do: check an actual deploy preview.
 6. [ ] Build the balance simulation harness in M2, when the first tunable numbers exist (this supersedes the earlier "alongside the first domain code", which contradicted D13). The seam it needs exists from the first slice: the domain is constructed headlessly and driven only by `tick(intent)`, and the harness will use the same scenario helpers the engine tests use. It lives in `tools/sim/` and may import only `domain` and `balance`, enforced by the boundary check.
-7. [ ] Write ADR-0002 (leaderboard) before building any server code.
+7. [ ] Write a leaderboard ADR (the next free number; 0002 is the review roadmap) before building any server code.
 8. [ ] Choose a reference phone and record the performance budget against it.
 
 ## Open technical questions

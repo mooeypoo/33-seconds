@@ -15,7 +15,13 @@ export interface ViperView {
   readonly velocityX: number;
   readonly velocityY: number;
   readonly hp: number;
+  /** Full hull, so a readout never needs the domain constant. */
+  readonly hpMax: number;
   readonly ejected: boolean;
+  /** 0..1 of the eject downtime, 0 while flying. */
+  readonly ejectProgress: number;
+  /** Top speed this run, after cards. Bank frames are measured against it. */
+  readonly maxSpeed: number;
   /** Drawn and collision scale. 1 unless *Accidentally Wide* is stacked. */
   readonly scale: number;
   /** Red-eye pixel after a Cylon save. HUD also names it, so colour is not the only cue. */
@@ -58,6 +64,7 @@ export interface RaiderView {
   readonly previousX: number;
   readonly previousY: number;
   readonly hp: number;
+  readonly hpMax: number;
   readonly deaths: number;
   readonly returned: boolean;
   readonly protected: boolean;
@@ -74,6 +81,8 @@ export interface GhostView {
   readonly x: number;
   readonly y: number;
   readonly remainingSeconds: number;
+  /** 0..1 of this download, at its own length. The bar draws this, not a base constant. */
+  readonly progress: number;
   /** True with *Spoilers*: the blip sits on the return column and a shot delays it. */
   readonly shootable: boolean;
 }

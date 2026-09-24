@@ -1,7 +1,6 @@
 import Phaser from 'phaser';
-import type { FrameStats } from '../../application/FrameStats';
+import { debugFacts, type FrameStats } from '../../application/FrameStats';
 import type { GameSession } from '../../application/GameSession';
-import { VIPER_HULL_HIT_POINTS } from '../../domain/combat/viper';
 import { WORLD_HEIGHT_UNITS } from '../../domain/shared/world';
 import type { Presenter } from './Presenter';
 import { ExplosionPresenter } from './contexts/combat/ExplosionPresenter';
@@ -124,62 +123,22 @@ export class GameScene extends Phaser.Scene {
     const alpha = frozen ? 1 : frame.interpolationAlpha;
     for (const presenter of this.presenters) presenter.sync(this.session.view, alpha);
 
-    this.publishStats(
-      deltaSeconds,
-      this.session.view.cycle.phase === 'jumping' || this.session.view.cycle.phase === 'recovering',
-    );
+    this.publishStats(deltaSeconds);
   }
 
-  private publishStats(deltaSeconds: number, immediate = false): void {
+  /** The debug readout only. The HUD is fed by the session, not by the renderer (ADR-0002 D2). */
+  private publishStats(deltaSeconds: number): void {
     this.secondsSinceStatsReport += deltaSeconds;
-    if (!immediate && this.secondsSinceStatsReport < STATS_INTERVAL_SECONDS) return;
+    if (this.secondsSinceStatsReport < STATS_INTERVAL_SECONDS) return;
 
     const canvas = this.game.canvas;
     const view = this.session.view;
     this.reportStats({
       fps: measuredFps(this.game),
-      ticks: view.tickCount,
       renderWidth: view.worldWidth,
       renderHeight: WORLD_HEIGHT_UNITS,
       scale: Math.round((canvas.clientWidth / view.worldWidth) * 10) / 10,
-      viperX: Math.round(view.viper.x),
-      viperY: Math.round(view.viper.y),
-      raiderY: view.raiders[0] ? Math.round(view.raiders[0].y) : null,
-      shots: view.projectiles.length,
-      kills: view.kills,
-      cycleIndex: view.cycle.cycleIndex,
-      cyclePhase: view.cycle.phase,
-      secondsRemaining: view.cycle.secondsRemaining,
-      spoolProgress: view.cycle.spoolProgress,
-      hull: view.viper.hp,
-      hullMax: VIPER_HULL_HIT_POINTS,
-      ejected: view.viper.ejected,
-      ghosts: view.ghosts.length,
-      returned: view.raiders.some((raider) => raider.returned),
-      raiderLive: view.raiders.length > 0,
-      raiders: view.raiders.length,
-      fleet: Math.round(view.fleet.integrity),
-      fleetMax: view.fleet.integrityMax,
-      shipHp: view.resurrectionShip === null ? null : Math.round(view.resurrectionShip.hp),
-      shipHpMax: view.resurrectionShip?.hpMax ?? null,
-      shipDestroyed: view.resurrectionShip?.destroyed ?? false,
-      shipShielded: view.resurrectionShip?.shielded ?? false,
-      shipBaysOpen: view.resurrectionShip?.baysOpen ?? false,
-      resurrectionsActive: view.resurrectionsActive,
-      missiles: view.missileAmmo,
-      missilesMax: view.missileAmmoMax,
-      speechActive: view.speechActive,
-      speechReady: view.speechReady,
-      speechRemainingSeconds: view.speechRemainingSeconds,
-      speechJumpsUntilReady: view.speechJumpsUntilReady,
-      cards: view.loadout.reduce((sum, card) => sum + card.stacks, 0),
-      latestUpgradeId: view.upgradeOrder.at(-1) ?? null,
-      olderUpgradeCount: view.upgradeOrder.length > 0 ? view.upgradeOrder.length - 1 : 0,
-      cylonEye: view.viper.cylonEye,
-      raptorHp: view.raptors.reduce((sum, raptor) => sum + (raptor.hangared ? 0 : raptor.hp), 0),
-      raptorHpMax: view.raptors.reduce((sum, raptor) => sum + raptor.hpMax, 0),
-      sixPresent: view.imaginarySix?.present === true,
-      tier: view.tier,
+      ...debugFacts(view),
     });
 
     this.secondsSinceStatsReport = 0;

@@ -1,7 +1,5 @@
 import Phaser from 'phaser';
 import { FLEET_LINE_Y_UNITS } from '../../../../domain/fleet/integrity';
-import { RAIDER_HIT_POINTS } from '../../../../domain/swarm/raider';
-import { RESURRECTION_DOWNLOAD_SECONDS } from '../../../../domain/swarm/resurrection';
 import type { DomainEvent } from '../../../../domain/shared/events';
 import { WORLD_HEIGHT_UNITS, clamp } from '../../../../domain/shared/world';
 import type { GameView, GhostView, RaiderView } from '../../../../domain/views';
@@ -101,6 +99,7 @@ export class RaiderPresenter implements Presenter {
       mark.hull.x = Phaser.Math.Linear(raider.previousX, raider.x, alpha);
       mark.hull.y = Phaser.Math.Linear(raider.previousY, raider.y, alpha);
       mark.hull.setAlpha(raider.protected ? 0.55 : 1);
+      this.ensurePips(mark, raider.hpMax);
       this.drawPips(mark.pips, raider);
       this.syncEye(mark, raider.armed);
       const shown = RAIDER_SHOWN_UNITS * view.fighterScale;
@@ -161,7 +160,7 @@ export class RaiderPresenter implements Presenter {
       const mark = existing ?? this.buildGhost(ghost);
       mark.root.setPosition(this.ghostX(ghost.x, view.worldWidth), this.ghostY(ghost.y));
       mark.cross.setVisible(ghost.shootable);
-      this.setDownloadPips(mark.pips, ghost.remainingSeconds);
+      this.setDownloadPips(mark.pips, ghost.progress);
     }
   }
 
@@ -205,8 +204,7 @@ export class RaiderPresenter implements Presenter {
     });
   }
 
-  private setDownloadPips(pips: readonly Phaser.GameObjects.Rectangle[], remainingSeconds: number): void {
-    const progress = clamp(1 - remainingSeconds / RESURRECTION_DOWNLOAD_SECONDS, 0, 1);
+  private setDownloadPips(pips: readonly Phaser.GameObjects.Rectangle[], progress: number): void {
     const lit = Math.round(progress * DOWNLOAD_TICKS);
     for (const [index, pip] of pips.entries()) {
       pip.setAlpha(index < lit ? 0.95 : 0.28);
@@ -232,19 +230,24 @@ export class RaiderPresenter implements Presenter {
       parts.unshift(ring);
     }
 
-    const pips: Phaser.GameObjects.Rectangle[] = [];
-    for (let i = 0; i < RAIDER_HIT_POINTS; i++) {
-      const pip = this.scene.add.rectangle((i - 1) * 4, -RAIDER_SHOWN_UNITS / 2 - 3, 3, 2, PALETTE.cylonRed);
-      pips.push(pip);
-    }
-    parts.push(...pips);
-
     return {
       hull: this.scene.add.container(x, y, parts),
       body,
-      pips,
+      pips: [],
       fade: null,
     };
+  }
+
+  /** Hull pips come from the view on the first sync, so the count is never a copied constant. */
+  private ensurePips(mark: HullMark, count: number): void {
+    if (mark.pips.length === count) return;
+    for (const pip of mark.pips) pip.destroy();
+    mark.pips = [];
+    for (let i = 0; i < count; i++) {
+      const pip = this.scene.add.rectangle((i - (count - 1) / 2) * 4, -RAIDER_SHOWN_UNITS / 2 - 3, 3, 2, PALETTE.cylonRed);
+      mark.pips.push(pip);
+    }
+    mark.hull.add(mark.pips);
   }
 
   private drawPips(pips: readonly Phaser.GameObjects.Rectangle[], raider: RaiderView): void {

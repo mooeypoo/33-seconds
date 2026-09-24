@@ -6,10 +6,10 @@ import { hudStore } from '../stores/hudStore';
  * The run's real health (PRD 7). A percentage plus ten pips, so colour is never the only cue.
  * No flicker: a hit already has the orange stray tell (PRD 15).
  */
-const stats = hudStore.state;
+const state = hudStore.state;
 
-const integrity = computed(() => stats.stats?.fleet ?? 100);
-const integrityMax = computed(() => stats.stats?.fleetMax ?? 100);
+const integrity = computed(() => state.hud?.fleetIntegrity ?? 100);
+const integrityMax = computed(() => state.hud?.fleetIntegrityMax ?? 100);
 const percent = computed(() => {
   const max = integrityMax.value;
   if (max <= 0) return 0;

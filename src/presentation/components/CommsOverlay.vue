@@ -13,7 +13,7 @@ const osReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const pose = computed(() =>
   portraitPose(
-    hudStore.state.stats?.ticks ?? 0,
+    hudStore.state.hud?.tickCount ?? 0,
     effectiveReducedEffects(osReduced, settingsStore.state.snapshot.reducedEffects),
   ),
 );

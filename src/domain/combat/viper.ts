@@ -187,6 +187,12 @@ export class Viper {
     return true;
   }
 
+  /** 0 at the eject, 1 at pickup, 0 while flying. Presenters time the chute on this. */
+  get ejectProgress(): number {
+    if (!this.ejected) return 0;
+    return Math.min(1, Math.max(0, 1 - this.ejectRemainingSeconds / VIPER_EJECT_SECONDS));
+  }
+
   /** True when downtime is over and the pickup should put a Viper back in the fight. */
   get isReadyForPickup(): boolean {
     return this.ejected && this.ejectRemainingSeconds <= 0;

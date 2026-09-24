@@ -28,7 +28,7 @@ if (!session || !mountCanvas) throw new Error('App.vue needs a session and a can
 
 const canvasHost = useTemplateRef<HTMLElement>('canvasHost');
 const status = ref<SessionStatus>(session.status);
-const cyclePhase = computed(() => hudStore.state.stats?.cyclePhase ?? null);
+const cyclePhase = computed(() => hudStore.state.hud?.cyclePhase ?? null);
 const inRun = computed(() => status.value.phase !== 'title');
 const showFleet = computed(
   () => status.value.phase === 'running' || status.value.phase === 'paused' || status.value.phase === 'resuming',
@@ -110,7 +110,7 @@ onUnmounted(() => {
     <footer v-if="inRun" class="bottom-band">
       <div class="comms-slot">
         <CommsOverlay v-if="status.comms" docked :comms="status.comms" />
-        <SpeechBanner v-if="status.phase === 'running' && hudStore.state.stats?.speechActive" docked />
+        <SpeechBanner v-if="status.phase === 'running' && hudStore.state.hud?.speechActive" docked />
       </div>
     </footer>
   </div>

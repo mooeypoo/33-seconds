@@ -510,3 +510,35 @@ describe('losing', () => {
     expect(session.view.fleet.integrity).toBe(8);
   });
 });
+
+describe('the HUD feed', () => {
+  it('follows the running game, freezes with pause, and resets for a new run', () => {
+    const shown: number[] = [];
+    session.subscribeHud((hud) => shown.push(hud.secondsRemaining));
+    session.start();
+    runFrames(TICKS_PER_SECOND * 2);
+    const running = shown.at(-1) ?? 0;
+    expect(running).toBeLessThan(33);
+
+    session.pause('player');
+    runFrames(TICKS_PER_SECOND * 3);
+    expect(shown.at(-1)).toBe(running);
+
+    session.abandonRun();
+    session.start();
+    expect(shown.at(-1)).toBe(33);
+  });
+
+  it('names the newest bonus and counts the older ones', () => {
+    const withCards = new GameSession(input, { startingCards: ['spoilers', 'flak-enthusiast'] });
+    let latest: string | null = null;
+    let older = -1;
+    withCards.subscribeHud((hud) => {
+      latest = hud.latestUpgradeId;
+      older = hud.olderUpgradeCount;
+    });
+    withCards.start();
+    expect(latest).toBe('flak-enthusiast');
+    expect(older).toBe(1);
+  });
+});

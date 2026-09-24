@@ -12,6 +12,8 @@ Read this file first, every session. It is short on purpose.
 |---|---|---|
 | `docs/PRD.md` | The game's rules and scope. **A living document**, adjusted as we play. | Read "How to use and change this document" and "MVP at a glance" every session. Read the sections your slice touches. |
 | `docs/adr/0001-architecture.md` | The architecture guidelines and the reasoning. | Read "Guidelines at a glance" every session. Read the decisions your slice touches. |
+| `docs/adr/0002-review-roadmap.md` | The plan that follows the 2026-09-24 review: owner decisions, and phased checklists. | Read "How to pick this up" every session while it has unchecked items. Work the first unfinished phase. |
+| `docs/review/` | The gameplay and UI/UX reviews behind that roadmap, with open brainstorm lists. | When a roadmap phase points at them. |
 | `docs/journal/` | One entry per slice: what we built, what we measured, what surprised us. Blog-ready. | Skim the latest entry every session. Add one at the end of each slice. |
 | `docs/art/`, `docs/content/` | Notes for the owner's own art and content passes. | Only when asked to work on assets or content. |
 
@@ -74,6 +76,7 @@ Full guidelines and reasoning are in the ADR.
 - `localStorage` is untrusted because users can edit it. Version it, validate on read, wrap it in `try/catch`, and make the game work without it.
 - Never use `v-html` or `innerHTML` with content. Text renders as text.
 - Add dependencies sparingly, and tell me why. Never commit secrets.
+- **Already approved (2026-09-24):** one self-hosted pixel font plus a readable font, as `woff2` files under the SIL Open Font License with the license file committed beside them; and **ZzFX** for synthesized sound effects, pinned exactly. Record each in `assets/PROVENANCE.md` or `package.json` as it lands.
 - Anything with a server (a leaderboard, say) needs a short design note first: no free-text names, schema validation, rate limiting, minimal stored fields.
 
 **Accessibility and comfort (non-negotiable)**

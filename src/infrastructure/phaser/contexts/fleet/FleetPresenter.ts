@@ -5,7 +5,6 @@ import {
   CIVILIAN_HALF_HEIGHT_UNITS,
   CIVILIAN_HALF_WIDTH_UNITS,
   FLEET_LINE_Y_UNITS,
-  GALACTICA_SHIP_INDEX,
 } from '../../../../domain/fleet/integrity';
 import type { Presenter } from '../../Presenter';
 import { PALETTE } from '../../shared/palette';
@@ -27,6 +26,8 @@ export class FleetPresenter implements Presenter {
   private line: Phaser.GameObjects.Rectangle | null = null;
   private readonly hulls = new Map<number, Phaser.GameObjects.Rectangle>();
   private readonly notches = new Map<number, Phaser.GameObjects.Rectangle>();
+  /** Read from the view's `galactica` flag, not a copied index. */
+  private galacticaId: number | null = null;
 
   constructor(scene: Phaser.Scene, prefersReducedMotion: boolean) {
     this.scene = scene;
@@ -53,6 +54,7 @@ export class FleetPresenter implements Presenter {
   }
 
   private syncShip(ship: CivilianShipView): void {
+    if (ship.galactica) this.galacticaId = ship.id;
     let hull = this.hulls.get(ship.id);
     const width = CIVILIAN_HALF_WIDTH_UNITS * 2 * (ship.galactica ? 1.4 : 1);
     const height = CIVILIAN_HALF_HEIGHT_UNITS * 2;
@@ -81,7 +83,8 @@ export class FleetPresenter implements Presenter {
   }
 
   private flashGalactica(): void {
-    const hull = this.hulls.get(GALACTICA_SHIP_INDEX);
+    if (this.galacticaId === null) return;
+    const hull = this.hulls.get(this.galacticaId);
     if (!hull) return;
     const muzzle = this.scene.add.rectangle(hull.x, hull.y - 7, 3, 5, PALETTE.strayShot);
     this.fadeOut(muzzle);

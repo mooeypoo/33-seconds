@@ -38,6 +38,7 @@ describe('the Viper hull', () => {
         ejected = true;
         expect(game.view.viper.ejected).toBe(true);
         expect(game.view.viper.hp).toBe(0);
+        expect(game.view.viper.ejectProgress).toBeLessThan(0.05);
         break;
       }
     }
@@ -48,6 +49,8 @@ describe('the Viper hull', () => {
       false,
     );
     expect(game.view.viper.ejected).toBe(true);
+    // The chute's drift is timed on this, so it must reach the end as the pickup arrives.
+    expect(game.view.viper.ejectProgress).toBeGreaterThan(0.9);
 
     let recovered = false;
     for (let i = 0; i < ticksFor(2); i++) {
@@ -56,6 +59,7 @@ describe('the Viper hull', () => {
         recovered = true;
         expect(game.view.viper.ejected).toBe(false);
         expect(game.view.viper.hp).toBe(VIPER_HULL_HIT_POINTS);
+        expect(game.view.viper.ejectProgress).toBe(0);
         expect(game.view.viper.x).toBe(VIPER_SPAWN_X_UNITS);
         expect(game.view.viper.y).toBe(VIPER_SPAWN_Y_UNITS);
         break;
