@@ -130,6 +130,8 @@ export class Game {
    * public method that changes state clears it.
    */
   private cachedView: GameView | null = null;
+  /** Set once the resurrection ship's death has topped the swarm up for the last wave. */
+  private lastWaveSent = false;
 
   constructor(options: GameOptions = {}) {
     const seed = options.seed ?? DEFAULT_RUN_SEED;
@@ -222,6 +224,7 @@ export class Game {
       this.advanceRaiders(events);
       for (const raptor of this.raptors) raptor.advance(TICK_SECONDS);
       resolveHits(this.battlefield(), events);
+      this.maybeSendLastWave(events);
       this.munitions.reclaimShotsThatLeft();
       this.munitions.reclaimMissilesThatLeft();
       this.swarm.advanceDownloads(TICK_SECONDS);
@@ -367,12 +370,34 @@ export class Game {
 
   /** Every weapon kills the same way. The loop is on until the resurrection ship is destroyed. */
   private destroyRaider(raider: Raider, events: DomainEvent[]): void {
-    this.swarm.destroy(raider, events, !this.resurrectionShip?.isDestroyed, this.loadout.downloadSeconds);
+    this.swarm.destroy(raider, events, !this.resurrectionShip?.isDestroyed, this.nextDownloadSeconds());
+  }
+
+  /**
+   * The card-adjusted download time, staggered by the tier's jitter so returns do not arrive in
+   * lockstep (PRD 6). No jitter, no draw, so a profile without it spends no gameplay randomness.
+   */
+  private nextDownloadSeconds(): number {
+    const base = this.loadout.downloadSeconds;
+    const jitter = this.profile.downloadJitterSeconds;
+    if (jitter <= 0) return base;
+    return Math.max(1, base + this.scenario.between(-jitter, jitter));
   }
 
   private fillTheSwarm(events: DomainEvent[]): void {
-    const cap = rampAt(this.profile.directorCap, this.cycle.view.cycleIndex);
-    this.swarm.fill(events, this.resurrectionShip?.isDestroyed === true, cap);
+    const cycleIndex = this.cycle.view.cycleIndex;
+    this.swarm.fill(
+      events,
+      this.resurrectionShip?.isDestroyed === true,
+      rampAt(this.profile.directorCap, cycleIndex),
+      rampAt(this.profile.swarmFloor, cycleIndex),
+    );
+  }
+
+  private maybeSendLastWave(events: DomainEvent[]): void {
+    if (this.lastWaveSent || this.resurrectionShip?.isDestroyed !== true) return;
+    this.lastWaveSent = true;
+    this.swarm.lastWave(events, rampAt(this.profile.directorCap, this.cycle.view.cycleIndex));
   }
 
   private autoFire(events: DomainEvent[]): void {

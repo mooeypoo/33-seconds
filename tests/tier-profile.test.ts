@@ -19,6 +19,8 @@ describe('tier profiles as data', () => {
       fleetCycleDamageCap: 0,
       fleetRepairOfMissing: 1.5,
       directorCap: [],
+      swarmFloor: [0],
+      downloadJitterSeconds: 0,
       attackTokens: [1, 2.5],
       strafeTokens: [1],
       spawnRate: 3,

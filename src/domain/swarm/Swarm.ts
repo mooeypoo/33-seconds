@@ -160,10 +160,12 @@ export class Swarm {
   }
 
   /**
-   * Keeps live Raiders at the Director cap. Ready downloads come back first; each pending
-   * download reserves one slot so a refill cannot add pressure (PRD 6).
+   * Keeps live Raiders between the Director's floor and cap (PRD 6, 9). Ready downloads come back
+   * first. A pending download reserves a slot, so a refill does not add pressure, unless the swarm
+   * has fallen below the floor: then a fresh Raider comes anyway. A finished download never pushes
+   * past the cap; it waits for a free slot. Once the ship is gone, nothing fresh arrives.
    */
-  fill(events: DomainEvent[], shipGone: boolean, cap: number): void {
+  fill(events: DomainEvent[], shipGone: boolean, cap: number, floor = 0): void {
     while (this.bodies.length < cap) {
       const readyIndex = this.queue.findIndex((download) => download.isReady);
       if (readyIndex >= 0) {
@@ -175,9 +177,18 @@ export class Swarm {
       }
 
       if (shipGone) return;
-      if (this.bodies.length + this.queue.length >= cap) return;
+      const reserved = this.bodies.length + this.queue.length >= cap;
+      if (reserved && this.bodies.length >= floor) return;
       this.spawn(events, cap);
     }
+  }
+
+  /**
+   * The last wave (PRD 5.2, 6): when the resurrection ship dies, the swarm tops up to the cap once.
+   * Nothing downloads after that, so these are the last Raiders of the run.
+   */
+  lastWave(events: DomainEvent[], cap: number): void {
+    while (this.bodies.length < cap) this.spawn(events, cap);
   }
 
   private spawn(

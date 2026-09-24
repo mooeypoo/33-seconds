@@ -55,6 +55,8 @@ export function parseTierProfile(id: TierId, raw: unknown): CycleProfile {
     fleetCycleDamageCap: number(field, 'fleetCycleDamageCap', 1, 100),
     fleetRepairOfMissing: number(field, 'fleetRepairOfMissing', 0, 1),
     directorCap: ramp(field, 'directorCap', 1),
+    swarmFloor: ramp(field, 'swarmFloor', 0),
+    downloadJitterSeconds: number(field, 'downloadJitterSeconds', 0, 5),
     attackTokens: ramp(field, 'attackTokens', 0),
     strafeTokens: ramp(field, 'strafeTokens', 0),
   };

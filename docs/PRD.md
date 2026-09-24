@@ -135,12 +135,12 @@ A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 
 ## 6. Resurrection `[Core]`
 
-- A destroyed Raider becomes a **ghost blip** on Dradis, labelled as downloading, and returns after a delay (**base 6 s, tunable per tier**).
+- A destroyed Raider becomes a **ghost blip** on Dradis, labelled as downloading, and returns after a delay (**base 6 s**, staggered by the tier's `downloadJitterSeconds` so returns do not arrive in lockstep).
 - First play of the placeholder diamond found it unreadable: a grey square is not "downloading." **Do not blink it.** Comfort forbids rapid flashing, and a blink still does not say what the wait is for. The tell is a still **download bar** that fills over the 6 s, plus the word (or a `[-----]` stand-in) so the bar is never the only cue. The placeholder is a quiet five-notch bar under the diamond; the HUD also says downloading. The real Dradis treatment waits for M5.
-- Returned Raiders come out of the **Director's concurrency cap**. Resurrection does not add pressure, it *refills* the swarm. That is how waves stay endless without any single moment getting harder.
+- Returned Raiders come out of the **Director's cap**, and a return never pushes the swarm past it: a finished download waits for a free slot. A pending download holds a slot, so a refill does not add pressure, **except below the Director's floor** (section 9): then a fresh Raider comes anyway, so a run of kills does not empty the sky. (Changed 2026-09-24 with the owner: "always about 3 to 5 on screen.")
 - Pending resurrections carry across a jump and arrive first in the next cycle.
 - Each Raider carries a private death counter. That drives cosmetic escalation and an end-of-run stat ("Most-killed Raider: 14 times. Still not over it.").
-- Once the resurrection ship is destroyed, the queue stops. Pending downloads still finish. Raiders still alive at a jump after that come back as the last wave, so jumping is not a win.
+- Once the resurrection ship is destroyed, the queue stops and nothing fresh arrives. On its death the swarm **tops up to the cap once: the last wave**. Pending downloads still finish (and wait for a slot). Raiders still alive at a jump after that come back as the last wave, so jumping is not a win.
 - **Loop-on / loop-off tell.** While resurrections are active, a kill becomes a ghost with a filling bar plus a word (`downloading` / `loop`). That is true from cycle 1, even before the ship is on the map. After the ship is destroyed, a kill leaves no new ghost, and the HUD says `offline`. Colour is never the only cue. The graphics pass can grey leftover blips and the wreck; do not restyle this while proving the rule.
 
 ### 6.1 Staged rollout of "smarter and angrier" `[Later]`
@@ -260,7 +260,7 @@ MVP ships The Speech only. The loadout pick screen arrives with the second speci
 
 These rules exist so "smarter and angrier" never becomes "a big mass mess."
 
-- **Director cap** on concurrent Raiders, set per tier. Starts at **2**. A kill is a dip; a return is a refill, not a third body.
+- **Director cap and floor** on concurrent Raiders, set per tier and **per cycle** (ramps in `src/balance/tiers.json`). The cap is never exceeded. While the resurrection ship lives, the floor keeps at least that many up: below it, fresh Raiders come even while downloads are pending. Between floor and cap, a return is a refill, not an extra body.
 - **Attack tokens.** Only K Raiders (2 to 5 by tier) can be in their firing state at once. The rest fly but hold fire. Starts at **1** so two bodies do not double the incoming fire before the fairness pass. The nearest Raider holds the token; a still eye means unarmed, a sweep means it may shoot.
 - **Hard caps** on enemy bullets and particles, lower on mobile.
 - Only Cylons are red. A still red eye means inert, and a sweeping eye means active. Color is never the only cue (see section 16).
@@ -663,3 +663,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-24 | The CIC layout mock-up is approved (ADR-0002 2.1). Civilian ships get names: nine drawn per run from an owner-written pool in `content/fleet.json`, Galactica always present. Card art is a 112 × 36 banner. Whole-number scaling, one fighter size, and scanlines are deferred to Phase 4 and after. | The FLEET console lists the ships, so they need names; a pool keeps runs varied. |
 | 2026-09-24 | The CIC shell: from 1100 px wide the lane sits between a FLEET console (health, FTL ring, named ships, objective) and a COMMS console (128 px portrait, recent log, loadout, missile and Speech readouts, Pause and About), on the title too. A laptop folds the ship list, log, and loadout. The pause menu keeps a 20-line comms log. On a phone the objective joins the status row. Apply and Continue also silence any line waiting under the Recovering scene. | Approved mock-up (ADR-0002 2.1). The stale line was a card-advice line about the closed hand surfacing in the next cycle. |
 | 2026-09-24 | The Recovering pick is three cards (ADR-0002 2.3): rarity as a word and a frame, the stack it would become, an art banner, the joke, and the effect with both advisors. A wide window shows a full-screen board with everything at once; a phone stacks the cards and opens one at a time, with Apply pinned in reach. | The approved mock-up; the pick should feel like a reward, not a settings list. |
+| 2026-09-24 | The Director gets a floor as well as a cap, both per cycle: below the floor, fresh Raiders come even while downloads are pending, and a finished download waits for a free slot rather than pass the cap. Downloads are staggered by a per-tier jitter. The resurrection ship's death tops the swarm up to the cap once (the last wave). | Owner: "always about 3 to 5 on screen"; the simulator showed 0.6 on screen for a pilot chasing kills. |

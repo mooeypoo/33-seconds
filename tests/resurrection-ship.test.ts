@@ -174,6 +174,9 @@ describe('the resurrection ship', () => {
     expect(game.view.ghosts.length).toBeGreaterThan(0);
 
     for (let i = 0; i < ticksFor(RESURRECTION_DOWNLOAD_SECONDS) + 2; i++) game.tick(IDLE_INTENT);
+    // The ship's death topped the swarm up to the cap (the last wave), so the finished download
+    // waits for a free slot. The next kill lets it back in (PRD 6).
+    destroyOneRaider(game);
     expect(game.view.raiders.some((raider) => raider.returned)).toBe(true);
 
     const ghostsBeforeLastKill = game.view.ghosts.length;

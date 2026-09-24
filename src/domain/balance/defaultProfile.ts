@@ -11,6 +11,8 @@ export const DEFAULT_CYCLE_PROFILE: CycleProfile = {
   fleetCycleDamageCap: FLEET_CYCLE_DAMAGE_CAP,
   fleetRepairOfMissing: FLEET_REPAIR_OF_MISSING,
   directorCap: [DIRECTOR_CAP],
+  swarmFloor: [0],
+  downloadJitterSeconds: 0,
   attackTokens: [ATTACK_TOKENS],
   strafeTokens: [STRAFE_TOKENS],
 };

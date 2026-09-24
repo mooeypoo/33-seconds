@@ -17,8 +17,15 @@ export interface CycleProfile {
   readonly fleetCycleDamageCap: number;
   /** Fraction of missing Fleet Integrity restored at the jump. */
   readonly fleetRepairOfMissing: number;
-  /** Most Raiders alive at once, by cycle (PRD 9). Returns refill up to it. */
+  /** Most Raiders alive at once, by cycle (PRD 9). Returns refill up to it and never past it. */
   readonly directorCap: Ramp;
+  /**
+   * Fewest Raiders alive, by cycle, while the resurrection ship lives (PRD 9). Below it, fresh
+   * Raiders arrive even while downloads are pending, so a run of kills does not empty the sky.
+   */
+  readonly swarmFloor: Ramp;
+  /** Each download takes the base time plus or minus up to this, so returns are staggered (PRD 6). */
+  readonly downloadJitterSeconds: number;
   /** Raiders allowed to fire at once, by cycle (PRD 9). */
   readonly attackTokens: Ramp;
   /** Raiders allowed to dive the fleet at once, by cycle (PRD 7.1). */

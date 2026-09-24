@@ -435,6 +435,20 @@ const SABOTAGE = [
     mustFail: 'npm run check:arch',
   },
   {
+    what: 'the Director ignores its floor while downloads are pending',
+    file: 'src/domain/swarm/Swarm.ts',
+    find: '      if (reserved && this.bodies.length >= floor) return;',
+    replace: '      if (reserved) return;',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'the resurrection ship dies without a last wave',
+    file: 'src/domain/game.ts',
+    find: '      this.maybeSendLastWave(events);',
+    replace: '      // sabotage: no last wave',
+    mustFail: 'npm run test',
+  },
+  {
     what: 'a tier repairs more of the fleet than it lost',
     file: 'src/balance/tiers.json',
     find: '"fleetRepairOfMissing": 0.4,',

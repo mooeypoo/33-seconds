@@ -3,6 +3,8 @@
     "fleetCycleDamageCap": 35,
     "fleetRepairOfMissing": 0.6,
     "directorCap": [2],
+    "swarmFloor": [0],
+    "downloadJitterSeconds": 0,
     "attackTokens": [1],
     "strafeTokens": [1]
   },
@@ -10,6 +12,8 @@
     "fleetCycleDamageCap": 45,
     "fleetRepairOfMissing": 0.4,
     "directorCap": [2],
+    "swarmFloor": [0],
+    "downloadJitterSeconds": 0,
     "attackTokens": [1],
     "strafeTokens": [1]
   }
