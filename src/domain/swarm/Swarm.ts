@@ -3,7 +3,9 @@ import type { RandomStream } from '../shared/random';
 import type { Playfield } from '../shared/world';
 import { movingCircleHitAlong } from '../shared/collision';
 import {
+  type FlightPattern,
   Raider,
+  SINE_AMPLITUDE_UNITS,
   RAIDER_HALF_HEIGHT_UNITS,
   RAIDER_HALF_WIDTH_UNITS,
   RAIDER_RADIUS_UNITS,
@@ -11,6 +13,14 @@ import {
   raiderSpawnMinX,
 } from './raider';
 import { Download, GHOST_RADIUS_UNITS } from './resurrection';
+
+/** This cycle's numbers from the tier profile (PRD 9). */
+export interface SpawnRules {
+  readonly cap: number;
+  readonly floor: number;
+  /** Share of new Raiders, 0 to 1, that weave instead of diving. */
+  readonly sineShare: number;
+}
 
 /**
  * The live Raiders, the download queue, and the Director that keeps them at the cap (PRD 6, 9).
@@ -165,21 +175,22 @@ export class Swarm {
    * has fallen below the floor: then a fresh Raider comes anyway. A finished download never pushes
    * past the cap; it waits for a free slot. Once the ship is gone, nothing fresh arrives.
    */
-  fill(events: DomainEvent[], shipGone: boolean, cap: number, floor = 0): void {
+  fill(events: DomainEvent[], shipGone: boolean, rules: SpawnRules): void {
+    const { cap, floor } = rules;
     while (this.bodies.length < cap) {
       const readyIndex = this.queue.findIndex((download) => download.isReady);
       if (readyIndex >= 0) {
         const ready = this.queue[readyIndex];
         if (!ready) return;
         this.queue.splice(readyIndex, 1);
-        this.spawn(events, cap, { identityId: ready.identityId, deaths: ready.deaths, x: ready.x });
+        this.spawn(events, rules, { identityId: ready.identityId, deaths: ready.deaths, x: ready.x });
         continue;
       }
 
       if (shipGone) return;
       const reserved = this.bodies.length + this.queue.length >= cap;
       if (reserved && this.bodies.length >= floor) return;
-      this.spawn(events, cap);
+      this.spawn(events, rules);
     }
   }
 
@@ -187,26 +198,30 @@ export class Swarm {
    * The last wave (PRD 5.2, 6): when the resurrection ship dies, the swarm tops up to the cap once.
    * Nothing downloads after that, so these are the last Raiders of the run.
    */
-  lastWave(events: DomainEvent[], cap: number): void {
-    while (this.bodies.length < cap) this.spawn(events, cap);
+  lastWave(events: DomainEvent[], rules: SpawnRules): void {
+    while (this.bodies.length < rules.cap) this.spawn(events, rules);
   }
 
   private spawn(
     events: DomainEvent[],
-    cap: number,
+    rules: SpawnRules,
     returning?: { readonly identityId: number; readonly deaths: number; readonly x: number },
   ): void {
-    if (this.bodies.length >= cap) return;
+    if (this.bodies.length >= rules.cap) return;
     const minX = raiderSpawnMinX(this.playfield.fighterScale);
     const maxX = raiderSpawnMaxX(this.playfield.width, this.playfield.fighterScale);
     const column = returning?.x ?? this.pickFreshColumn(minX, maxX);
-    const x = Math.min(maxX, Math.max(minX, column));
+    const pattern = this.pickPattern(rules.sineShare);
+    // A weave is centred far enough in that the whole sway stays in the lane.
+    const inset = pattern === 'sine' ? SINE_AMPLITUDE_UNITS : 0;
+    const x = Math.min(maxX - inset, Math.max(minX + inset, column));
     const identityId = returning?.identityId ?? this.nextIdentityId;
     if (!returning) this.nextIdentityId += 1;
 
     const raider = new Raider(this.allocateId(), identityId, x, this.spawnY, {
       deaths: returning?.deaths ?? 0,
       returned: Boolean(returning),
+      pattern,
     });
     this.bodies.push(raider);
     events.push({
@@ -218,6 +233,13 @@ export class Swarm {
       returned: raider.returned,
       deaths: raider.deaths,
     });
+  }
+
+  /** No draw at 0 or 1, so an all-dive profile spends no gameplay randomness (seeded tests stay put). */
+  private pickPattern(sineShare: number): FlightPattern {
+    if (sineShare <= 0) return 'dive';
+    if (sineShare >= 1) return 'sine';
+    return this.scenario.next() < sineShare ? 'sine' : 'dive';
   }
 
   private pickFreshColumn(minX: number, maxX: number): number {

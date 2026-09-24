@@ -5,6 +5,7 @@
     "directorCap": [2],
     "swarmFloor": [0],
     "downloadJitterSeconds": 0,
+    "sineShare": [0],
     "attackTokens": [1],
     "strafeTokens": [1]
   },
@@ -14,6 +15,7 @@
     "directorCap": [2],
     "swarmFloor": [0],
     "downloadJitterSeconds": 0,
+    "sineShare": [0],
     "attackTokens": [1],
     "strafeTokens": [1]
   }

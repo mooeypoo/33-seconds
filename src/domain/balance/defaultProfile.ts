@@ -13,6 +13,7 @@ export const DEFAULT_CYCLE_PROFILE: CycleProfile = {
   directorCap: [DIRECTOR_CAP],
   swarmFloor: [0],
   downloadJitterSeconds: 0,
+  sineShare: [0],
   attackTokens: [ATTACK_TOKENS],
   strafeTokens: [STRAFE_TOKENS],
 };

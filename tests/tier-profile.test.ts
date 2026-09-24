@@ -21,6 +21,7 @@ describe('tier profiles as data', () => {
       directorCap: [],
       swarmFloor: [0],
       downloadJitterSeconds: 0,
+      sineShare: [0],
       attackTokens: [1, 2.5],
       strafeTokens: [1],
       spawnRate: 3,

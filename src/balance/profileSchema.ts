@@ -28,16 +28,20 @@ function number(field: Field, key: string, min: number, max: number): number {
   return value;
 }
 
-function ramp(field: Field, key: string, min: number): Ramp {
+/** A ramp of whole counts, or with `share`, of fractions from 0 to 1. */
+function ramp(field: Field, key: string, min: number, share = false): Ramp {
   const value = field.record[key];
   if (!Array.isArray(value) || value.length === 0) {
     field.problems.push(`${field.where}.${key} must be a non-empty list, one value per cycle`);
     return [min];
   }
   value.forEach((entry, index) => {
-    if (typeof entry !== 'number' || !Number.isInteger(entry) || entry < min || entry > MAX_COUNT) {
+    const max = share ? 1 : MAX_COUNT;
+    const whole = share || Number.isInteger(entry);
+    if (typeof entry !== 'number' || !Number.isFinite(entry) || !whole || entry < min || entry > max) {
+      const kind = share ? 'a share' : 'a whole number';
       field.problems.push(
-        `${field.where}.${key}[${String(index)}] (cycle ${String(index + 1)}) must be a whole number from ${String(min)} to ${String(MAX_COUNT)}`,
+        `${field.where}.${key}[${String(index)}] (cycle ${String(index + 1)}) must be ${kind} from ${String(min)} to ${String(max)}`,
       );
     }
   });
@@ -57,6 +61,7 @@ export function parseTierProfile(id: TierId, raw: unknown): CycleProfile {
     directorCap: ramp(field, 'directorCap', 1),
     swarmFloor: ramp(field, 'swarmFloor', 0),
     downloadJitterSeconds: number(field, 'downloadJitterSeconds', 0, 5),
+    sineShare: ramp(field, 'sineShare', 0, true),
     attackTokens: ramp(field, 'attackTokens', 0),
     strafeTokens: ramp(field, 'strafeTokens', 0),
   };

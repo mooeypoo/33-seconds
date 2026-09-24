@@ -26,6 +26,8 @@ export interface CycleProfile {
   readonly swarmFloor: Ramp;
   /** Each download takes the base time plus or minus up to this, so returns are staggered (PRD 6). */
   readonly downloadJitterSeconds: number;
+  /** Share of new Raiders, 0 to 1 by cycle, that weave a shallow sine instead of diving straight. */
+  readonly sineShare: Ramp;
   /** Raiders allowed to fire at once, by cycle (PRD 9). */
   readonly attackTokens: Ramp;
   /** Raiders allowed to dive the fleet at once, by cycle (PRD 7.1). */

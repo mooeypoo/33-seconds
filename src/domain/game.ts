@@ -16,7 +16,7 @@ import { createRandomStream, type RandomStream } from './shared/random';
 import { TICK_SECONDS } from './shared/time';
 import type { Raider } from './swarm/raider';
 import { RAIDER_HALF_HEIGHT_UNITS } from './swarm/raider';
-import { Swarm } from './swarm/Swarm';
+import { Swarm, type SpawnRules } from './swarm/Swarm';
 import { DEFAULT_CYCLE_PROFILE } from './balance/defaultProfile';
 import { rampAt, type CycleProfile } from './balance/profile';
 import { Fleet, FLEET_INTEGRITY_MAX, FLEET_LINE_Y_UNITS } from './fleet/integrity';
@@ -385,19 +385,22 @@ export class Game {
   }
 
   private fillTheSwarm(events: DomainEvent[]): void {
+    this.swarm.fill(events, this.resurrectionShip?.isDestroyed === true, this.spawnRules());
+  }
+
+  private spawnRules(): SpawnRules {
     const cycleIndex = this.cycle.view.cycleIndex;
-    this.swarm.fill(
-      events,
-      this.resurrectionShip?.isDestroyed === true,
-      rampAt(this.profile.directorCap, cycleIndex),
-      rampAt(this.profile.swarmFloor, cycleIndex),
-    );
+    return {
+      cap: rampAt(this.profile.directorCap, cycleIndex),
+      floor: rampAt(this.profile.swarmFloor, cycleIndex),
+      sineShare: rampAt(this.profile.sineShare, cycleIndex),
+    };
   }
 
   private maybeSendLastWave(events: DomainEvent[]): void {
     if (this.lastWaveSent || this.resurrectionShip?.isDestroyed !== true) return;
     this.lastWaveSent = true;
-    this.swarm.lastWave(events, rampAt(this.profile.directorCap, this.cycle.view.cycleIndex));
+    this.swarm.lastWave(events, this.spawnRules());
   }
 
   private autoFire(events: DomainEvent[]): void {
