@@ -6,7 +6,9 @@ import {
 import type { DomainEvent } from '../../../../domain/shared/events';
 import type { GameView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
+import type { ReducedEffectsSource } from '../../shared/comfort';
 import { PALETTE } from '../../shared/palette';
+import { MISSILE_ANIM, MISSILE_FRAME_RATE, MISSILE_FRAMES } from '../../sprites';
 
 /**
  * Ring radius. The crossarms stick out a little so it reads as a lock, not a halo.
@@ -17,14 +19,28 @@ const RETICLE_ARM = 7;
 const RETICLE_LINE = 1;
 const RETICLE_ALPHA = 0.5;
 
-/** Draws missiles and the lock reticle. Colour is never the only cue: ring plus a four-quadrant cross. */
+/**
+ * Draws missiles and the lock reticle. Colour is never the only cue: ring plus a four-quadrant
+ * cross. Missiles stay upright, like the shots: rotating a picture this small smears it. The
+ * flame flickers between two frames; reduced effects holds the first.
+ */
 export class MissilePresenter implements Presenter {
   private readonly scene: Phaser.Scene;
-  private readonly sprites = new Map<number, Phaser.GameObjects.Rectangle>();
+  private readonly reduced: ReducedEffectsSource;
+  private readonly sprites = new Map<number, Phaser.GameObjects.Sprite>();
   private readonly reticle: Phaser.GameObjects.Container;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, reduced: ReducedEffectsSource) {
     this.scene = scene;
+    this.reduced = reduced;
+    if (!scene.anims.exists(MISSILE_ANIM)) {
+      scene.anims.create({
+        key: MISSILE_ANIM,
+        frames: MISSILE_FRAMES.map((key) => ({ key })),
+        frameRate: MISSILE_FRAME_RATE,
+        repeat: -1,
+      });
+    }
     const ring = scene.add.circle(0, 0, RETICLE_RADIUS, PALETTE.missileLock, 0);
     ring.setStrokeStyle(RETICLE_LINE, PALETTE.missileLock, RETICLE_ALPHA);
     const horizontal = scene.add.rectangle(0, 0, RETICLE_ARM * 2, RETICLE_LINE, PALETTE.missileLock, RETICLE_ALPHA);
@@ -63,11 +79,13 @@ export class MissilePresenter implements Presenter {
     this.reticle.y = Phaser.Math.Linear(lock.previousY, lock.y, alpha);
   }
 
-  private ensure(id: number, x: number, y: number): Phaser.GameObjects.Rectangle {
+  private ensure(id: number, x: number, y: number): Phaser.GameObjects.Sprite {
     const existing = this.sprites.get(id);
     if (existing) return existing;
-    const sprite = this.scene.add.rectangle(x, y, MISSILE_WIDTH_UNITS, MISSILE_HEIGHT_UNITS, PALETTE.missile);
+    const sprite = this.scene.add.sprite(x, y, MISSILE_FRAMES[0]);
+    sprite.setDisplaySize(MISSILE_WIDTH_UNITS, MISSILE_HEIGHT_UNITS);
     sprite.setDepth(2);
+    if (!this.reduced()) sprite.play(MISSILE_ANIM);
     this.sprites.set(id, sprite);
     return sprite;
   }

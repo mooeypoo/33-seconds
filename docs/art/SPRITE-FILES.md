@@ -26,17 +26,17 @@ Hot red belongs to Cylons only: the Raider, the heavy Raider, the resurrection s
   `raider_eye_right.png` — **48 × 48** (24 units).
 - [x] **Small explosion** — `assets/effects/explosion_small_1.png` … `_6.png` — **64 × 64** (32 units).
 
-### Shots (redraw smaller)
+### Shots (done)
 
-The current shot files are 12 × 20 and 12 × 28, drawn for the old 4× rule. At the new density they
-would be twice as coarse as the ships. Redraw at these sizes, same look, same paths:
+Redrawn at the new density and in the game.
 
-- [ ] **Player shot** — `assets/projectiles/bullet_player.png` — **6 × 10**. Dradis green.
-- [ ] **Aimed Cylon shot** — `assets/projectiles/bullet_aimed.png` — **6 × 10**. Red.
-- [ ] **Stray shot** — `assets/projectiles/bullet_stray.png` — **6 × 14**. Orange, longer trail.
-- [ ] **Big shot** (*Overcompensating Cannon*) — `assets/projectiles/bullet_player_big.png` — **10 × 16**. New.
-- [ ] **Missile** — `assets/projectiles/missile_1.png`, `missile_2.png` — **8 × 16**, two frames of
-  flame, flickering at 2 Hz or slower.
+- [x] **Player shot** — `assets/projectiles/bullet_player.png` — **6 × 10**. Dradis green.
+- [x] **Aimed Cylon shot** — `assets/projectiles/bullet_aimed.png` — **6 × 10**. Red.
+- [x] **Stray shot** — `assets/projectiles/bullet_stray.png` — **6 × 14**. Orange, longer trail.
+- [x] **Big shot** (*Overcompensating Cannon*) — `assets/projectiles/bullet_player_big.png` — **10 × 16**.
+  Replaces the player shot once the card is taken: 5 × 8 units at one stack, larger with each stack after.
+- [x] **Missile** — `assets/projectiles/missile_1.png`, `missile_2.png` — **8 × 16**, two frames of
+  flame, flickering at 2 Hz. Reduced effects holds the first frame.
 
 ### New ships (placeholder shapes in the game today)
 
@@ -61,8 +61,9 @@ would be twice as coarse as the ships. Redraw at these sizes, same look, same pa
 
 ### Effects and markers
 
-- [ ] **Large explosion** — `assets/effects/explosion_large_1.png` … `_8.png` — **96 × 96**
+- [x] **Large explosion** — `assets/effects/explosion_large_1.png` … `_7.png` — **96 × 96**
   (48 units). Heavy Raider and the resurrection ship. Same rules as the small one: no white frames.
+  Seven frames were drawn and the game plays seven; an eighth is optional.
 - [ ] **Flak burst** — `assets/effects/flak_burst_1.png` … `_3.png` — **16 × 16**. Warm olive and
   orange, never white or red.
 - [ ] **Download blip** — `assets/markers/ghost_blip.png` — **16 × 16**. The fill bar is drawn in code.
@@ -120,7 +121,7 @@ the stick indicator, and the starfield.
 
 ## Suggested order
 
-1. **The four shots and the missile**: small, quick, and they are on screen all the time.
+1. ~~The four shots and the missile~~ (done).
 2. **The heavy Raider and the resurrection ship**: both are in the fight now as placeholder shapes.
 3. **The fleet**: civilians, dented civilians, Galactica, the Raptor.
 4. **Card art**, one at a time, whenever you like.
@@ -128,7 +129,7 @@ the stick indicator, and the starfield.
 
 ## Descriptions of the pictures in the game
 
-What each existing playfield picture shows. The "Shown as" column is world units at the current scale. The shot files are being redrawn smaller (checklist above) with the same look.
+What each existing playfield picture shows. The "Shown as" column is world units at the current scale.
 
 
 | Folder | File | Drawn at | Shown as | What it shows |
@@ -140,15 +141,19 @@ What each existing playfield picture shows. The "Shown as" column is world units
 | `assets/ships/` | `raider_eye_center.png` | 48 × 48 | 24 × 24 | A small fighter facing straight down, hull shaped like an upside-down crescent or boomerang — wingtips sweeping forward and out, curving back to a point at the center-rear. One sweeping eye, hot red and dark red only on this craft. |
 | `assets/ships/` | `raider_eye_left.png` | 48 × 48 | 24 × 24 | The same fighter, eye shifted left by 4 pixels. |
 | `assets/ships/` | `raider_eye_right.png` | 48 × 48 | 24 × 24 | The same fighter, eye shifted right by 4 pixels. |
-| `assets/projectiles/` | `bullet_player.png` | 12 × 20 | 3 × 5 | A short Dradis-green shot. A few pixels; draw it by hand. |
-| `assets/projectiles/` | `bullet_aimed.png` | 12 × 20 | 3 × 5 | A short red shot. A few pixels; draw it by hand. |
-| `assets/projectiles/` | `bullet_stray.png` | 12 × 28 | 3 × 7 | A longer orange shot. A few pixels; draw it by hand. |
+| `assets/projectiles/` | `bullet_player.png` | 6 × 10 | 3 × 5 | A short Dradis-green shot. |
+| `assets/projectiles/` | `bullet_aimed.png` | 6 × 10 | 3 × 5 | A short red shot. |
+| `assets/projectiles/` | `bullet_stray.png` | 6 × 14 | 3 × 7 | A longer orange shot. |
+| `assets/projectiles/` | `bullet_player_big.png` | 10 × 16 | 5 × 8, larger with more stacks | A fat green teardrop shot for *Overcompensating Cannon*. |
+| `assets/projectiles/` | `missile_1.png`, `missile_2.png` | 8 × 16 | 4 × 8 | A missile nose-up with a flame at the tail; the two frames swap the flame. |
 | `assets/effects/` | `explosion_small_1.png` | 64 × 64 | 32 × 32 | A small bright core with just one or two short spikes of flame — the burst just starting, no debris yet. |
 | `assets/effects/` | `explosion_small_2.png` | 64 × 64 | 32 × 32 | The burst growing: more jagged flame spikes, core still bright, a piece or two of debris just starting to separate. |
 | `assets/effects/` | `explosion_small_3.png` | 64 × 64 | 32 × 32 | The burst at its widest and jagged: this is the hero frame (see below). Spiky orange/yellow flame rays with a couple of small gunmetal debris chunks flying free at the edges. |
 | `assets/effects/` | `explosion_small_4.png` | 64 × 64 | 32 × 32 | The burst starting to break apart: the rays separate into distinct embers, debris chunks drift further out. |
 | `assets/effects/` | `explosion_small_5.png` | 64 × 64 | 32 × 32 | A few scattered warm embers and one or two drifting debris chunks, core mostly gone. |
 | `assets/effects/` | `explosion_small_6.png` | 64 × 64 | 32 × 32 | The last one or two faint embers before it is gone. |
+
+| `assets/effects/` | `explosion_large_1.png` … `_7.png` | 96 × 96 | 48 × 48 | The large burst: a small core, a spiky orange star at its widest (frame 3, held when effects are reduced), then a dark centre with a fading red-orange rim and grey debris. |
 
 The Raider's eye is three frames: center, left, right, shifted 4 pixels in the 48 × 48 picture. A slit frame is optional and is not part of the sweep.
 

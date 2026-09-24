@@ -13,9 +13,9 @@ export const MISSILE_SPEED_UNITS_PER_SECOND = 280;
 
 export const MISSILE_RADIUS_UNITS = 4;
 
-/** Placeholder size, matching the art list. */
-export const MISSILE_WIDTH_UNITS = 5;
-export const MISSILE_HEIGHT_UNITS = 9;
+/** How big the missile is drawn: its 8 x 16 file at two art pixels per unit. Not its hitbox. */
+export const MISSILE_WIDTH_UNITS = 4;
+export const MISSILE_HEIGHT_UNITS = 8;
 
 /** A missile one-shots a Raider (PRD 8.2: it explodes). */
 export const MISSILE_RAIDER_DAMAGE = RAIDER_HIT_POINTS;
