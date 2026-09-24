@@ -5,9 +5,15 @@ import type { PauseReason } from '../../application/GameSession';
  * a blurred window, or a rotated phone. A pointer cancelled by the system is wired up by the stick
  * adapter, which is the only place that knows about it.
  */
-export function attachAutoPause(pause: (reason: PauseReason) => void): () => void {
+export function attachAutoPause(
+  pause: (reason: PauseReason) => void,
+  visibilityChanged: (hidden: boolean) => void = () => {},
+): () => void {
   const onVisibilityChange = (): void => {
-    if (document.visibilityState === 'hidden') pause('tab-hidden');
+    const hidden = document.visibilityState === 'hidden';
+    // Sound learns about the tab separately: the Recovering sheet ignores the pause (PRD 13.3).
+    visibilityChanged(hidden);
+    if (hidden) pause('tab-hidden');
   };
   const onBlur = (): void => {
     pause('window-blurred');

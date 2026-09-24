@@ -21,6 +21,10 @@ export const settingsStore = {
     backend?.setMuted(!state.snapshot.muted);
     Object.assign(state.snapshot, backend?.snapshot ?? state.snapshot);
   },
+  setVolume(volume: number): void {
+    backend?.setVolume(volume);
+    Object.assign(state.snapshot, backend?.snapshot ?? state.snapshot);
+  },
   toggleReducedEffects(): void {
     backend?.setReducedEffects(!state.snapshot.reducedEffects);
     Object.assign(state.snapshot, backend?.snapshot ?? state.snapshot);

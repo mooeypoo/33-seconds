@@ -55,6 +55,7 @@ const hud = computed(() => hudStore.state.hud);
 const cycleIndex = computed(() => hud.value?.cycleIndex ?? 1);
 
 function select(id: string): void {
+  if (selectedId.value !== id) session?.cardHighlighted();
   selectedId.value = id;
 }
 

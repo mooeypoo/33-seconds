@@ -1,7 +1,9 @@
 import { createApp } from 'vue';
+import { SOUND_BANK } from './application/audio/soundBank';
 import { GameSession } from './application/GameSession';
 import { playfieldForWindow } from './application/playfield';
 import { PlayerSettings, effectiveReducedEffects } from './application/playerSettings';
+import { ZzfxAudio } from './infrastructure/audio/ZzfxAudio';
 import { attachAutoPause } from './infrastructure/input/autoPause';
 import { CombinedInput } from './infrastructure/input/CombinedInput';
 import { KeyboardInput } from './infrastructure/input/KeyboardInput';
@@ -48,7 +50,15 @@ const keyboard = new KeyboardInput({
 
 const playfield = playfieldForWindow(window.innerWidth);
 // Every Launch draws a fresh seed, so runs differ (ADR-0002 D1).
-const session = new GameSession(new CombinedInput(stick, keyboard, buttons), { playfield, seedSource: cryptoSeed });
+// No audio context exists until Launch (PRD 14.1): the adapter only makes one when unlocked.
+const session = new GameSession(new CombinedInput(stick, keyboard, buttons), {
+  playfield,
+  seedSource: cryptoSeed,
+  audio: new ZzfxAudio(SOUND_BANK),
+});
+const unsubscribeSound = playerSettings.subscribe((settings) => {
+  session.setSoundLevel(settings.muted, settings.volume);
+});
 let resizePlayfield = (_worldWidth: number): void => {};
 
 keyboard.attach();
@@ -61,9 +71,14 @@ stick.attach({
     settingsStore.markDragHintSeen();
   },
 });
-const detachAutoPause = attachAutoPause((reason) => {
-  session.pause(reason);
-});
+const detachAutoPause = attachAutoPause(
+  (reason) => {
+    session.pause(reason);
+  },
+  (hidden) => {
+    session.setPageHidden(hidden);
+  },
+);
 
 session.subscribeHud((hud) => {
   hudStore.setHud(hud);
@@ -101,5 +116,6 @@ if (import.meta.hot) {
     keyboard.detach();
     stick.detach();
     detachAutoPause();
+    unsubscribeSound();
   });
 }
