@@ -4,6 +4,7 @@ import type { GameSession } from '../../application/GameSession';
 import { WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../../domain/shared/world';
 import { GameScene } from './GameScene';
 import type { StickSource } from './contexts/controls/StickPresenter';
+import type { ReducedEffectsSource } from './shared/comfort';
 import { PALETTE } from './shared/palette';
 
 /**
@@ -17,7 +18,7 @@ export function bootPhaser(
   session: GameSession,
   stick: StickSource,
   reportStats: (stats: FrameStats) => void,
-  reducedEffects: boolean,
+  reducedEffects: ReducedEffectsSource,
   worldWidth: number = WORLD_WIDTH_UNITS,
 ): { destroy: () => void; resize: (width: number) => void } {
   const game = new Phaser.Game({

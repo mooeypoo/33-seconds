@@ -50,7 +50,7 @@ describe('parsePlayerSettings', () => {
     expect(parsed.dragHintSeen).toBe(false);
   });
 
-  it('keeps only the known booleans from a valid envelope', () => {
+  it('keeps only the known booleans from a valid envelope, and reads a missing newer one as off', () => {
     expect(
       parsePlayerSettings({
         version: 1,
@@ -64,6 +64,8 @@ describe('parsePlayerSettings', () => {
       muted: true,
       reducedEffects: false,
       dragHintSeen: true,
+      // Saved before the readable font existed: off, not a discarded envelope.
+      readableFont: false,
     });
   });
 });
@@ -83,12 +85,13 @@ describe('PlayerSettings', () => {
     expect(settings.snapshot.muted).toBe(true);
   });
 
-  it('round-trips mute, reduced-effects, and the drag hint through memory storage', () => {
+  it('round-trips mute, reduced-effects, the readable font, and the drag hint through memory storage', () => {
     const storage = new MemoryStorageAdapter();
     const first = new PlayerSettings(storage);
     first.setMuted(true);
     first.setReducedEffects(true);
     first.markDragHintSeen();
+    first.setReadableFont(true);
 
     const second = new PlayerSettings(storage);
     expect(second.snapshot).toEqual({
@@ -96,6 +99,7 @@ describe('PlayerSettings', () => {
       muted: true,
       reducedEffects: true,
       dragHintSeen: true,
+      readableFont: true,
     });
   });
 

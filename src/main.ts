@@ -31,8 +31,10 @@ if (!root) throw new Error('#game-root is missing from index.html');
 
 const playerSettings = new PlayerSettings(createStoragePort());
 settingsStore.bind(playerSettings);
-const osPrefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const reducedEffects = effectiveReducedEffects(osPrefersReducedMotion, playerSettings.snapshot.reducedEffects);
+const osReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+// Asked each time an effect plays, so the pause-menu toggle and an OS change apply at once (PRD 15).
+const reducedEffects = (): boolean =>
+  effectiveReducedEffects(osReducedMotion.matches, playerSettings.snapshot.reducedEffects);
 
 const stick = new PointerStickInput(root);
 const buttons = new ButtonLatchInput();

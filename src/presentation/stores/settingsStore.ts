@@ -25,6 +25,10 @@ export const settingsStore = {
     backend?.setReducedEffects(!state.snapshot.reducedEffects);
     Object.assign(state.snapshot, backend?.snapshot ?? state.snapshot);
   },
+  toggleReadableFont(): void {
+    backend?.setReadableFont(!state.snapshot.readableFont);
+    Object.assign(state.snapshot, backend?.snapshot ?? state.snapshot);
+  },
   markDragHintSeen(): void {
     backend?.markDragHintSeen();
     Object.assign(state.snapshot, backend?.snapshot ?? state.snapshot);

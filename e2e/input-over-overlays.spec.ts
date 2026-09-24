@@ -138,7 +138,8 @@ test.describe('steering works wherever the finger lands', () => {
     await page.keyboard.up('ArrowUp');
   });
 
-  test('the missile button fires one round and does not steal the stick', async ({ page }) => {
+  test('the missile button fires one round and does not steal the stick', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'The action buttons are for touch; a keyboard has Space and E.');
     await startRun(page);
     await expect(page.getByTestId('missiles')).toHaveText('3/3');
 
@@ -157,7 +158,8 @@ test.describe('steering works wherever the finger lands', () => {
     expect(after).toEqual(before);
   });
 
-  test('the speech button starts The Speech', async ({ page }) => {
+  test('the speech button starts The Speech', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'The action buttons are for touch; a keyboard has Space and E.');
     await startRun(page);
     await expect(page.getByTestId('speech')).toHaveText('ready');
 
@@ -167,5 +169,22 @@ test.describe('steering works wherever the finger lands', () => {
       timeout: 10_000,
     }).toBe('talking');
     await expect(page.getByTestId('speech-banner')).toBeVisible();
+  });
+
+  test('on a phone the action buttons sit under the playfield, clear of the fleet', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'The action buttons are for touch.');
+    await startRun(page);
+    const playfield = (await page.locator('.canvas-host').boundingBox())!;
+    for (const id of ['fire-missile', 'fire-special']) {
+      const button = (await page.getByTestId(id).boundingBox())!;
+      expect(button.y, `${id} should start below the playfield`).toBeGreaterThanOrEqual(playfield.y + playfield.height - 1);
+    }
+  });
+
+  test('a desktop shows no action buttons, because the keyboard has them', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'Phones need the buttons.');
+    await startRun(page);
+    await expect(page.getByTestId('fire-missile')).toHaveCount(0);
+    await expect(page.getByTestId('fire-special')).toHaveCount(0);
   });
 });

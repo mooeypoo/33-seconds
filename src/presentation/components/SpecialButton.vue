@@ -7,6 +7,8 @@ import { hudStore } from '../stores/hudStore';
  * One-handed special (PRD 8.3, 13.2). Opposite corner from the missile button. data-ui so the
  * stick ignores this pointer.
  */
+defineProps<{ disabled?: boolean }>();
+
 const pressSpecial = inject(SPECIAL_PRESS_KEY);
 if (!pressSpecial) throw new Error('SpecialButton needs SPECIAL_PRESS_KEY from main.ts');
 
@@ -24,6 +26,7 @@ const label = computed(() => {
     data-ui
     class="special"
     type="button"
+    :disabled="disabled"
     data-testid="fire-special"
     aria-label="The Speech"
     @pointerdown.prevent="pressSpecial"
@@ -35,25 +38,31 @@ const label = computed(() => {
 
 <style scoped>
 .special {
-  position: absolute;
-  left: max(8px, env(safe-area-inset-left));
-  bottom: max(12px, env(safe-area-inset-bottom));
+  /* In the comms strip, not on the playfield, so it never covers the fleet (ADR-0002 1.4). */
+  flex: none;
+  align-self: center;
   pointer-events: auto;
-  min-width: 72px;
+  min-width: 64px;
   min-height: 56px;
   padding: 8px 10px;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
   font-size: 12px;
   line-height: 1.3;
-  color: #0b0f14;
-  background: #c6ced8;
+  color: var(--color-space);
+  background: var(--color-gunmetal-light);
   border: 0;
   border-radius: 8px;
   cursor: pointer;
 }
 
+.special:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .special:focus-visible {
-  outline: 2px solid #cfe8d8;
+  outline: 2px solid var(--color-text);
   outline-offset: 3px;
 }
 </style>

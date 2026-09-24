@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { DomainEvent } from '../../../../domain/shared/events';
 import type { GameView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
+import type { ReducedEffectsSource } from '../../shared/comfort';
 import { PALETTE } from '../../shared/palette';
 import { SHIP_SHOWN_UNITS, VIPER_BANK_LEFT, VIPER_BANK_RIGHT, VIPER_FLICKER, VIPER_NEUTRAL } from '../../sprites';
 
@@ -25,9 +26,9 @@ export class ViperPresenter implements Presenter {
   private pips: Phaser.GameObjects.Rectangle[] = [];
   /** Placeholder parachute. Not a child of the hull, or hiding the Viper would hide it too. */
   private ejectSeat: Phaser.GameObjects.Container | null = null;
-  private readonly reducedEffects: boolean;
+  private readonly reducedEffects: ReducedEffectsSource;
 
-  constructor(scene: Phaser.Scene, reducedEffects: boolean) {
+  constructor(scene: Phaser.Scene, reducedEffects: ReducedEffectsSource) {
     this.scene = scene;
     this.reducedEffects = reducedEffects;
   }
@@ -148,7 +149,7 @@ export class ViperPresenter implements Presenter {
    * is the cue, the arc is not (PRD 15).
    */
   private chuteDrift(along: number): { x: number; y: number } {
-    if (this.reducedEffects) return { x: 0, y: 0 };
+    if (this.reducedEffects()) return { x: 0, y: 0 };
     return {
       x: Math.sin(along * Math.PI) * CHUTE_ARC_WIDTH_UNITS,
       y: along * CHUTE_ARC_DROP_UNITS,

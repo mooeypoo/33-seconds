@@ -196,9 +196,10 @@ function onSheetKeydown(event: KeyboardEvent): void {
   overflow: auto;
   padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
     max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-  background: rgb(5 7 10 / 24%);
-  color: #f3efe3;
-  font-family: ui-monospace, monospace;
+  background: rgb(var(--rgb-deep) / 24%);
+  color: var(--color-text-strong);
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
 }
 
 .board {
@@ -245,8 +246,8 @@ function onSheetKeydown(event: KeyboardEvent): void {
 
 .mast,
 .actions {
-  background: rgb(11 14 20 / 94%);
-  border: 2px solid #1c8459;
+  background: rgb(var(--rgb-space) / 94%);
+  border: 2px solid var(--color-dradis-deep);
 }
 
 .mast-inner,
@@ -263,7 +264,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
 
 .well .launch-box {
   width: min(280px, 100%);
-  background: rgb(11 14 20 / 92%);
+  background: rgb(var(--rgb-space) / 92%);
 }
 
 .wordmark {
@@ -286,7 +287,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
   line-height: 0.95;
   letter-spacing: 0.06em;
   white-space: nowrap;
-  color: #b8ffdc;
+  color: var(--color-dradis-pale);
 }
 
 .pitch,
@@ -308,20 +309,20 @@ function onSheetKeydown(event: KeyboardEvent): void {
 
 .pitch {
   margin-top: 14px;
-  color: #f3efe3;
+  color: var(--color-text-strong);
 }
 
 .inspired {
   margin-top: 10px;
-  color: #b3bbc5;
+  color: var(--color-text-gunmetal);
   font-size: 14px;
 }
 
 .quote {
   margin-top: 12px;
   padding-left: 10px;
-  border-left: 3px solid #ffc457;
-  color: #b3bbc5;
+  border-left: 3px solid var(--color-amber);
+  color: var(--color-text-gunmetal);
   font-style: italic;
 }
 
@@ -340,20 +341,22 @@ function onSheetKeydown(event: KeyboardEvent): void {
 }
 
 .launch-box {
-  border: 2px solid #4fe19a;
-  background: rgb(15 54 38 / 55%);
+  border: 2px solid var(--color-dradis);
+  background: rgb(var(--rgb-dradis-night) / 55%);
 }
 
 .easy-box {
-  border: 1px solid #46505e;
+  border: 1px solid var(--color-gunmetal);
 }
 
 .kicker {
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
   margin: 0;
   font-size: 13px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #ffc457;
+  color: var(--color-amber);
 }
 
 .launch,
@@ -378,8 +381,8 @@ function onSheetKeydown(event: KeyboardEvent): void {
 
 .launch {
   font-size: 18px;
-  color: #06110c;
-  background: #4fe19a;
+  color: var(--color-dradis-night);
+  background: var(--color-dradis);
   border: 0;
 }
 
@@ -387,21 +390,21 @@ function onSheetKeydown(event: KeyboardEvent): void {
 .more-button,
 .back,
 .tab {
-  color: #b8ffdc;
+  color: var(--color-dradis-pale);
   background: transparent;
-  border: 1px solid #1c8459;
+  border: 1px solid var(--color-dradis-deep);
 }
 
 .tab[aria-selected='true'] {
-  color: #06110c;
-  background: #4fe19a;
-  border-color: #4fe19a;
+  color: var(--color-dradis-night);
+  background: var(--color-dradis);
+  border-color: var(--color-dradis);
 }
 
 .tier-note,
 .hint,
 .disclaimer {
-  color: #b3bbc5;
+  color: var(--color-text-gunmetal);
 }
 
 .tier-note {
@@ -416,7 +419,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
 
 .sound {
   flex: 1;
-  color: #f3efe3;
+  color: var(--color-text-strong);
 }
 
 .more {
@@ -435,7 +438,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
 .back:focus-visible,
 .tab:focus-visible,
 .credit-link:focus-visible {
-  outline: 2px solid #b8ffdc;
+  outline: 2px solid var(--color-dradis-pale);
   outline-offset: 3px;
 }
 
@@ -448,18 +451,18 @@ function onSheetKeydown(event: KeyboardEvent): void {
   overflow: auto;
   padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
     max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-  background: rgb(5 7 10 / 96%);
+  background: rgb(var(--rgb-deep) / 96%);
 }
 
 .sheet {
   width: min(640px, 100%);
   margin-block: auto;
   padding: 18px 18px 22px;
-  background: #0b0e14;
-  border: 2px solid #1c8459;
+  background: var(--color-space);
+  border: 2px solid var(--color-dradis-deep);
   box-shadow:
-    0 0 0 4px #0b0e14,
-    0 0 0 6px #4fe19a;
+    0 0 0 4px var(--color-space),
+    0 0 0 6px var(--color-dradis);
 }
 
 .back {
@@ -470,18 +473,18 @@ function onSheetKeydown(event: KeyboardEvent): void {
   margin: 14px 0 0;
   font-size: clamp(26px, 5vw, 36px);
   letter-spacing: 0.05em;
-  color: #b8ffdc;
+  color: var(--color-dradis-pale);
 }
 
 .lead,
 .byline,
 .inspiration {
   margin-top: 10px;
-  color: #f3efe3;
+  color: var(--color-text-strong);
 }
 
 .inspiration {
-  color: #b3bbc5;
+  color: var(--color-text-gunmetal);
 }
 
 .tabs {
@@ -506,7 +509,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
   margin: 16px 0 0;
   font-size: 18px;
   line-height: 1.4;
-  color: #f3efe3;
+  color: var(--color-text-strong);
 }
 
 .controls {
@@ -517,7 +520,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
 .block {
   padding-top: 16px;
   margin-top: 16px;
-  border-top: 1px solid #1c8459;
+  border-top: 1px solid var(--color-dradis-deep);
 }
 
 .controls dt,
@@ -525,14 +528,14 @@ function onSheetKeydown(event: KeyboardEvent): void {
   margin: 0;
   font-size: 22px;
   letter-spacing: 0.04em;
-  color: #b8ffdc;
+  color: var(--color-dradis-pale);
 }
 
 .controls dd,
 .block p {
   margin: 6px 0 0;
   max-width: 36em;
-  color: #f3efe3;
+  color: var(--color-text-strong);
 }
 
 .credit-links {
@@ -547,7 +550,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
 .credit-link {
   display: inline-flex;
   align-items: center;
-  color: #b8ffdc;
+  color: var(--color-dradis-pale);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -570,7 +573,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
     align-items: stretch;
     padding: 0;
     overflow: hidden;
-    background: rgb(5 7 10 / 24%);
+    background: rgb(var(--rgb-deep) / 24%);
   }
 
   .board {
@@ -598,23 +601,23 @@ function onSheetKeydown(event: KeyboardEvent): void {
     min-width: 0;
     min-height: 0;
     overflow: auto;
-    background: rgb(11 14 20 / 92%);
+    background: rgb(var(--rgb-space) / 92%);
     border: 0;
     box-shadow:
-      inset 0 3px 0 #4fe19a,
-      inset 0 -3px 0 #4fe19a;
+      inset 0 3px 0 var(--color-dradis),
+      inset 0 -3px 0 var(--color-dradis);
   }
 
   .mast {
     display: flex;
     justify-content: flex-end;
-    border-right: 2px solid #1c8459;
+    border-right: 2px solid var(--color-dradis-deep);
   }
 
   .actions {
     display: flex;
     justify-content: flex-start;
-    border-left: 2px solid #1c8459;
+    border-left: 2px solid var(--color-dradis-deep);
   }
 
   .mast-inner,

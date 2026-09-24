@@ -144,9 +144,10 @@ function reroll(): void {
   justify-content: center;
   padding: 16px;
   /* Opaque enough that the playfield clock does not read through the titles. */
-  background: rgb(5 7 10 / 96%);
-  color: #cfe8d8;
-  font-family: ui-monospace, monospace;
+  background: rgb(var(--rgb-deep) / 96%);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
 }
 
 .sheet {
@@ -169,7 +170,7 @@ h2 {
   margin: 0;
   font-size: 14px;
   text-align: center;
-  color: #9fb8ab;
+  color: var(--color-text-muted);
 }
 
 .list {
@@ -197,9 +198,9 @@ h2 {
   text-align: left;
   font: inherit;
   font-size: 15px;
-  color: #cfe8d8;
+  color: var(--color-text);
   background: transparent;
-  border: 1px solid #2c4a3a;
+  border: 1px solid var(--color-dradis-line);
   border-radius: 8px;
   cursor: pointer;
 }
@@ -211,7 +212,7 @@ h2 {
 }
 
 .title[aria-pressed='true'] {
-  border-color: #7fd6a0;
+  border-color: var(--color-dradis-soft);
 }
 
 .name {
@@ -249,8 +250,9 @@ h2 {
 }
 
 .joke {
+  font-family: var(--font-body);
   font-style: italic;
-  color: #9fb8ab;
+  color: var(--color-text-muted);
 }
 
 .advisor {
@@ -269,7 +271,7 @@ h2 {
 .letter {
   display: grid;
   place-items: center;
-  background: #14202a;
+  background: var(--color-panel);
   font-size: 20px;
 }
 
@@ -287,31 +289,31 @@ h2 {
 }
 
 .refresh {
-  color: #cfe8d8;
+  color: var(--color-text);
   background: transparent;
-  border: 1px solid #2c4a3a;
+  border: 1px solid var(--color-dradis-line);
   font-size: 15px;
 }
 
 .apply {
   min-height: 48px;
   font-size: 18px;
-  color: #06110c;
-  background: #7fd6a0;
+  color: var(--color-dradis-night);
+  background: var(--color-dradis-soft);
   border: 0;
 }
 
 .apply:disabled {
-  color: #9fb8ab;
+  color: var(--color-text-muted);
   background: transparent;
-  border: 1px solid #2c4a3a;
+  border: 1px solid var(--color-dradis-line);
   cursor: default;
 }
 
 .title:focus-visible,
 .refresh:focus-visible,
 .apply:focus-visible {
-  outline: 2px solid #cfe8d8;
+  outline: 2px solid var(--color-text);
   outline-offset: 3px;
 }
 </style>

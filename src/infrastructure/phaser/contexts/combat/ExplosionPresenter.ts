@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { DomainEvent } from '../../../../domain/shared/events';
 import type { GameView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
+import type { ReducedEffectsSource } from '../../shared/comfort';
 import { EXPLOSION_ANIM, EXPLOSION_FRAME_RATE, EXPLOSION_FRAMES, SHIP_SHOWN_UNITS } from '../../sprites';
 
 /** Reduced effects holds the widest cell instead of stepping through the burst. */
@@ -13,12 +14,12 @@ const STILL_MS = 280;
  */
 export class ExplosionPresenter implements Presenter {
   private readonly scene: Phaser.Scene;
-  private readonly reduced: boolean;
+  private readonly reduced: ReducedEffectsSource;
   private fighterScale = 1;
 
-  constructor(scene: Phaser.Scene, prefersReducedMotion: boolean) {
+  constructor(scene: Phaser.Scene, reduced: ReducedEffectsSource) {
     this.scene = scene;
-    this.reduced = prefersReducedMotion;
+    this.reduced = reduced;
     if (!scene.anims.exists(EXPLOSION_ANIM)) {
       scene.anims.create({
         key: EXPLOSION_ANIM,
@@ -36,7 +37,7 @@ export class ExplosionPresenter implements Presenter {
     sprite.setDisplaySize(shown, shown);
     sprite.setDepth(4);
 
-    if (this.reduced) {
+    if (this.reduced()) {
       this.scene.tweens.add({
         targets: sprite,
         alpha: 0,

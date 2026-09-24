@@ -2,6 +2,7 @@ import type Phaser from 'phaser';
 import type { GameView } from '../../../../domain/views';
 import { MAX_RADIUS_PX, type StickState } from '../../../input/PointerStickInput';
 import type { Presenter } from '../../Presenter';
+import type { ReducedEffectsSource } from '../../shared/comfort';
 import { PALETTE } from '../../shared/palette';
 
 /**
@@ -34,7 +35,7 @@ const DOT_RADIUS_PX = 3;
 export class StickPresenter implements Presenter {
   private readonly scene: Phaser.Scene;
   private readonly stick: StickSource;
-  private readonly fadeMs: number;
+  private readonly reduced: ReducedEffectsSource;
 
   private ring: Phaser.GameObjects.Arc | null = null;
   private dot: Phaser.GameObjects.Arc | null = null;
@@ -45,18 +46,22 @@ export class StickPresenter implements Presenter {
   private canvasBounds: DOMRect | null = null;
 
   /**
-   * @param prefersReducedMotion drops the fade only. The indicator itself stays, because it is
+   * @param reduced drops the fade only. The indicator itself stays, because it is
    * information rather than decoration (PRD 13.2, 15).
    */
-  constructor(scene: Phaser.Scene, stick: StickSource, prefersReducedMotion: boolean) {
+  constructor(scene: Phaser.Scene, stick: StickSource, reduced: ReducedEffectsSource) {
     this.scene = scene;
     this.stick = stick;
-    this.fadeMs = prefersReducedMotion ? 0 : FADE_MS;
+    this.reduced = reduced;
 
     // The canvas moves and resizes with the window, so the cached rectangle has to follow.
     this.scene.scale.on('resize', () => {
       this.canvasBounds = null;
     });
+  }
+
+  private get fadeMs(): number {
+    return this.reduced() ? 0 : FADE_MS;
   }
 
   onEvent(): void {

@@ -24,17 +24,17 @@ const emit = defineEmits<{ continue: [] }>();
   display: grid;
   place-items: center;
   pointer-events: none;
-  background: rgb(8 12 16 / 55%);
+  background: rgb(var(--rgb-ink) / 55%);
 }
 
 .panel {
   pointer-events: auto;
   max-width: 280px;
   padding: 20px 22px;
-  background: rgb(12 20 28 / 92%);
-  border: 1px solid #2c4a3a;
-  color: #cfe8d8;
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  background: rgb(var(--rgb-panel) / 92%);
+  border: 1px solid var(--color-dradis-line);
+  color: var(--color-text);
+  font-family: var(--font-body);
   text-align: center;
 }
 
@@ -47,7 +47,7 @@ p {
   margin: 0 0 16px;
   font-size: 14px;
   line-height: 1.4;
-  color: #9bb8a8;
+  color: var(--color-text-muted);
 }
 
 button {
@@ -55,14 +55,14 @@ button {
   min-height: 44px;
   padding: 0 18px;
   font-size: 16px;
-  color: #0b0f14;
-  background: #7fd6a0;
+  color: var(--color-space);
+  background: var(--color-dradis-soft);
   border: 0;
   cursor: pointer;
 }
 
 button:focus-visible {
-  outline: 2px solid #cfe8d8;
+  outline: 2px solid var(--color-text);
   outline-offset: 3px;
 }
 </style>

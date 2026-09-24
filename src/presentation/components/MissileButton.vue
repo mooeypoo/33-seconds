@@ -7,6 +7,8 @@ import { hudStore } from '../stores/hudStore';
  * One-handed missile fire (PRD 8.2, 13.2). data-ui so the stick ignores this pointer. Second
  * finger on the play area still latches a missile too.
  */
+defineProps<{ disabled?: boolean }>();
+
 const pressMissile = inject(MISSILE_PRESS_KEY);
 if (!pressMissile) throw new Error('MissileButton needs MISSILE_PRESS_KEY from main.ts');
 
@@ -22,6 +24,7 @@ const ammo = computed(() => {
     data-ui
     class="missile"
     type="button"
+    :disabled="disabled"
     data-testid="fire-missile"
     aria-label="Fire missile"
     @pointerdown.prevent="pressMissile"
@@ -33,25 +36,31 @@ const ammo = computed(() => {
 
 <style scoped>
 .missile {
-  position: absolute;
-  right: max(8px, env(safe-area-inset-right));
-  bottom: max(12px, env(safe-area-inset-bottom));
+  /* In the comms strip, not on the playfield, so it never covers the fleet (ADR-0002 1.4). */
+  flex: none;
+  align-self: center;
   pointer-events: auto;
-  min-width: 72px;
+  min-width: 64px;
   min-height: 56px;
   padding: 8px 10px;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
   font-size: 12px;
   line-height: 1.3;
-  color: #0b0f14;
-  background: #7fd6a0;
+  color: var(--color-space);
+  background: var(--color-dradis-soft);
   border: 0;
   border-radius: 8px;
   cursor: pointer;
 }
 
+.missile:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .missile:focus-visible {
-  outline: 2px solid #cfe8d8;
+  outline: 2px solid var(--color-text);
   outline-offset: 3px;
 }
 </style>

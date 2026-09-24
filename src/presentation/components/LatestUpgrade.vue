@@ -30,9 +30,10 @@ const older = computed(() => hudStore.state.hud?.olderUpgradeCount ?? 0);
   justify-content: center;
   gap: 6px;
   margin: 0;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
   font-size: 13px;
-  color: #cfe8d8;
+  color: var(--color-text);
 }
 
 .name {
