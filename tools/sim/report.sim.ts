@@ -1,0 +1,67 @@
+import { it } from 'vitest';
+import { TIER_PROFILES } from '../../src/balance/tiers';
+import type { TierId } from '../../src/domain/balance/profile';
+import { BOTS } from './bots';
+import { simulateRun, summarize, type Summary } from './runSim';
+
+/**
+ * `npm run sim`: every tier against every bot, over seeded runs, as one table (ADR-0001 D13).
+ * SIM_RUNS sets the runs per row (default 60); SIM_CYCLES the cycle limit (default 12).
+ * A report, not a test: it always passes, and prints what the numbers do.
+ */
+/** The app's TypeScript settings leave Node types out of `src`; this report only needs the env. */
+declare const process: { readonly env: Readonly<Record<string, string | undefined>> };
+
+const RUNS = Number(process.env.SIM_RUNS ?? 60);
+const MAX_CYCLES = Number(process.env.SIM_CYCLES ?? 12);
+
+function percent(value: number): string {
+  return `${String(Math.round(value * 100))}%`;
+}
+
+function row(tier: string, bot: string, summary: Summary): string {
+  return [
+    tier.padEnd(14),
+    bot.padEnd(7),
+    percent(summary.winRate).padStart(5),
+    percent(summary.lossRate).padStart(5),
+    percent(summary.timeoutRate).padStart(8),
+    summary.medianCycles.toFixed(0).padStart(7),
+    summary.medianMinutes.toFixed(1).padStart(8),
+    summary.medianFleetLow.toFixed(0).padStart(10),
+    summary.worstFleetLow.toFixed(0).padStart(6),
+    summary.raidersOnScreen.toFixed(1).padStart(8),
+    summary.medianKills.toFixed(0).padStart(6),
+    summary.ejectsPerRun.toFixed(1).padStart(7),
+  ].join(' ');
+}
+
+it(`balance report (${String(RUNS)} runs per row, up to ${String(MAX_CYCLES)} cycles)`, () => {
+  const header = [
+    'tier'.padEnd(14),
+    'bot'.padEnd(7),
+    'won'.padStart(5),
+    'lost'.padStart(5),
+    'timeout'.padStart(8),
+    'cycles'.padStart(7),
+    'minutes'.padStart(8),
+    'fleet low'.padStart(10),
+    'worst'.padStart(6),
+    'raiders'.padStart(8),
+    'kills'.padStart(6),
+    'ejects'.padStart(7),
+  ].join(' ');
+  const lines = [header, '-'.repeat(header.length)];
+  const started = performance.now();
+  for (const tier of Object.keys(TIER_PROFILES) as TierId[]) {
+    for (const [name, bot] of Object.entries(BOTS)) {
+      const results = Array.from({ length: RUNS }, (_, index) =>
+        simulateRun({ seed: index + 1, profile: TIER_PROFILES[tier], bot, maxCycles: MAX_CYCLES }),
+      );
+      lines.push(row(tier, name, summarize(results)));
+    }
+  }
+  lines.push('', `minutes = combat time plus ~10 s per Recovering pick. ${((performance.now() - started) / 1000).toFixed(1)} s to simulate.`);
+  // eslint-disable-next-line no-console -- printing the table is this report's whole job
+  console.log(`\n${lines.join('\n')}\n`);
+});

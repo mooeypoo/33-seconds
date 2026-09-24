@@ -356,7 +356,7 @@ Named tiers, with a mutator system planned for later.
 
 **Mutators (later):** No Dradis, Silent Space, Everyone's a Cylon, Adama's Watching, Sleepless (no calm between jumps).
 
-Tiers change numbers in one typed profile (see ADR-0001, D9), never rules. **Live now:** only fleet cap and repair differ, in TypeScript at `src/balance/tiers.ts`. **Soon:** one JSON object per difficulty (typed, validated on load) so hit, hull, Director, and repair numbers can move without a code change. Do that before adding a third tier. **Later:** after a win, invite a return on a harder profile without making Civilian Run feel like practice.
+Tiers change numbers in one typed profile (see ADR-0001, D9), never rules. **Live now:** one JSON object per difficulty in `src/balance/tiers.json`, validated on load and in CI: fleet cap, repair, and per-cycle ramps for the Director cap and the attack and strafe tokens (a ramp's last value holds for later cycles). The two tiers still differ only in fleet numbers. `npm run sim` reports how each tier plays against simple bots. **Later:** after a win, invite a return on a harder profile without making Civilian Run feel like practice.
 
 **Player-facing names:** Civilian Run (easier fleet, same fight, not a tutorial). Viper Pilot (default Launch). Code ids stay `civilian-ship` / `viper-pilot`.
 

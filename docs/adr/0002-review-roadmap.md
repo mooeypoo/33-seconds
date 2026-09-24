@@ -199,7 +199,11 @@ Ask first: the brainstorm items in the UI and UX review.
 
 ### Phase 3: Fun pass
 
-- [ ] **3.1** Balance simulation harness (ADR-0001 D13, `tools/sim/`), before any retuning.
+- [x] **3.1** (2026-09-24) Balance simulation harness (ADR-0001 D13, `tools/sim/`), before any retuning.
+  PR 3a. `npm run sim` prints win/loss, run length, fleet low, Raiders on screen, and ejects for each
+  tier against three bots (idle, hunter, guard). Tier numbers moved to `src/balance/tiers.json`
+  (validated, with per-cycle ramps for the Director cap and tokens), unchanged in value. Three
+  property tests in `npm test` run through the harness. Baseline in the gameplay review.
 - [ ] **3.2** Middle-path swarm: ramping cap and tokens, movement patterns (decision 1).
 - [ ] **3.3** Heavy Raider with a field cap (decision 5).
 - [ ] **3.4** Comfort-safe hit feedback: hit-stop, knockback, sparks.

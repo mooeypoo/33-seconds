@@ -17,8 +17,9 @@ import { TICK_SECONDS } from './shared/time';
 import type { Raider } from './swarm/raider';
 import { RAIDER_HALF_HEIGHT_UNITS } from './swarm/raider';
 import { Swarm } from './swarm/Swarm';
-import type { CycleProfile } from './balance/profile';
-import { Fleet, FLEET_CYCLE_DAMAGE_CAP, FLEET_INTEGRITY_MAX, FLEET_LINE_Y_UNITS, FLEET_REPAIR_OF_MISSING } from './fleet/integrity';
+import { DEFAULT_CYCLE_PROFILE } from './balance/defaultProfile';
+import { rampAt, type CycleProfile } from './balance/profile';
+import { Fleet, FLEET_INTEGRITY_MAX, FLEET_LINE_Y_UNITS } from './fleet/integrity';
 import { Raptor, raptorLaunchX } from './fleet/raptor';
 import {
   ResurrectionShip,
@@ -140,11 +141,7 @@ export class Game {
     const vulnerable = options.resurrectionShipVulnerableCycle ?? RESURRECTION_SHIP_VULNERABLE_CYCLE;
     this.resurrectionShipVulnerableCycle = Math.max(this.resurrectionShipArrivesCycle, vulnerable);
     this.resurrectionShipHitPoints = options.resurrectionShipHitPoints ?? RESURRECTION_SHIP_HIT_POINTS;
-    this.profile = options.tierProfile ?? {
-      id: 'civilian-ship',
-      fleetCycleDamageCap: FLEET_CYCLE_DAMAGE_CAP,
-      fleetRepairOfMissing: FLEET_REPAIR_OF_MISSING,
-    };
+    this.profile = options.tierProfile ?? DEFAULT_CYCLE_PROFILE;
     this.playfield = options.playfield ?? PHONE_PLAYFIELD;
     this.viper = new Viper(this.playfield.width, this.playfield.fighterScale);
     this.fleet = new Fleet(options.fleetStartingIntegrity ?? FLEET_INTEGRITY_MAX, this.playfield.width);
@@ -207,12 +204,14 @@ export class Game {
     if (this.cycle.isInCombat) {
       this.resurrectionShip?.advanceBays(TICK_SECONDS);
       this.fillTheSwarm(events);
+      const cycleIndex = this.cycle.view.cycleIndex;
       this.swarm.assignAttackTokens(
         this.viper.x,
         this.viper.y,
         !this.speech.isActive && this.raidersFire && this.viper.canFight,
+        rampAt(this.profile.attackTokens, cycleIndex),
       );
-      this.swarm.assignStrafeTokens(this.viper.x, this.viper.y);
+      this.swarm.assignStrafeTokens(this.viper.x, this.viper.y, rampAt(this.profile.strafeTokens, cycleIndex));
       this.autoFire(events);
       this.maybeFireMissile(missileRising, events);
       this.maybeStartSpeech(specialRising, events);
@@ -372,7 +371,8 @@ export class Game {
   }
 
   private fillTheSwarm(events: DomainEvent[]): void {
-    this.swarm.fill(events, this.resurrectionShip?.isDestroyed === true);
+    const cap = rampAt(this.profile.directorCap, this.cycle.view.cycleIndex);
+    this.swarm.fill(events, this.resurrectionShip?.isDestroyed === true, cap);
   }
 
   private autoFire(events: DomainEvent[]): void {
