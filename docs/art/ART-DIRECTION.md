@@ -37,6 +37,11 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 
 ## 3. What to make
 
+> **Superseded for sizes (2026-09-24).** The sizes in this table are from the first plan. The current
+> list, with exact file sizes, paths, and what already exists, is the checklist in
+> [SPRITE-FILES.md](SPRITE-FILES.md); the reasoning is in [ART-SCALE.md](ART-SCALE.md). The notes on
+> what each picture shows still apply.
+
 **Priority:** P0 needed for M1, P1 by M3, P2 by M4, P3 later.
 
 | Asset id | Size (px) | Frames | Priority | Notes |
@@ -98,7 +103,7 @@ Rules:
 
 ## 5. File rules
 
-- **Format:** PNG, 8-bit with transparency. Draw the first pack at **4×** the on-screen size (a Raider is 48 × 48, shown at 12 × 12), on a **square canvas**. The game nearest-neighbors it down. Filtering, blur, and a shift smaller than those 4 pixels do not survive.
+- **Format:** PNG, 8-bit with transparency, drawn at exactly the size in the SPRITE-FILES checklist: two art pixels per world unit for playfield pictures ([ART-SCALE.md](ART-SCALE.md)). A larger generated hero is fine as a reference; repaint it at the listed size by hand.
 - **No anti-aliasing and no soft edges.** Every pixel is fully opaque or fully transparent, and uses a palette color.
 - **Generated heroes: solid magenta background (`#FF00FF`), always.** It is not in the palette, so it keys out cleanly without risk of eating a real hull or glow color. Check accepted output for a magenta fringe or color bleed at the edges before keying — clean it up by hand if the model left soft pixels there.
 - **Keep detail bold, not fine.** A hero is drawn 4× final size so there is room for a cockpit bump, a fin, a color break — but hairline details vanish at the on-screen size. Ask for a small number of chunky, high-contrast details rather than intricate linework, and check the result actually still reads at the final on-screen size before accepting it.

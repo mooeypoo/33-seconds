@@ -4,7 +4,7 @@
 **Deciders:** Moriel (owner)
 **Related:** [ADR-0001](0001-architecture.md), [PRD](../PRD.md),
 [gameplay review](../review/2026-09-24-gameplay.md), [UI and UX review](../review/2026-09-24-ui-ux.md),
-[native-scale redraw](../art/NATIVE-SCALE-REDRAW.md)
+[art scale](../art/ART-SCALE.md)
 
 ---
 
@@ -41,7 +41,7 @@ the release build on a 1440×900 desktop, a 1280×720 laptop, and a Pixel 7. All
 |---|---|---|
 | 1 | Hordes or a few readable threats? | **Middle path.** More Raiders, ramping across cycles, without becoming frustrating, and download / refill stays the rule while the resurrection ship lives. Designed in the gameplay phase, not before. |
 | 2 | May the countdown leave the playfield? | **Yes.** It must stay visible while playing, but it does not have to be inside the play area. |
-| 3 | Redraw sprites at native size? | **Yes, the owner redraws.** Sizes are in [NATIVE-SCALE-REDRAW.md](../art/NATIVE-SCALE-REDRAW.md). |
+| 3 | Redraw sprites at native size? | **Yes, the owner redraws.** Sizes are in [SPRITE-FILES.md](../art/SPRITE-FILES.md) (revised 2026-09-24: two art pixels per world unit, see [ART-SCALE.md](../art/ART-SCALE.md)). |
 | 4 | Score and a run summary? | **Yes.** |
 | 5 | Heavy Raider? | **Yes, with a cap** on how many are on the field so it does not make the game too hard. |
 | 6 | Pixel font (OFL file) and ZzFX? | **Approved.** Recorded in AGENTS.md. |
@@ -221,9 +221,17 @@ Ask first: the brainstorm items in the UI and UX review.
 
 Ask first: the brainstorm items in the gameplay review.
 
-### Phase 4: Art at native scale
+### Phase 4: Art at scale
 
-- [ ] **4.1** The owner's redrawn sprites, shown at 1:1 (decision 3).
+Decided 2026-09-24, pulled forward: **two art pixels per world unit, one fighter size everywhere**
+(`docs/art/ART-SCALE.md`). The Viper spans 32 world units (its 64 × 64 file), the Raider 24 (48 × 48).
+The desktop's 1.25 fighter boost goes away. The owner's Viper, Raider, and small explosion already
+fit; what is left to draw is the checklist in `docs/art/SPRITE-FILES.md`.
+
+- [ ] **4.0** Render at two pixels per world unit, the new ship sizes with the existing art, one
+  fighter size, retuned hitboxes, and a simulator check. PR 4a.
+- [ ] **4.1** The owner's remaining sprites (shots, heavy, resurrection ship, fleet, effects) as they
+  land (decision 3).
 - [ ] **4.2** Starfield, Galactica silhouette, fleet sprites, Dradis sweep.
 
 ### Phase 5: Explain the loop, reward a replay
@@ -241,8 +249,8 @@ Ask first: the brainstorm items in the gameplay review.
 
 Decided not to do yet, on purpose. Each names the phase that picks it up.
 
-- **Whole-number pixel scaling** (UI review brainstorm 1): Phase 4, when the native sprites arrive.
-- **One fighter size for phone and desktop** (UI review brainstorm 2): Phase 4, with the same art.
+- ~~Whole-number pixel scaling~~ and ~~one fighter size~~ (UI review brainstorms 1 and 2): decided
+  2026-09-24 and moved into Phase 4 (4.0). Two art pixels per world unit, stretched to fit; one size.
 - **Scanlines and CRT** (UI review brainstorm 8, PRD 14): after Phase 4. They need a reduced-effects
   version, and the layout does not depend on them.
 
