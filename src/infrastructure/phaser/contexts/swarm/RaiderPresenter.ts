@@ -19,6 +19,12 @@ const EYE_SWEEP_MS = 900;
 
 const DESTROY_FADE_MS = 140;
 
+/**
+ * A heavy Raider drawn from the same picture at this size until `raider_heavy` exists
+ * (docs/art/SPRITE-FILES.md). Its size and its eight hull pips are the tell, not a colour.
+ */
+const HEAVY_SHOWN_SCALE = 1.7;
+
 /** Quiet download tell (PRD 6). Wide enough to read as a wait, small enough not to be a HUD. */
 const DOWNLOAD_BAR_WIDTH = 20;
 const DOWNLOAD_BAR_HEIGHT = 2;
@@ -106,10 +112,10 @@ export class RaiderPresenter implements Presenter {
       mark.hull.x = Phaser.Math.Linear(raider.previousX, raider.x, alpha);
       mark.hull.y = Phaser.Math.Linear(raider.previousY, raider.y, alpha);
       mark.hull.setAlpha(raider.protected ? 0.55 : 1);
-      this.ensurePips(mark, raider.hpMax);
+      const shown = RAIDER_SHOWN_UNITS * view.fighterScale * (raider.kind === 'heavy' ? HEAVY_SHOWN_SCALE : 1);
+      this.ensurePips(mark, raider.hpMax, shown);
       this.drawPips(mark.pips, raider);
       this.syncEye(mark, raider.armed);
-      const shown = RAIDER_SHOWN_UNITS * view.fighterScale;
       mark.body.setDisplaySize(shown, shown);
       this.syncDive(raider, mark.hull.x, mark.hull.y);
     }
@@ -246,12 +252,12 @@ export class RaiderPresenter implements Presenter {
   }
 
   /** Hull pips come from the view on the first sync, so the count is never a copied constant. */
-  private ensurePips(mark: HullMark, count: number): void {
+  private ensurePips(mark: HullMark, count: number, shown: number): void {
     if (mark.pips.length === count) return;
     for (const pip of mark.pips) pip.destroy();
     mark.pips = [];
     for (let i = 0; i < count; i++) {
-      const pip = this.scene.add.rectangle((i - (count - 1) / 2) * 4, -RAIDER_SHOWN_UNITS / 2 - 3, 3, 2, PALETTE.cylonRed);
+      const pip = this.scene.add.rectangle((i - (count - 1) / 2) * 4, -shown / 2 - 3, 3, 2, PALETTE.cylonRed);
       mark.pips.push(pip);
     }
     mark.hull.add(mark.pips);

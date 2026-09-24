@@ -12,7 +12,13 @@ import { RESURRECTION_SHIP_RADIUS_UNITS } from '../swarm/resurrectionShip';
 import type { Swarm } from '../swarm/Swarm';
 import { CYLON_SAVE_INVULN_SECONDS } from '../progression/catalog';
 import { SIX_DAMAGE, type ImaginarySix } from './imaginarySix';
-import { MISSILE_RADIUS_UNITS, MISSILE_RAIDER_DAMAGE, MISSILE_SHIP_DAMAGE, RESURRECTION_SHIP_LOCK_ID } from './missile';
+import {
+  MISSILE_HEAVY_DAMAGE,
+  MISSILE_RADIUS_UNITS,
+  MISSILE_RAIDER_DAMAGE,
+  MISSILE_SHIP_DAMAGE,
+  RESURRECTION_SHIP_LOCK_ID,
+} from './missile';
 import type { Munitions } from './Munitions';
 import type { Projectile } from './projectile';
 import { RAIDER_SHOT_RADIUS_UNITS } from './projectile';
@@ -73,7 +79,7 @@ function resolvePlayerHits(field: Battlefield, events: DomainEvent[]): void {
         loadout.playerShotRadius,
         raider.x,
         raider.y,
-        swarm.raiderRadius,
+        swarm.radiusOf(raider),
       );
       if (!hit) continue;
 
@@ -165,7 +171,7 @@ function resolveMissileHits(field: Battlefield, events: DomainEvent[]): void {
         MISSILE_RADIUS_UNITS,
         raider.x,
         raider.y,
-        swarm.raiderRadius,
+        swarm.radiusOf(raider),
       );
       if (along === null) continue;
       if (along < bestAlong || (along === bestAlong && raider.id < bestId)) {
@@ -196,7 +202,9 @@ function resolveMissileHits(field: Battlefield, events: DomainEvent[]): void {
 
     if (!hitRaider && !hitShip) continue;
     missile.kill();
-    if (hitRaider?.takeHit(MISSILE_RAIDER_DAMAGE)) field.destroyRaider(hitRaider, events);
+    // A missile kills a Raider outright and dents a heavy one (ADR-0002 3.3).
+    const missileDamage = hitRaider?.kind === 'heavy' ? MISSILE_HEAVY_DAMAGE : MISSILE_RAIDER_DAMAGE;
+    if (hitRaider?.takeHit(missileDamage)) field.destroyRaider(hitRaider, events);
     if (hitShip && ship?.takeHit(loadout.shipDamage(MISSILE_SHIP_DAMAGE, ship.baysOpen))) {
       events.push({ type: 'ResurrectionShipDestroyed', x: ship.x, y: ship.y });
     }

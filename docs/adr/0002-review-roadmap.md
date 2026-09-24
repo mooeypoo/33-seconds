@@ -204,8 +204,13 @@ Ask first: the brainstorm items in the UI and UX review.
   tier against three bots (idle, hunter, guard). Tier numbers moved to `src/balance/tiers.json`
   (validated, with per-cycle ramps for the Director cap and tokens), unchanged in value. Three
   property tests in `npm test` run through the harness. Baseline in the gameplay review.
-- [ ] **3.2** Middle-path swarm: ramping cap and tokens, movement patterns (decision 1).
-- [ ] **3.3** Heavy Raider with a field cap (decision 5).
+- [x] **3.2** (2026-09-24) Middle-path swarm: ramping cap and tokens, movement patterns (decision 1).
+  PR 3b/3c (stacked commits). A Director floor as well as a cap, staggered downloads, the last-wave
+  top-up, and a share of shallow-sine weavers, all per cycle in `tiers.json`. Tuned with the
+  simulator: about 4.5 Raiders on screen, up from 0.6. Before/after in the gameplay review.
+- [x] **3.3** (2026-09-24) Heavy Raider with a field cap (decision 5). Same PR. Its own queue, never
+  downloads, 8 hull, a missile does 3, its own attack token; two per cycle from cycle 2, at most two
+  alive. Placeholder is the Raider picture at 1.7× until `raider_heavy` is drawn.
 - [ ] **3.4** Comfort-safe hit feedback: hit-stop, knockback, sparks.
 - [ ] **3.5** Audio: `AudioPort`, the cue catalog (ADR-0001 D4), ZzFX effects, mute back in
   the HUD (PRD 14.1).

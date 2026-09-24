@@ -211,6 +211,7 @@ function triggersFor(event: DomainEvent): readonly BanterTrigger[] {
     case 'ResurrectionShipDestroyed':
       return ['ResurrectionShipDestroyed'];
     case 'RaiderSpawned':
+      if (event.heavy) return ['BigRaiderEntered'];
       return event.returned ? ['RaiderResurrected'] : [];
     default:
       return [];

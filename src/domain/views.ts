@@ -65,6 +65,8 @@ export interface RaiderView {
   readonly previousY: number;
   readonly hp: number;
   readonly hpMax: number;
+  /** `heavy` is bigger, slower, and never downloads (ADR-0002 3.3). */
+  readonly kind: 'raider' | 'heavy';
   readonly deaths: number;
   readonly returned: boolean;
   readonly protected: boolean;

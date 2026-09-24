@@ -9,8 +9,11 @@ const RAIDER_FIRST_SHOT_DELAY_SECONDS = 0.45;
 /** Start HP. Three hits is long enough to read as a ship, short enough that a pass feels decisive. */
 export const RAIDER_HIT_POINTS = 3;
 
-/** Slow enough that the Viper can intercept a column, fast enough that it does not hover. */
-export const RAIDER_SPEED_UNITS_PER_SECOND = 55;
+/**
+ * Slow enough that the Viper can intercept a column, fast enough that it does not hover. Was 55;
+ * the first playtest with a full swarm found them a bit too fast (2026-09-24).
+ */
+export const RAIDER_SPEED_UNITS_PER_SECOND = 46;
 
 export const RAIDER_HALF_WIDTH_UNITS = 7;
 export const RAIDER_HALF_HEIGHT_UNITS = 6;
@@ -22,6 +25,28 @@ export const RAIDER_HALF_HEIGHT_UNITS = 6;
 export const RAIDER_RADIUS_UNITS = 8;
 
 export const RAIDER_SPAWN_Y_UNITS = RAIDER_HALF_HEIGHT_UNITS + 8;
+
+/**
+ * A weaving Raider's sway either side of its column, and the time for one full sway (ADR-0002 3.2).
+ * Shallow and slow on purpose: a path you can read and cut across, never a zigzag (PRD 9, 15).
+ */
+export const SINE_AMPLITUDE_UNITS = 18;
+export const SINE_PERIOD_SECONDS = 2.6;
+
+/** How a Raider flies: straight down its column, or a shallow weave around it. */
+export type FlightPattern = 'dive' | 'sine';
+
+/**
+ * A Raider, or a heavy Raider (PRD 18, ADR-0002 3.3): bigger, slower, harder to kill, and it never
+ * downloads. It has its own queue and its own attack token; it does not dive the fleet.
+ * ASSUMPTION: these numbers are the starting point agreed with the owner, tuned by the simulator.
+ */
+export type RaiderKind = 'raider' | 'heavy';
+
+export const HEAVY_HIT_POINTS = 8;
+export const HEAVY_SPEED_UNITS_PER_SECOND = 30;
+export const HEAVY_RADIUS_UNITS = 12;
+export const HEAVY_HALF_HEIGHT_UNITS = 9;
 
 export function raiderSpawnMinX(fighterScale = 1): number {
   return RAIDER_HALF_WIDTH_UNITS * fighterScale;
@@ -50,23 +75,36 @@ export class Raider {
   private protectionRemainingSeconds: number;
   private armed = false;
   private strafing = false;
+  /** The column a weave is centred on, and how far through the sway it is. */
+  private readonly columnX: number;
+  private swaySeconds = 0;
+  readonly pattern: FlightPattern;
+  readonly kind: RaiderKind;
 
   constructor(
     id: number,
     identityId: number,
     x: number,
     y: number,
-    options: { readonly deaths?: number; readonly returned?: boolean } = {},
+    options: {
+      readonly deaths?: number;
+      readonly returned?: boolean;
+      readonly pattern?: FlightPattern;
+      readonly kind?: RaiderKind;
+    } = {},
   ) {
     this.id = id;
     this.identityId = identityId;
     this.deaths = options.deaths ?? 0;
     this.returned = options.returned ?? false;
+    this.pattern = options.pattern ?? 'dive';
+    this.kind = options.kind ?? 'raider';
+    this.columnX = x;
     this.positionX = x;
     this.positionY = y;
     this.previousPositionX = x;
     this.previousPositionY = y;
-    this.hitPoints = RAIDER_HIT_POINTS;
+    this.hitPoints = this.kind === 'heavy' ? HEAVY_HIT_POINTS : RAIDER_HIT_POINTS;
     this.fireCooldownSeconds = RAIDER_FIRST_SHOT_DELAY_SECONDS;
     this.protectionRemainingSeconds = this.returned ? RETURNED_SPAWN_PROTECTION_SECONDS : 0;
   }
@@ -117,7 +155,11 @@ export class Raider {
   advance(tickSeconds: number): void {
     this.previousPositionX = this.positionX;
     this.previousPositionY = this.positionY;
-    this.positionY += RAIDER_SPEED_UNITS_PER_SECOND * tickSeconds;
+    this.positionY += (this.kind === 'heavy' ? HEAVY_SPEED_UNITS_PER_SECOND : RAIDER_SPEED_UNITS_PER_SECOND) * tickSeconds;
+    if (this.pattern === 'sine') {
+      this.swaySeconds += tickSeconds;
+      this.positionX = this.columnX + SINE_AMPLITUDE_UNITS * Math.sin((2 * Math.PI * this.swaySeconds) / SINE_PERIOD_SECONDS);
+    }
     this.fireCooldownSeconds -= tickSeconds;
     if (this.protectionRemainingSeconds > 0) {
       this.protectionRemainingSeconds = Math.max(0, this.protectionRemainingSeconds - tickSeconds);
@@ -173,7 +215,8 @@ export class Raider {
       previousX: this.previousPositionX,
       previousY: this.previousPositionY,
       hp: this.hitPoints,
-      hpMax: RAIDER_HIT_POINTS,
+      hpMax: this.kind === 'heavy' ? HEAVY_HIT_POINTS : RAIDER_HIT_POINTS,
+      kind: this.kind,
       deaths: this.deaths,
       returned: this.returned,
       protected: this.isProtected,

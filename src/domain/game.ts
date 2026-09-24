@@ -16,7 +16,7 @@ import { createRandomStream, type RandomStream } from './shared/random';
 import { TICK_SECONDS } from './shared/time';
 import type { Raider } from './swarm/raider';
 import { RAIDER_HALF_HEIGHT_UNITS } from './swarm/raider';
-import { Swarm } from './swarm/Swarm';
+import { Swarm, type SpawnRules } from './swarm/Swarm';
 import { DEFAULT_CYCLE_PROFILE } from './balance/defaultProfile';
 import { rampAt, type CycleProfile } from './balance/profile';
 import { Fleet, FLEET_INTEGRITY_MAX, FLEET_LINE_Y_UNITS } from './fleet/integrity';
@@ -35,6 +35,10 @@ import { PHONE_PLAYFIELD, type Playfield } from './shared/world';
  * pin one so a run repeats given the same inputs.
  */
 export const DEFAULT_RUN_SEED = 1;
+
+/** When heavy Raiders arrive in a cycle: the first this far in, then one per interval (ADR-0002 3.3). */
+export const HEAVY_FIRST_ARRIVAL_SECONDS = 8;
+export const HEAVY_INTERVAL_SECONDS = 8;
 
 export interface GameOptions {
   /** Gameplay stream seed (ADR-0001 D3). With the same inputs, the same seed repeats the run. */
@@ -130,6 +134,10 @@ export class Game {
    * public method that changes state clears it.
    */
   private cachedView: GameView | null = null;
+  /** Set once the resurrection ship's death has topped the swarm up for the last wave. */
+  private lastWaveSent = false;
+  /** Heavy Raiders sent this cycle; reset when the next cycle starts. */
+  private heaviesThisCycle = 0;
 
   constructor(options: GameOptions = {}) {
     const seed = options.seed ?? DEFAULT_RUN_SEED;
@@ -203,6 +211,7 @@ export class Game {
 
     if (this.cycle.isInCombat) {
       this.resurrectionShip?.advanceBays(TICK_SECONDS);
+      this.maybeSendHeavy(events);
       this.fillTheSwarm(events);
       const cycleIndex = this.cycle.view.cycleIndex;
       this.swarm.assignAttackTokens(
@@ -222,6 +231,7 @@ export class Game {
       this.advanceRaiders(events);
       for (const raptor of this.raptors) raptor.advance(TICK_SECONDS);
       resolveHits(this.battlefield(), events);
+      this.maybeSendLastWave(events);
       this.munitions.reclaimShotsThatLeft();
       this.munitions.reclaimMissilesThatLeft();
       this.swarm.advanceDownloads(TICK_SECONDS);
@@ -246,6 +256,7 @@ export class Game {
     this.loadout.clearOffer();
     this.loadout.onCycleStart();
     const events: DomainEvent[] = [change];
+    this.heaviesThisCycle = 0;
     this.launchRaptors();
     this.syncSix();
     this.viper.resetAtJump();
@@ -367,12 +378,54 @@ export class Game {
 
   /** Every weapon kills the same way. The loop is on until the resurrection ship is destroyed. */
   private destroyRaider(raider: Raider, events: DomainEvent[]): void {
-    this.swarm.destroy(raider, events, !this.resurrectionShip?.isDestroyed, this.loadout.downloadSeconds);
+    this.swarm.destroy(raider, events, !this.resurrectionShip?.isDestroyed, this.nextDownloadSeconds());
+  }
+
+  /**
+   * The card-adjusted download time, staggered by the tier's jitter so returns do not arrive in
+   * lockstep (PRD 6). No jitter, no draw, so a profile without it spends no gameplay randomness.
+   */
+  private nextDownloadSeconds(): number {
+    const base = this.loadout.downloadSeconds;
+    const jitter = this.profile.downloadJitterSeconds;
+    if (jitter <= 0) return base;
+    return Math.max(1, base + this.scenario.between(-jitter, jitter));
   }
 
   private fillTheSwarm(events: DomainEvent[]): void {
-    const cap = rampAt(this.profile.directorCap, this.cycle.view.cycleIndex);
-    this.swarm.fill(events, this.resurrectionShip?.isDestroyed === true, cap);
+    this.swarm.fill(events, this.resurrectionShip?.isDestroyed === true, this.spawnRules());
+  }
+
+  private spawnRules(): SpawnRules {
+    const cycleIndex = this.cycle.view.cycleIndex;
+    return {
+      cap: rampAt(this.profile.directorCap, cycleIndex),
+      floor: rampAt(this.profile.swarmFloor, cycleIndex),
+      sineShare: rampAt(this.profile.sineShare, cycleIndex),
+    };
+  }
+
+  /**
+   * Heavy Raiders have their own queue (ADR-0002 3.3): from the tier's first heavy cycle, up to
+   * `heavyPerCycle` arrive, the first 8 s in and then every 8 s, never more than `heavyMax` alive.
+   * None arrive once the resurrection ship is gone: the last wave is Raiders.
+   */
+  private maybeSendHeavy(events: DomainEvent[]): void {
+    const { heavyFromCycle, heavyPerCycle, heavyMax } = this.profile;
+    const cycle = this.cycle.view;
+    if (heavyFromCycle <= 0 || cycle.cycleIndex < heavyFromCycle) return;
+    if (this.resurrectionShip?.isDestroyed === true) return;
+    if (this.heaviesThisCycle >= heavyPerCycle || this.swarm.heavyCount >= heavyMax) return;
+    const due = HEAVY_FIRST_ARRIVAL_SECONDS + this.heaviesThisCycle * HEAVY_INTERVAL_SECONDS;
+    if (cycle.combatElapsedSeconds < due) return;
+    this.swarm.spawnHeavy(events);
+    this.heaviesThisCycle += 1;
+  }
+
+  private maybeSendLastWave(events: DomainEvent[]): void {
+    if (this.lastWaveSent || this.resurrectionShip?.isDestroyed !== true) return;
+    this.lastWaveSent = true;
+    this.swarm.lastWave(events, this.spawnRules());
   }
 
   private autoFire(events: DomainEvent[]): void {
