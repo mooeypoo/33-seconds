@@ -133,6 +133,7 @@ Scenes fill the 8 to 12 second calm between cycles. Two portraits trade lines.
 - 2 to 4 beats. Each beat is up to 72 characters.
 - Tyrol should appear in most scenes (he anchors the recovery), and the closing beat should point at the next jump.
 - Scene duration comes from the same reading-time formula as lines, capped at 12 seconds in total. The check fails a scene that would run longer.
+- **For now only the opening beat is said** (PRD 12.3, 2026-09-24): one line between cycles, not a conversation. Write the first beat so it stands alone. The other beats are kept, unread, until the owner decides whether to trim scenes to one line.
 
 ## 6. Upgrade flair
 

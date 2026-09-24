@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { GameSession, IDLE_INPUT } from '../src/application/GameSession';
+import { commsDurationSeconds } from '../src/application/banter/Banter';
 import { BANTER_LINES } from '../src/application/banter/lines';
-import { RECOVERING_SCENES, SCENE_CAP_SECONDS, ScenePlayer } from '../src/application/banter/recoveringScene';
+import { RECOVERING_SCENES, ScenePlayer } from '../src/application/banter/recoveringScene';
 import { Viper } from '../src/domain/combat/viper';
 import { damageBand, WRECKED_FLEET_DAMAGE, WRECKED_HULL_LOST } from '../src/domain/cycle/damageBand';
 import { Fleet, FLEET_DAMAGE_PER_STRAFE } from '../src/domain/fleet/integrity';
@@ -37,24 +38,24 @@ describe('damage bands', () => {
 });
 
 describe('recovering scenes', () => {
-  it('ships one scene for each band, and a wrecked scene still finishes inside 12 seconds', () => {
+  it('ships one scene for each band, and says only its opening line between cycles', () => {
     expect(RECOVERING_SCENES.map((scene) => scene.bands[0])).toEqual(['clean', 'rough', 'wrecked']);
 
     const player = new ScenePlayer();
     const heard: string[] = [];
     player.start('wrecked', createRandomStream(1));
     let elapsed = 0;
-    while (player.active && elapsed < SCENE_CAP_SECONDS + 1) {
+    while (player.active && elapsed < 20) {
       const text = player.line?.text;
       if (text && heard[heard.length - 1] !== text) heard.push(text);
       player.advance(TICK_SECONDS);
       elapsed += TICK_SECONDS;
     }
     expect(player.active).toBe(false);
-    expect(elapsed).toBeLessThan(SCENE_CAP_SECONDS + 0.05);
-    expect(heard).toEqual(RECOVERING_SCENES[2]?.beats.map((beat) => beat.text));
-    expect(heard.length).toBe(4);
+    expect(heard).toEqual([RECOVERING_SCENES[2]?.beats[0]?.text]);
+    expect(elapsed).toBeCloseTo(commsDurationSeconds(heard[0] ?? ''), 1);
   });
+
 });
 
 describe('who are you talking to', () => {

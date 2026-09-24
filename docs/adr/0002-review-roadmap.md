@@ -263,7 +263,8 @@ Decided not to do yet, on purpose. Each names the phase that picks it up.
 - CONTENT-SCHEMA 5 says `check:content` "fails a scene that would run longer" than 12 seconds.
   PRD 12.3 (newer) says the beats shrink together so the scene still finishes, and the code does
   that. The check follows the PRD and does not fail long scenes. Owner to confirm, then align the
-  schema.
+  schema. Moot for now (2026-09-24): Recovering says only the opening beat, so no
+  scene runs long. Decide it with whether to trim scenes to one line.
 
 - The PRD has become part changelog: its "Live now" paragraphs repeat the changelog and bury the
   rules. Suggestion: move them to a short status file and keep the PRD to rules.

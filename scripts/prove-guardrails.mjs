@@ -367,8 +367,36 @@ const SABOTAGE = [
     {
       what: 'a critical comms line cannot replace flavor',
       file: 'src/application/banter/Banter.ts',
-      find: '    if (this.shown !== null && priorityRank(chosen.priority) <= priorityRank(this.shown.priority)) return;',
-      replace: '    if (this.shown !== null) return;',
+      find: '    if (rank > shownRank) return true;',
+      replace: '    if (rank > shownRank) return false;',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'comms never pauses between lines',
+      file: 'src/application/banter/Banter.ts',
+      find: '    if (this.elapsedSeconds < this.quietUntilSeconds) return false;',
+      replace: '    // sabotage: no gap after a line',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'flavor lines have no budget',
+      file: 'src/application/banter/Banter.ts',
+      find: '    return !crisis && this.flavorShownThisCycle < FLAVOR_LINES_PER_CYCLE;',
+      replace: '    return !crisis;',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'the comms log keeps the last cycle after the jump',
+      file: 'src/application/banter/CommsDirector.ts',
+      find: '      this.history.length = 0;',
+      replace: '      // sabotage: the log survives the jump',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'fight lines keep talking between cycles',
+      file: 'src/application/banter/CommsDirector.ts',
+      find: "    const betweenCycles = view.cycle.phase === 'jumping' || view.cycle.phase === 'recovering';",
+      replace: '    const betweenCycles = false;',
       mustFail: 'npm run test',
     },
     {

@@ -4,9 +4,6 @@ import type { RandomStream } from '../../domain/shared/random';
 import { commsDurationSeconds, type CommsLine } from './Banter';
 import { isSpeaker, speakerName, type BanterSpeaker } from './lines';
 
-/** PRD 12.3. A longer scene shrinks so every beat is still heard. */
-export const SCENE_CAP_SECONDS = 12;
-
 const MAX_BEAT_CHARS = 72;
 
 export interface SceneBeat {
@@ -19,13 +16,6 @@ export interface RecoveringScene {
   readonly bands: readonly DamageBand[];
   readonly weight: number;
   readonly beats: readonly SceneBeat[];
-}
-
-interface PlayingBeat {
-  readonly speakerName: string;
-  readonly partnerName: string | null;
-  readonly text: string;
-  remainingSeconds: number;
 }
 
 function isBand(value: unknown): value is DamageBand {
@@ -90,75 +80,45 @@ function pickWeighted(scenes: readonly RecoveringScene[], random: RandomStream):
 }
 
 /**
- * The beats between cycles. The clock is the caller's, so pause freezes the scene.
- * One scene per Recovering, chosen from the damage band on the banter stream.
+ * The one line between cycles (PRD 12.3): the opening beat of a scene chosen for the damage band,
+ * on the banter stream. The clock is the caller's, so pause freezes it.
  */
 export class ScenePlayer {
-  private queue: PlayingBeat[] = [];
-  private index = 0;
-  private playing = false;
+  private shown: { readonly line: CommsLine; remainingSeconds: number } | null = null;
 
   start(band: DamageBand, random: RandomStream, catalog: readonly RecoveringScene[] = RECOVERING_SCENES): void {
     const scene = pickWeighted(
       catalog.filter((entry) => entry.bands.includes(band)),
       random,
     );
-    if (!scene) {
+    // ASSUMPTION: only the opener plays, so the rest of the scene stays unread in the JSON until the
+    // owner trims it. One line keeps the pick screen quiet (2026-09-24 playtest).
+    const opener = scene?.beats[0];
+    if (!opener) {
       this.stop();
       return;
     }
-    const natural = scene.beats.map((beat) => commsDurationSeconds(beat.text));
-    const sum = natural.reduce((total, seconds) => total + seconds, 0);
-    const scale = sum > SCENE_CAP_SECONDS ? SCENE_CAP_SECONDS / sum : 1;
-    this.queue = scene.beats.map((beat, beatIndex) => {
-      const previous = scene.beats[beatIndex - 1];
-      return {
-        speakerName: speakerName(beat.speaker),
-        partnerName: previous ? speakerName(previous.speaker) : null,
-        text: beat.text,
-        remainingSeconds: (natural[beatIndex] ?? 0) * scale,
-      };
-    });
-    this.index = 0;
-    this.playing = this.queue.length > 0;
+    this.shown = {
+      line: { speakerName: speakerName(opener.speaker), text: opener.text },
+      remainingSeconds: commsDurationSeconds(opener.text),
+    };
   }
 
   stop(): void {
-    this.playing = false;
-    this.queue = [];
-    this.index = 0;
+    this.shown = null;
   }
 
   get active(): boolean {
-    return this.playing;
+    return this.shown !== null;
   }
 
   get line(): CommsLine | null {
-    if (!this.playing) return null;
-    const beat = this.queue[this.index];
-    if (!beat) return null;
-    return { speakerName: beat.speakerName, text: beat.text, partnerName: beat.partnerName };
+    return this.shown?.line ?? null;
   }
 
-  /** True when this call is the one that finishes the scene. */
-  advance(seconds: number): boolean {
-    if (!this.playing || !Number.isFinite(seconds) || seconds <= 0) return false;
-    let left = seconds;
-    while (left > 0 && this.playing) {
-      const beat = this.queue[this.index];
-      if (!beat) {
-        this.playing = false;
-        return true;
-      }
-      if (left < beat.remainingSeconds) {
-        beat.remainingSeconds -= left;
-        return false;
-      }
-      left -= beat.remainingSeconds;
-      beat.remainingSeconds = 0;
-      this.index += 1;
-      if (this.index >= this.queue.length) this.playing = false;
-    }
-    return !this.playing;
+  advance(seconds: number): void {
+    if (this.shown === null || !Number.isFinite(seconds) || seconds <= 0) return;
+    this.shown.remainingSeconds -= seconds;
+    if (this.shown.remainingSeconds <= 0) this.shown = null;
   }
 }
