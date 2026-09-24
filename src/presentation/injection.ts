@@ -10,6 +10,9 @@ export const SESSION_KEY: InjectionKey<GameSession> = Symbol('session');
 /** Called once with the element the canvas should live in. */
 export const CANVAS_HOST_KEY: InjectionKey<(host: HTMLElement) => void> = Symbol('canvas-host');
 
+/** Matches the Phaser world to the playfield chosen for this run. */
+export const RESIZE_PLAYFIELD_KEY: InjectionKey<(worldWidth: number) => void> = Symbol('resize-playfield');
+
 /** Overlay missile button. The latch itself lives in infrastructure; this is only the press. */
 export const MISSILE_PRESS_KEY: InjectionKey<() => void> = Symbol('missile-press');
 

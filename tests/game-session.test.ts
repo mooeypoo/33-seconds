@@ -321,35 +321,92 @@ describe('pause', () => {
     expect(session.view.cycle.secondsRemaining).toBe(remaining);
   });
 
-  it('does not let Continue skip Recovering while the session is paused', () => {
+  it('does not let Continue skip Recovering while the Apply countdown is paused', () => {
     session.start();
     runFrames(TICKS_PER_SECOND * 35);
     expect(session.view.cycle.phase).toBe('recovering');
 
+    const cardId = session.view.upgradeOffer?.cardIds[0] ?? '';
+    session.pickUpgrade(cardId);
     session.pause('player');
+    expect(session.status.phase).toBe('paused');
+
     session.continueFromJump();
     session.advance(ONE_FRAME_AT_60HZ);
 
     expect(session.view.cycle.phase).toBe('recovering');
+    expect(session.view.loadout.some((card) => card.id === cardId)).toBe(false);
   });
 
-  it('plays the recovering scene, and holds the pick until that scene ends', () => {
+  it('counts 3-2-1 after Apply, and only then starts the next cycle', () => {
     session.start();
     runFrames(TICKS_PER_SECOND * 35);
     expect(session.view.cycle.phase).toBe('recovering');
+    expect(session.status.choosingUpgrade).toBe(true);
 
     const beats = RECOVERING_SCENES.flatMap((scene) => scene.beats.map((beat) => beat.text));
     expect(beats).toContain(session.status.comms?.text);
 
+    session.pickUpgrade('not-a-card');
+    session.advance(ONE_FRAME_AT_60HZ);
+    expect(session.view.cycle.phase).toBe('recovering');
+    expect(session.status.phase).toBe('running');
+
     const cardId = session.view.upgradeOffer?.cardIds[0] ?? '';
     expect(cardId).not.toBe('');
     session.pickUpgrade(cardId);
-    session.advance(ONE_FRAME_AT_60HZ);
+    expect(session.status).toMatchObject({ phase: 'resuming', countdownSeconds: RESUME_COUNTDOWN_SECONDS });
     expect(session.view.cycle.phase).toBe('recovering');
-    expect(session.status.heldCardId).toBe(cardId);
+    expect(session.status.choosingUpgrade).toBe(false);
+
+    const ticksWhileCounting = runFrames(Math.ceil(RESUME_COUNTDOWN_SECONDS / ONE_FRAME_AT_60HZ) - 1);
+    expect(ticksWhileCounting).toBe(0);
+    expect(session.view.cycle.phase).toBe('recovering');
+
+    runFrames(2);
+    expect(session.status.phase).toBe('running');
+    expect(session.view.cycle.phase).toBe('arriving');
+    expect(session.view.loadout.some((card) => card.id === cardId)).toBe(true);
+  });
+
+  it('does not cover the Recovering sheet when focus leaves or the player asks to pause', () => {
+    session.start();
+    runFrames(TICKS_PER_SECOND * 35);
+    expect(session.status.choosingUpgrade).toBe(true);
+
+    session.pause('window-blurred');
+    session.pause('tab-hidden');
+    session.pause('orientation-changed');
+    session.pause('pointer-cancelled');
+    session.pause('player');
+    expect(session.status.phase).toBe('running');
+    expect(session.view.cycle.phase).toBe('recovering');
+  });
+
+  it('keeps an applied card if focus leaves during the countdown', () => {
+    session.start();
+    runFrames(TICKS_PER_SECOND * 35);
+    const cardId = session.view.upgradeOffer?.cardIds[0] ?? '';
+    session.pickUpgrade(cardId);
+    expect(session.status.phase).toBe('resuming');
+
+    session.pause('window-blurred');
+    expect(session.status.phase).toBe('paused');
+
+    session.requestResume();
+    runFrames(Math.ceil(RESUME_COUNTDOWN_SECONDS / ONE_FRAME_AT_60HZ) + 2);
+    expect(session.view.cycle.phase).toBe('arriving');
+    expect(session.view.loadout.some((card) => card.id === cardId)).toBe(true);
+  });
+
+  it('stays in Recovering after the scene ends until a card is applied', () => {
+    session.start();
+    runFrames(TICKS_PER_SECOND * 35);
+    expect(session.view.cycle.phase).toBe('recovering');
 
     runFrames(TICKS_PER_SECOND * 13);
-    expect(session.view.cycle.phase).toBe('arriving');
+    expect(session.view.cycle.phase).toBe('recovering');
+    expect(session.view.upgradeOffer).not.toBeNull();
   });
 });
 

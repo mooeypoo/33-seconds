@@ -152,6 +152,10 @@ export interface GameView {
   readonly raiders: readonly RaiderView[];
   readonly ghosts: readonly GhostView[];
   readonly fleet: FleetView;
+  /** Lane width for this run. Presenters size the frame to it. */
+  readonly worldWidth: number;
+  /** 1 on a phone. Desktop grows the Viper and the Raiders by this, pictures and hitboxes. */
+  readonly fighterScale: number;
   readonly tier: TierId;
   readonly raptors: readonly RaptorView[];
   readonly imaginarySix: ImaginarySixView | null;
@@ -170,7 +174,9 @@ export interface GameView {
     readonly cardIds: readonly CardId[];
     readonly rerollAvailable: boolean;
   } | null;
-  readonly loadout: readonly { readonly id: CardId; readonly stacks: number }[];
+  readonly loadout: readonly { readonly id: CardId; readonly stacks: number; readonly maxStacks: number }[];
+  /** Distinct cards in the order they were last taken. The last one is the newest bonus. */
+  readonly upgradeOrder: readonly CardId[];
   readonly cycle: CycleView;
   /** Scene band for the cycle that just ended. Clean until the first jump. */
   readonly recoveryBand: DamageBand;

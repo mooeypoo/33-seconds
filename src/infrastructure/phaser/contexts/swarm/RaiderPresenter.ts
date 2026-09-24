@@ -1,12 +1,19 @@
 import Phaser from 'phaser';
 import { FLEET_LINE_Y_UNITS } from '../../../../domain/fleet/integrity';
-import { RAIDER_HALF_HEIGHT_UNITS, RAIDER_HALF_WIDTH_UNITS, RAIDER_HIT_POINTS } from '../../../../domain/swarm/raider';
+import { RAIDER_HIT_POINTS } from '../../../../domain/swarm/raider';
 import { RESURRECTION_DOWNLOAD_SECONDS } from '../../../../domain/swarm/resurrection';
 import type { DomainEvent } from '../../../../domain/shared/events';
-import { WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS, clamp } from '../../../../domain/shared/world';
+import { WORLD_HEIGHT_UNITS, clamp } from '../../../../domain/shared/world';
 import type { GameView, GhostView, RaiderView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
 import { PALETTE } from '../../shared/palette';
+import {
+  RAIDER_EYE_ANIM,
+  RAIDER_EYE_CENTER,
+  RAIDER_EYE_FRAME_RATE,
+  RAIDER_EYE_FRAMES,
+  RAIDER_SHOWN_UNITS,
+} from '../../sprites';
 
 /** One sweep of the eye, in milliseconds. Slow on purpose: it is a tell, not a flash (PRD 15). */
 const EYE_SWEEP_MS = 900;
@@ -27,16 +34,15 @@ interface GhostMark {
 
 interface HullMark {
   hull: Phaser.GameObjects.Container;
+  body: Phaser.GameObjects.Sprite;
   pips: Phaser.GameObjects.Rectangle[];
-  eye: Phaser.GameObjects.Rectangle;
-  sweep: Phaser.Tweens.Tween | null;
   fade: Phaser.Tweens.Tween | null;
 }
 
 /**
- * Draws the Raiders. Placeholder art: an arrowhead hull and a sweeping red eye. A still eye means
- * this one does not hold an attack token; a sweep means it may fire (PRD 9). The hull is not red,
- * because only Cylons are.
+ * Draws the Raiders from the 48×48 frames, shown at 12 world units. A still eye means this one
+ * does not hold an attack token; a sweep means it may fire (PRD 9). Hull pips stay, because the
+ * picture is not the health readout.
  */
 export class RaiderPresenter implements Presenter {
   private readonly scene: Phaser.Scene;
@@ -51,6 +57,14 @@ export class RaiderPresenter implements Presenter {
     this.scene = scene;
     this.fadeMs = prefersReducedMotion ? 0 : DESTROY_FADE_MS;
     this.sweepMs = prefersReducedMotion ? 0 : EYE_SWEEP_MS;
+    if (!scene.anims.exists(RAIDER_EYE_ANIM)) {
+      scene.anims.create({
+        key: RAIDER_EYE_ANIM,
+        frames: RAIDER_EYE_FRAMES.map((key) => ({ key })),
+        frameRate: RAIDER_EYE_FRAME_RATE,
+        repeat: -1,
+      });
+    }
   }
 
   onEvent(event: DomainEvent): void {
@@ -89,6 +103,8 @@ export class RaiderPresenter implements Presenter {
       mark.hull.setAlpha(raider.protected ? 0.55 : 1);
       this.drawPips(mark.pips, raider);
       this.syncEye(mark, raider.armed);
+      const shown = RAIDER_SHOWN_UNITS * view.fighterScale;
+      mark.body.setDisplaySize(shown, shown);
       this.syncDive(raider, mark.hull.x, mark.hull.y);
     }
 
@@ -118,8 +134,15 @@ export class RaiderPresenter implements Presenter {
   }
 
   private syncEye(mark: HullMark, armed: boolean): void {
-    if (mark.sweep) mark.sweep.timeScale = armed ? 1 : 0;
-    if (!armed) mark.eye.x = 0;
+    const sweeping = armed && this.sweepMs > 0;
+    if (sweeping) {
+      if (!mark.body.anims.isPlaying || mark.body.anims.currentAnim?.key !== RAIDER_EYE_ANIM) {
+        mark.body.play(RAIDER_EYE_ANIM);
+      }
+      return;
+    }
+    if (mark.body.anims.isPlaying) mark.body.stop();
+    if (mark.body.texture.key !== RAIDER_EYE_CENTER) mark.body.setTexture(RAIDER_EYE_CENTER);
   }
 
   private syncGhosts(view: GameView): void {
@@ -136,7 +159,7 @@ export class RaiderPresenter implements Presenter {
     for (const ghost of view.ghosts) {
       const existing = this.blips.get(ghost.identityId);
       const mark = existing ?? this.buildGhost(ghost);
-      mark.root.setPosition(this.ghostX(ghost.x), this.ghostY(ghost.y));
+      mark.root.setPosition(this.ghostX(ghost.x, view.worldWidth), this.ghostY(ghost.y));
       mark.cross.setVisible(ghost.shootable);
       this.setDownloadPips(mark.pips, ghost.remainingSeconds);
     }
@@ -190,8 +213,8 @@ export class RaiderPresenter implements Presenter {
     }
   }
 
-  private ghostX(x: number): number {
-    return clamp(x, DOWNLOAD_BAR_WIDTH / 2 + 1, WORLD_WIDTH_UNITS - DOWNLOAD_BAR_WIDTH / 2 - 1);
+  private ghostX(x: number, worldWidth: number): number {
+    return clamp(x, DOWNLOAD_BAR_WIDTH / 2 + 1, worldWidth - DOWNLOAD_BAR_WIDTH / 2 - 1);
   }
 
   private ghostY(y: number): number {
@@ -199,44 +222,27 @@ export class RaiderPresenter implements Presenter {
   }
 
   private build(x: number, y: number, returned: boolean): HullMark {
-    const width = RAIDER_HALF_WIDTH_UNITS * 2;
-    const height = RAIDER_HALF_HEIGHT_UNITS * 2;
-
-    const body = this.scene.add.rectangle(0, -1, width, height - 4, PALETTE.raiderHull);
-    const nose = this.scene.add.rectangle(0, height / 2 - 1, 6, 5, PALETTE.raiderHull);
-    const eye = this.scene.add.rectangle(0, -2, 5, 2, PALETTE.cylonRed);
-    const parts: Phaser.GameObjects.GameObject[] = [body, nose, eye];
+    const body = this.scene.add.sprite(0, 0, RAIDER_EYE_CENTER);
+    body.setDisplaySize(RAIDER_SHOWN_UNITS, RAIDER_SHOWN_UNITS);
+    const parts: Phaser.GameObjects.GameObject[] = [body];
 
     if (returned) {
-      const ring = this.scene.add.rectangle(0, 0, width + 6, height + 6, PALETTE.ghostBlip, 0);
+      const ring = this.scene.add.rectangle(0, 0, RAIDER_SHOWN_UNITS + 6, RAIDER_SHOWN_UNITS + 6, PALETTE.ghostBlip, 0);
       ring.setStrokeStyle(1, PALETTE.ghostBlip, 0.9);
       parts.unshift(ring);
     }
 
     const pips: Phaser.GameObjects.Rectangle[] = [];
     for (let i = 0; i < RAIDER_HIT_POINTS; i++) {
-      const pip = this.scene.add.rectangle((i - 1) * 4, -height / 2 - 3, 3, 2, PALETTE.cylonRed);
+      const pip = this.scene.add.rectangle((i - 1) * 4, -RAIDER_SHOWN_UNITS / 2 - 3, 3, 2, PALETTE.cylonRed);
       pips.push(pip);
     }
     parts.push(...pips);
 
-    let sweep: Phaser.Tweens.Tween | null = null;
-    if (this.sweepMs > 0) {
-      sweep = this.scene.tweens.add({
-        targets: eye,
-        x: { from: -4, to: 4 },
-        duration: this.sweepMs,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.InOut',
-      });
-    }
-
     return {
       hull: this.scene.add.container(x, y, parts),
+      body,
       pips,
-      eye,
-      sweep,
       fade: null,
     };
   }
@@ -271,7 +277,7 @@ export class RaiderPresenter implements Presenter {
     const mark = this.hulls.get(id);
     if (!mark) return;
     mark.fade?.remove();
-    mark.sweep?.remove();
+    mark.body.stop();
     mark.hull.destroy();
     const dive = this.dives.get(id);
     if (dive) {

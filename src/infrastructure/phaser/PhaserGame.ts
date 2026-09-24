@@ -18,11 +18,12 @@ export function bootPhaser(
   stick: StickSource,
   reportStats: (stats: FrameStats) => void,
   reducedEffects: boolean,
-): () => void {
+  worldWidth: number = WORLD_WIDTH_UNITS,
+): { destroy: () => void; resize: (width: number) => void } {
   const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent,
-    width: WORLD_WIDTH_UNITS,
+    width: worldWidth,
     height: WORLD_HEIGHT_UNITS,
     backgroundColor: PALETTE.space,
     // Nearest-neighbour upscaling of the low-resolution world (PRD 14, ADR-0001 D4b).
@@ -46,7 +47,12 @@ export function bootPhaser(
     scene: [new GameScene(session, stick, reportStats, reducedEffects)],
   });
 
-  return () => {
-    game.destroy(true);
+  return {
+    destroy: () => {
+      game.destroy(true);
+    },
+    resize: (width: number) => {
+      game.scale.resize(width, WORLD_HEIGHT_UNITS);
+    },
   };
 }

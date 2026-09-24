@@ -7,7 +7,6 @@ import {
   FLEET_LINE_Y_UNITS,
   GALACTICA_SHIP_INDEX,
 } from '../../../../domain/fleet/integrity';
-import { WORLD_WIDTH_UNITS } from '../../../../domain/shared/world';
 import type { Presenter } from '../../Presenter';
 import { PALETTE } from '../../shared/palette';
 
@@ -41,20 +40,16 @@ export class FleetPresenter implements Presenter {
   }
 
   sync(view: GameView, _alpha: number): void {
-    this.ensureLine();
+    this.ensureLine(view.worldWidth);
     for (const ship of view.fleet.ships) this.syncShip(ship);
   }
 
-  private ensureLine(): void {
-    if (this.line) return;
-    this.line = this.scene.add.rectangle(
-      WORLD_WIDTH_UNITS / 2,
-      FLEET_LINE_Y_UNITS,
-      WORLD_WIDTH_UNITS,
-      2,
-      PALETTE.fleetLine,
-      0.5,
-    );
+  private ensureLine(worldWidth: number): void {
+    if (!this.line) {
+      this.line = this.scene.add.rectangle(worldWidth / 2, FLEET_LINE_Y_UNITS, worldWidth, 2, PALETTE.fleetLine, 0.5);
+    }
+    this.line.setPosition(worldWidth / 2, FLEET_LINE_Y_UNITS);
+    this.line.setSize(worldWidth, 2);
   }
 
   private syncShip(ship: CivilianShipView): void {

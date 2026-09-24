@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 /**
  * The debug readout is how these tests observe the simulation: no test-only hook is added to the
@@ -12,6 +12,16 @@ export async function viperPosition(page: Page): Promise<{ x: number; y: number 
   const x = await page.getByTestId('viper-x').textContent();
   const y = await page.getByTestId('viper-y').textContent();
   return { x: Number(x), y: Number(y) };
+}
+
+/** Pause, About, and Mute fold under Settings when the column is narrow. */
+export async function hudButton(page: Page, name: string): Promise<Locator> {
+  const button = page.getByRole('button', { name, exact: true });
+  if (!(await button.isVisible())) {
+    await page.getByRole('button', { name: 'Settings' }).click();
+    await expect(button).toBeVisible();
+  }
+  return button;
 }
 
 export async function startRun(page: Page): Promise<void> {

@@ -28,6 +28,9 @@ export class ClockPresenter implements Presenter {
 
   sync(view: GameView, _alpha: number): void {
     this.ensure();
+    const x = view.worldWidth / 2;
+    this.seconds?.setX(x);
+    this.caption?.setX(x);
     const cycle = view.cycle;
     this.seconds?.setText(String(cycle.secondsRemaining));
     this.seconds?.setColor(cycle.phase === 'spooling' ? SPOOL_COLOR : NUMBER_COLOR);

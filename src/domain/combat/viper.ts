@@ -16,7 +16,7 @@ export const VIPER_ACCELERATION_UNITS_PER_SECOND_SQUARED = 520;
 export const VIPER_HALF_WIDTH_UNITS = 6;
 export const VIPER_HALF_HEIGHT_UNITS = 7;
 
-/** Where the Viper starts: centred horizontally, low enough to sit in front of the fleet. */
+/** Where the Viper starts on the phone world: centred horizontally, low enough to sit in front of the fleet. */
 export const VIPER_SPAWN_X_UNITS = WORLD_WIDTH_UNITS / 2;
 export const VIPER_SPAWN_Y_UNITS = WORLD_HEIGHT_UNITS * 0.78;
 
@@ -58,6 +58,15 @@ export class Viper {
   private ejected = false;
   private ejectRemainingSeconds = 0;
   private invulnerableRemainingSeconds = 0;
+  private readonly worldWidth: number;
+  private readonly fighterScale: number;
+
+  constructor(worldWidth: number = WORLD_WIDTH_UNITS, fighterScale = 1) {
+    this.worldWidth = worldWidth;
+    this.fighterScale = fighterScale;
+    this.positionX = worldWidth / 2;
+    this.previousPositionX = this.positionX;
+  }
 
   get x(): number {
     return this.positionX;
@@ -202,9 +211,9 @@ export class Viper {
     this.ejectRemainingSeconds = 0;
     this.hull = VIPER_HULL_HIT_POINTS;
     this.invulnerableRemainingSeconds = VIPER_PICKUP_INVULN_SECONDS;
-    this.positionX = VIPER_SPAWN_X_UNITS;
+    this.positionX = this.worldWidth / 2;
     this.positionY = VIPER_SPAWN_Y_UNITS;
-    this.previousPositionX = VIPER_SPAWN_X_UNITS;
+    this.previousPositionX = this.positionX;
     this.previousPositionY = VIPER_SPAWN_Y_UNITS;
     this.velocityX = 0;
     this.velocityY = 0;
@@ -230,10 +239,10 @@ export class Viper {
    * axis, so holding into a wall does not build up momentum that fires the Viper away on release.
    */
   private clampIntoWorld(sizeScale = 1): void {
-    const halfWidth = VIPER_HALF_WIDTH_UNITS * sizeScale;
-    const halfHeight = VIPER_HALF_HEIGHT_UNITS * sizeScale;
+    const halfWidth = VIPER_HALF_WIDTH_UNITS * sizeScale * this.fighterScale;
+    const halfHeight = VIPER_HALF_HEIGHT_UNITS * sizeScale * this.fighterScale;
     const minX = halfWidth;
-    const maxX = WORLD_WIDTH_UNITS - halfWidth;
+    const maxX = this.worldWidth - halfWidth;
     const minY = halfHeight;
     const maxY = WORLD_HEIGHT_UNITS - halfHeight;
 

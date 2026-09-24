@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Status** | Living document (see below) |
-| **Last changed** | 2026-09-22 (see the changelog at the end) |
+| **Last changed** | 2026-09-23 (see the changelog at the end) |
 | **Owner** | Moriel |
 | **Related** | [Architecture guidelines (ADR-0001)](adr/0001-architecture.md), [AGENTS.md](../AGENTS.md) |
 
@@ -37,7 +37,7 @@ Read this every session. The rest of the document is detail.
 - Cycle 1 teaches the loop. On cycle 2 the **resurrection ship** arrives **shielded** (visible, cannot be hurt). On cycle 4 the shield drops. Chip away at its persistent HP. Destroy it to stop the resurrections, then clear the remaining Raiders to win. It stations high on the right and drifts a little, slowly. Both cycle numbers are tunables.
 - You **lose** only when **Fleet Integrity** reaches zero. Strafing runs and stray bullets hurt the fleet. There is a per-cycle damage cap and a partial repair at each jump. Your Viper being destroyed costs time, not the run.
 - **Missiles** (3 per cycle) hit the first hostile thing they touch. Lock is the nearest hostile in a forward cone. Space, a large on-screen button, or a second finger fires one. **The Speech** (E or a button): 4 s of hover and invulnerability, ready again every 3 jumps.
-- At each jump, **pick 1 of 3 upgrade cards** (a joke plus a plain effect). The twelve MVP cards are live. One free reroll: Ask Baltar Again.
+- At each jump, **pick 1 of 3 upgrade cards**. A closed row is the name and the joke. Opening it shows the effect, and a line each from Baltar and Roslin. **Apply** counts 3-2-1, then starts the next cycle. One free reroll, labeled **Refresh the list**. That sheet is not covered by the pause menu.
 - **Comfort rules:** no shake, wobble, or flashing. Color is never the only cue. Pause works anywhere.
 - **Comms portraits and jokes** are data written later. Use clearly labeled placeholders first.
 - Two difficulty tiers: **Civilian Run** (easier fleet math, same fight) and **Viper Pilot** (the default Launch). Ignoring the fleet on Viper Pilot can lose the run.
@@ -106,9 +106,11 @@ The countdown is part of the playfield, just above the fleet, drawn behind ships
 | **Building** | 5-25 s | Swarm ramps up to the Director's cap. You kill, collect, and position. |
 | **Spooling** | 25-33 s | FTL ring fills. Gaeta and Dualla count down. The swarm presses in. Your job flips from killing to surviving. |
 | **Jumping** | about 1 s | Fade, never a white flash (a still overlay in reduced-effects mode). Bullets clear. |
-| **Recovering** | 8-12 s | Invulnerable. Tyrol resets your Viper hull and missiles. The fleet gets a partial repair. You pick 1 of 3 upgrades. A short comms scene plays. |
+| **Recovering** | 8-12 s | Invulnerable. Tyrol resets your Viper hull and missiles. The fleet gets a partial repair. You pick 1 of 3 upgrades, then Apply. A short comms scene plays in the strip and does not have to finish. |
 
-The next cycle starts when **both** the scene has ended **and** the upgrade is chosen. There is no timer on the pick. A player who wants to think can. **Live now:** the scene plays over the table. A tap during it is held, and a later tap can change it. The cycle starts when the scene has finished and a card is chosen. Ask Baltar Again clears a held choice.
+The next cycle starts when the player presses **Apply**, after the same 3-2-1 used to resume from pause. There is no timer on the pick. A player who wants to think can. A closed row shows the card's name and its joke. Opening it shows the exact effect, and Baltar and Roslin. A second tap on the same title leaves it selected. **Apply** ends the Recovering scene if it is still speaking, counts 3-2-1, and only then starts the cycle. **Refresh the list** deals one new hand, clears the selection, and then is gone.
+
+**Live now:** the pick is a full-screen sheet of three rows, in the same quiet style as pause. The open row adds the plain effect and Baltar and Roslin with their portraits and names. The pause menu does not cover this sheet: not from focus loss, a hidden tab, Esc, or the Pause button. Mute stays. Phaser still pauses its own loop while the tab is hidden, and resumes it when the tab is visible, so the sheet is where you left it. A blur that leaves the tab visible does not stop Phaser. The scene plays in the strip under the playfield while the sheet is up. The newest bonus name sits between fleet health and mute. Older bonuses show as a count beside that name. A card you already own shows the stack this pick would become, such as 2/3.
 
 A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 
@@ -270,7 +272,7 @@ These rules exist so "smarter and angrier" never becomes "a big mass mess."
 2. **Every card has a tradeoff or a synergy.** No plain "+10% damage."
 3. **Rarities:** Common (stacks to 3), Uncommon (stacks to 2), **Questionable** (one copy, large benefit, a cosmetic downside).
 4. **Cosmetic downsides never involve camera motion, flashing, or contrast changes.** They can be text, audio, or a sprite gag.
-5. **Three cards at each jump,** plus one free reroll, "Ask Baltar Again," which gives a fresh (more panicky) opinion.
+5. **Three cards at each jump,** plus one free reroll. The button says **Refresh the list**. It deals a fresh hand once. A dealt hand can still speak about a card on that table.
 6. **Advice is honest.** Baltar and Roslin tag cards with soft hints. A hint never misleads.
 7. **Cards that depend on a later feature are not offered until that feature ships.**
 
@@ -323,7 +325,7 @@ Rarities are initial proposals. **MVP** marks the launch set of 12.
 | *Raptor Escort* | A Raptor patrols the fleet line and soaks strays. After 3 hits it returns to hangar and comes back next cycle. | Uncommon | MVP |
 | *Imaginary Six* | See below. | Questionable | MVP |
 
-**Live now:** twelve MVP cards at Recovering, pick 1 of 3, one free *Ask Baltar Again*. Joke in italics, exact effect in plain text, and a line each from Baltar and Roslin on the card. Dealing the hand can speak about a card on that table; the Recovering scene takes the strip while it plays. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. *Flak Enthusiast* is Galactica eating strays (40% then +15% per extra stack); without it every stray still hits. *Hangar Door Slam* is +30% factory damage while bays are open. *Raptor Escort* is one body per stack on the fleet line (3 HP, hangar, relaunch next cycle). *Imaginary Six* is a formation wingman: thin beam, half a gun hit, strafes then strays, in range, untouchable. Once each time she appears, someone asks who the pilot is talking to, after the louder line has finished. Later cards wait.
+**Live now:** twelve MVP cards at Recovering, pick 1 of 3, one free **Refresh the list**. A closed row is the name and the joke in italics. The open row adds the exact effect in plain text, and a line each from Baltar and Roslin, with their portraits. **Apply** counts 3-2-1, then starts the next cycle. Dealing the hand can speak about a card on that table; the Recovering scene takes the strip while it plays, and Apply ends that scene. *Anyone Could Be a Cylon* is a download in place, not a shorter eject (see 8.1). *Spoilers* moves the blip to the return column and lets the gun delay it. *Flak Enthusiast* is Galactica eating strays (40% then +15% per extra stack); without it every stray still hits. *Hangar Door Slam* is +30% factory damage while bays are open. *Raptor Escort* is one body per stack on the fleet line (3 HP, hangar, relaunch next cycle). *Imaginary Six* is a formation wingman: thin beam, half a gun hit, strafes then strays, in range, untouchable. Once each time she appears, someone asks who the pilot is talking to, after the louder line has finished. Later cards wait.
 
 ### 10.3 *Imaginary Six* (Questionable, one copy) `[Tunable]`
 
@@ -381,7 +383,7 @@ Gaeta and Dualla announce the same jump from two angles. The civilian count cree
 - One message at a time. Low-priority lines are dropped, not queued, if a higher-priority line is waiting.
 - **Quiet during crises:** flavor is suppressed at low hull or during a boss entrance. Only critical lines (jump countdown) get through.
 - Cooldowns per character, plus no-repeat memory. Cameos come from a **shuffle bag**, so everyone appears before anyone repeats.
-- Placement: a band above the playfield, directly under the fleet score, the same on a phone and on a desktop. It stays in that column, not in the side margins, and it never covers the score or the clock. Never in the middle of play or the mobile thumb zone.
+- Placement: a fixed-height band under the playfield, in the same column on a phone and on a desktop. It does not cover the playfield, the fleet, or the clock, and a longer line wraps inside the band instead of resizing the playfield. Never in the middle of play. A touch on the line still steers. The fleet score stays above. Mute, Pause, and About stay above with it, and fold under a Settings control when that band is too narrow for the row.
 - A short radio-squelch blip masks the pop-in.
 - **Duration:** `clamp(1.5 s + characters / 12, 4 s, 8 s)`, multiplied by a player setting (Short 0.75x, Normal 1x, Long 1.5x).
 - A **comms log** in the pause menu keeps the last 20 lines.
@@ -389,7 +391,7 @@ Gaeta and Dualla announce the same jump from two angles. The civilian count cree
 - The banter random stream is separate from gameplay, so choosing a joke never changes a seeded run.
 - Lines that share a moment live in one pool (same trigger, priority, and cooldown; the jokes are an array). A pool may set `chance` below 1 so that speaker is only sometimes eligible. The game still shows one line. Starbuck's cycle-start pool starts at 0.25, so Adama opens most cycles.
 
-**Live now:** one line at a time, from JSON pools, with a letter-block portrait and the speaker's name. A scene shows the previous speaker beside the one who is talking. The line sits in the band above the playfield, under the fleet score, and a touch on it still steers. It does not cover the score. Cycle start (Adama, and sometimes Starbuck), FTL spool, the resurrection ship's arrival, a missile, the Speech, win, and loss. A dealt hand can speak about a card on that table, and a reroll can replace that line, unless a Recovering scene is using the strip. Someone asks who the pilot is talking to once each time Imaginary Six appears, and only when the strip is empty. `{seconds}`, `{percent}`, `{count}`, and `{total}` are filled when the line is chosen. Critical spool text can replace a lower line. A new hand can replace a line that is still up. Flavor stays quiet at 1 hull. The line follows the game clock, so pause freezes it. A fleet hit, a Raider coming back, and the factory's death each get a line. Three kills inside 2 seconds, a Cylon round that misses inside 16 units of the Viper, hull at 2 or below (once until it is repaired), and 12 seconds without a kill are noticed from the fight, not from new rules. The factory is called at 75, 50, and 25 percent of the hull it has left, with that percent in the line. The spool is also called at 5 seconds and at 2. Those timings are assumptions until a playtest. A heavy Raider is not in the fight, so those lines stay quiet. The comms log and the duration setting wait.
+**Live now:** one line at a time, from JSON pools, with the speaker's 64×64 portrait and name. Closed, open, and blink step on the game clock, two changes a second. Reduced effects holds the closed mouth. The signature frame is that closed picture until those files exist. The other person in a scene stays on closed. A name with no picture keeps the letter block. A scene shows the previous speaker beside the one who is talking. The line sits in a fixed-height band under the playfield, and a touch on it still steers. It does not cover the score, and a longer line does not resize the playfield. Mute, Pause, and About stay above. On a narrow band they fold under Settings. About pauses and opens how to play and what the game is. Missile and Speech sit on the playfield corners, above the dialogue strip. Cycle start (Adama, and sometimes Starbuck), FTL spool, the resurrection ship's arrival, a missile, the Speech, win, and loss. A dealt hand can speak about a card on that table, and a reroll can replace that line, unless a Recovering scene is using the strip. Someone asks who the pilot is talking to once each time Imaginary Six appears, and only when the strip is empty. `{seconds}`, `{percent}`, `{count}`, and `{total}` are filled when the line is chosen. Critical spool text can replace a lower line. A new hand can replace a line that is still up. Flavor stays quiet at 1 hull. The line follows the game clock, so pause freezes it. A fleet hit, a Raider coming back, and the factory's death each get a line. Three kills inside 2 seconds, a Cylon round that misses inside 16 units of the Viper, hull at 2 or below (once until it is repaired), and 12 seconds without a kill are noticed from the fight, not from new rules. The factory is called at 75, 50, and 25 percent of the hull it has left, with that percent in the line. The spool is also called at 5 seconds and at 2. Those timings are assumptions until a playtest. A heavy Raider is not in the fight, so those lines stay quiet. The comms log and the duration setting wait.
 
 ### 12.5 Wingman squad `[Later]`
 
@@ -400,10 +402,17 @@ Not built. The player is the only Viper until this is promoted. Two choices stay
 
 Do not add the ships, and do not rewrite the name-calling lines, until one of these is chosen.
 
+### 12.6 Where the line sits `[Later]`
+
+The line under the playfield is live (12.2). Still later, for a UI pass:
+
+- The fleet percentage, with its pips, may move to one end of that strip, with the portrait and bubble at the other.
+- On a large screen the same 64 × 64 file may be shown at about 128 CSS pixels, nearest-neighbor, in the side margins. That is a second display size of this file, not a second drawing. If the doubled pixels look too coarse, that pass can ask for a 128 × 128 redraw.
+
 ### 12.3 Recovering scenes
 8-12 seconds, 2-4 beats, two portraits trading lines. Tyrol anchors. The closing beat points at the next jump. Each beat uses the same reading time as a line. If that would run past 12 seconds, the beats shrink together so the scene still finishes.
 
-The scene is the top of the Recovering screen, above the cards. Touches on the scene pass through.
+The scene plays in the comms strip while the pick is up. Apply does not wait for it. Touches on the strip still steer.
 
 The band is how the cycle that just ended went, remembered through the jump repair. **Clean:** the fleet took nothing and the Viper lost no hull. **Wrecked:** the fleet took 16 or more, or the Viper lost 3 or more hull, or the pilot ejected (a download that puts them back still counts). **Rough:** anything else. Those two numbers are assumptions until play says otherwise.
 
@@ -450,11 +459,11 @@ Shift is deliberately not used for the special. On Windows, pressing it five tim
 - It works **wherever the finger lands**, on any overlay layer, except on visible buttons and menus.
 - **Missile:** a large on-screen button (one-handed), or a tap from a second finger anywhere. **Live now:** both.
 - **Special:** a large on-screen button in the corner opposite the missile (one-handed), or E. **Live now:** The Speech.
-- **Pause:** a button of at least 44 x 44 px in a top corner, inside the safe area.
-- **The play area is one fixed 9:16 portrait world** (for example 270 x 480 logical pixels). On phones it fills the screen, with thumbs at the bottom and HUD and comms at the top. On desktop it is centered, and the side margins hold the comms log and decoration. Phone landscape pillarboxes. (Default, see section 19.)
+- **Pause:** a button of at least 44 x 44 px in the top band, inside the safe area, next to Mute. **About** is the same size. It pauses and opens how to play and what the game is. Resume closes that sheet. When the top band is too narrow for that row, the three controls fold under one Settings button. Mute is still labeled Sound on / Muted inside it.
+- **The play area is one portrait world.** A phone is 270 x 480. A wide window is 324 x 480, so the column is wider, and the Viper and the Raiders are a quarter larger there (pictures and hitboxes). The fleet and the shots stay the phone size on both. On a phone the column is the screen width, with thumbs at the bottom corners of the playfield, the fleet score and Settings at the top, and comms in a fixed band under the playfield. On a wide window the column is centered. Phone landscape pillarboxes. (Default, see section 19.)
 
 ### 13.3 Pause
-- Triggers: pause button, Esc or P, and **auto-pause** when the tab is hidden, the window loses focus, the orientation changes, or a pointer is cancelled (a notification or an edge swipe).
+- Triggers: Pause, About, Esc or P, and **auto-pause** when the tab is hidden, the window loses focus, the orientation changes, or a pointer is cancelled (a notification or an edge swipe). About opens the how-to sheet instead of the pause menu. Resume on that sheet returns to the run. **The Recovering pick does not pause.** The sheet already waits for Apply, so Esc, Pause, and About stay out of it. Mute stays. The 3-2-1 after Apply does pause, because the fight is about to start.
 - Resume with a 3-2-1 countdown, which also clears any stuck keys or phantom stick.
 - The pause menu shows mute, a reduced-effects toggle, and later the full settings screen, the comms log, and the Cylon Complaints Board. **Live now:** mute and reduced-effects. The full settings screen waits for M6.
 - **Abandon run** (back to title, discard the current run) lives on that pause menu. **Live now:** one button, only while paused, not during the resume countdown. The next Launch starts a new run. Distinct from the lose screen's Retry, and from retry-from-last-jump, which still waits. Win and lose already return to title.
@@ -462,10 +471,10 @@ Shift is deliberately not used for the special. On Windows, pressing it five tim
 
 ## 14. Look and sound `[Tunable]`
 
-- **Internal resolution about 270 px on the short side**, upscaled with nearest-neighbor. Particles and explosions share the same pixel grid.
+- **Internal resolution 270 x 480 on a phone and 324 x 480 on a wide window**, upscaled with nearest-neighbor. Particles and explosions share the same pixel grid.
 - **Palette of 16-24 colors.** Gunmetal grays and olive for the fleet, Dradis green for the HUD, and a single hot red reserved for Cylons.
-- **Silhouettes carry the fandom:** an original angular-wedge Viper with twin engine glow (a similitude, not a traced show ship), an arrowhead Raider with a sweeping red eye, a heavy Raider variant, a chunky original-design resurrection ship, and Galactica as a slow parallax silhouette in the background, so you are always visibly defending something. **Live now:** the Viper and the small explosion use the PNGs in `assets/`, drawn at 64×64 and shown at 16×16. Raiders, shots, and the fleet are still placeholders.
-- About 25 small sprites for gameplay. Portraits are 32 x 32 with mouth-closed, mouth-open, and blink frames plus one signature expression, 36 frames in total for 9 portraits (see [`art/ART-DIRECTION.md`](art/ART-DIRECTION.md) for the full asset list).
+- **Silhouettes carry the fandom:** an original angular-wedge Viper with twin engine glow (a similitude, not a traced show ship), an arrowhead Raider with a sweeping red eye, a heavy Raider variant, a chunky original-design resurrection ship, and Galactica as a slow parallax silhouette in the background, so you are always visibly defending something. **Live now:** the Viper (64×64 shown at 16×16, or 20×20 on a wide window), the Raider (48×48 shown at 12×12, or 15×15 on a wide window, three eye frames), the shots (player and aimed 12×20 shown at 3×5, stray 12×28 shown at 3×7), and the small explosion use the PNGs in `assets/`. The fleet is still placeholders, and it stays the small size on both screens.
+- About 25 small sprites for gameplay. Portraits are 64 × 64, shown at 64 CSS pixels, with mouth-closed, mouth-open, and blink frames plus one signature expression, 36 frames in total for 9 portraits (see [`art/ART-DIRECTION.md`](art/ART-DIRECTION.md) for the full asset list). A later UI pass may show that same file at about 128 CSS pixels on a large screen (12.6).
 - Portraits are drawn by **costume and silhouette**, not actor likeness.
 - Tools: Aseprite, LibreSprite, or Piskel for art. ZzFX or jsfxr for effects. BeepBox for original chiptune loops.
 - Optional scanline and CRT look: on by default on desktop, off by default on phones, with a toggle.
@@ -482,9 +491,9 @@ Unexpected audio is the rudest thing a web page can do. These are hard rules, no
 - **Muting is instant and total**, music and effects together, and unmuting never dumps queued sound.
 - **The choice is remembered** in versioned local storage, and the game works when storage is unavailable by falling back to the default.
 - **Default: sound on**, because the title screen announces it before a sound is possible. Flip it with a changelog line if playtesting says otherwise.
-- Separate music and effects volumes belong in settings. Mute stays a single, always-available control that never hides in a menu.
+- Separate music and effects volumes belong in settings. Mute stays a labeled Sound on / Muted control. On a narrow top band it lives inside Settings, one tap away, and it is not replaced by an icon.
 
-**Live now:** the title says the game has sound. Mute sits next to Launch, in the HUD beside pause, and on the pause menu, as the words Sound on / Muted (not an icon), at least 44 × 44 px. The choice is stored in `thirty-three:v1:settings`. Phaser still boots with `noAudio`. AudioPort, volumes, and actual sound wait.
+**Live now:** the title says the game has sound. Mute sits next to Launch, in the HUD beside pause, and on the pause menu, as the words Sound on / Muted (not an icon), at least 44 × 44 px. On a narrow top band it is inside Settings, still with those words. The choice is stored in `thirty-three:v1:settings`. Phaser still boots with `noAudio`. AudioPort, volumes, and actual sound wait.
 
 ## 15. Accessibility and comfort `[Core]`
 
@@ -566,12 +575,12 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 6 | Playable pilot | Starbuck only (cosmetic). A wingman squad that blocks bullets, and lines that name those pilots, wait together (12.5). |
 | 7 | Endless tier | `[Later]` |
 | 8 | Leaderboard integrity | `[Later]`. Needs a short design note before any server code. Assume client scores can be forged. |
-| 9 | Daily seed | `[Later]`. Same seed means the same scenario (spawns and card offers), not a frame-identical replay. |
+| 9 | Daily seed | `[Later]`. Same seed on the same playfield means the same scenario (spawns and card offers), not a frame-identical replay. A phone and a desktop do not have to match. |
 | 10 | Analytics | None. |
 | 11 | Languages | English. All text is data, so translation stays possible. |
 | 12 | Community heads-up | The owner does this before going public. |
 | 13 | Viper heading | Fixed heading toward the swarm side. It banks left and right, and does not rotate. |
-| 14 | World orientation | One fixed 9:16 portrait world. On a desktop it is centered and a little shorter than the window, so the fleet score and the comms band sit above it. The same band is used on a phone. Comms do not sit in the side margins. |
+| 14 | World orientation | A phone is 270 x 480. A wide window is 324 x 480, with the Viper and the Raiders a quarter larger. The fleet stays the small size on both. The column is the screen width on a phone and centered on a wide window. The fleet score sits above it. Comms sit in a fixed-height band under it. A later pass may show faces at about 128 CSS pixels in the side margins (12.6). |
 | 15 | Civilian "assists" | Dropped. Civilian Ship just has easier numbers. |
 | 16 | Visual construction | Hybrid: hand-drawn sprites for ships, and code and filters for the background and effects (ADR-0001, D4b). |
 | 17 | A first-run tutorial | `[Later]`. A short lesson the first time someone launches, separate from Civilian Run. Civilian Run stays the same fight with an easier fleet, not that lesson. |
@@ -640,3 +649,10 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-22 | The face names itself as fan art inspired by Battlestar Galactica. Credits also names the episode "33" and keeps the no-endorsement line. How to fly is two short tabs. Launch and the easy run sit in separate boxes. | The first face was still too much text, and the inspiration belonged where a player can find it. |
 | 2026-09-22 | Launch sits on the empty playfield. How to play opens with the goal of the run. A click outside a title sheet closes it. The fleet score is a large readout above the playfield; comms sit under that score, in the same column on a phone and on a desktop, and do not cover it. The 33 is painted in the playfield behind the ships, with a hidden copy for assistive tech. A short first-run tutorial is something to look into later. Civilian Run is still not that tutorial. | Speeches were covering the score, and the countdown belonged with the fleet. |
 | 2026-09-22 | Fleet health is a percentage with ten pips, on the same line as the comms. Launch says the fleet is in your hands. The debug readout floats in the desktop margin during development and in the test build, and is absent from a shipped build. | The health line was a scoreboard, and the debug text was sitting in the game. |
+| 2026-09-23 | Raiders use the three eye frames, shown at 12×12. An armed Raider steps the eye; the others hold center. Player and aimed shots are 12×20 shown at 3×5. A stray is 12×28 shown at 3×7, so the longer trail is a cue besides the orange. | The next pictures should replace the rectangles before more are drawn. |
+| 2026-09-23 | Portraits are drawn at 64×64 and shown at 64 CSS pixels. A later UI pass (12.6) may put the line under the playfield on a narrow window and a phone, with the fleet percentage at one end and the portrait and bubble at the other, and may show that same file at about 128 CSS pixels in the side margins on a large screen. The line still sits above the playfield until that pass. | One 64×64 drawing is the face to produce now. A desktop wants a bigger face, and that layout is a later look. |
+| 2026-09-23 | Comms shows the 64×64 portraits: closed, open, and blink on the game clock, two changes a second. Reduced effects holds closed. Signature uses the closed file until those drawings exist. The line still sits above the playfield. | The faces are drawn. The signature pose and the bottom strip can wait. |
+| 2026-09-23 | The line and its portrait sit in a fixed-height band under the playfield, so a longer line does not resize the playfield. Mute stays above. Pause and About sit with it. About pauses and opens how to play and what the game is. On a phone the column is the screen width. When that top band is narrow, Mute, Pause, and About fold under Settings. Missile and Speech sit on the playfield, not under the dialogue. | The dialogue was shoving the playfield around, and on a phone the column had gone thin with buttons left behind the strip. |
+| 2026-09-23 | A wide window plays a 324-wide lane. The Viper and the Raiders are a quarter larger there, pictures and hitboxes. The fleet and the shots stay the phone size. The same seed is the same scenario on the same playfield. A shared result carries the run's numbers, not a replay. | The fighters were about 28 pixels on a monitor. A phone and a desktop do not have to play the same lane. |
+| 2026-09-23 | Recovering is a sheet of three titles. Opening a title shows the effect, the joke, and Baltar and Roslin. Apply starts the next cycle immediately and ends the scene if it is still speaking. The reroll button says Refresh the list. The newest bonus name sits between fleet health and mute. | The old table showed every line at once, and a tap only held a choice until the scene finished, so a second tap could change it. |
+| 2026-09-23 | A closed Recovering row shows the name and the joke. The effect and the two advisors stay behind the row. Apply counts 3-2-1 before the next cycle. The pause menu does not cover that sheet, including Esc and the Pause button. Mute stays. | The joke is the line you choose from. The countdown is time to get back to the keyboard. The sheet was already a wait, so a second menu on top of it was in the way. |

@@ -4,13 +4,22 @@ import explosion3 from '../../../assets/effects/explosion_small_3.png';
 import explosion4 from '../../../assets/effects/explosion_small_4.png';
 import explosion5 from '../../../assets/effects/explosion_small_5.png';
 import explosion6 from '../../../assets/effects/explosion_small_6.png';
+import bulletAimed from '../../../assets/projectiles/bullet_aimed.png';
+import bulletPlayer from '../../../assets/projectiles/bullet_player.png';
+import bulletStray from '../../../assets/projectiles/bullet_stray.png';
+import raiderEyeCenter from '../../../assets/ships/raider_eye_center.png';
+import raiderEyeLeft from '../../../assets/ships/raider_eye_left.png';
+import raiderEyeRight from '../../../assets/ships/raider_eye_right.png';
 import viperBankLeft from '../../../assets/ships/viper_bank_left.png';
 import viperBankRight from '../../../assets/ships/viper_bank_right.png';
 import viperFlicker from '../../../assets/ships/viper_flicker.png';
 import viperNeutral from '../../../assets/ships/viper_neutral.png';
 
-/** On-screen size. The files are 64×64 and the scene nearest-neighbors them down. */
+/** On-screen size. The Viper files are 64×64 and the scene nearest-neighbors them down. */
 export const SHIP_SHOWN_UNITS = 16;
+
+/** On-screen size. The Raider files are 48×48. */
+export const RAIDER_SHOWN_UNITS = 12;
 
 export const VIPER_NEUTRAL = 'viper-neutral';
 export const VIPER_BANK_LEFT = 'viper-bank-left';
@@ -30,6 +39,22 @@ export const EXPLOSION_ANIM = 'explosion-small';
 
 /** Six frames across about 0.7 s. A burst, not a strobe (PRD 15). */
 export const EXPLOSION_FRAME_RATE = 8;
+
+export const RAIDER_EYE_CENTER = 'raider-eye-center';
+export const RAIDER_EYE_LEFT = 'raider-eye-left';
+export const RAIDER_EYE_RIGHT = 'raider-eye-right';
+
+/** Center, left, center, right. Passing through center keeps the sweep from jumping across the hull. */
+export const RAIDER_EYE_FRAMES = [RAIDER_EYE_CENTER, RAIDER_EYE_LEFT, RAIDER_EYE_CENTER, RAIDER_EYE_RIGHT] as const;
+
+export const RAIDER_EYE_ANIM = 'raider-eye-sweep';
+
+/** Two pictures a second, so the eye is a tell and not a flash (PRD 15). */
+export const RAIDER_EYE_FRAME_RATE = 2;
+
+export const BULLET_PLAYER = 'bullet-player';
+export const BULLET_AIMED = 'bullet-aimed';
+export const BULLET_STRAY = 'bullet-stray';
 
 /**
  * Phaser's file loader turns images into blob URLs, and the CSP allows `img-src 'self' data:` only.
@@ -58,6 +83,12 @@ export const SPRITE_FILES: readonly { key: string; url: string }[] = [
   { key: VIPER_BANK_LEFT, url: viperBankLeft },
   { key: VIPER_BANK_RIGHT, url: viperBankRight },
   { key: VIPER_FLICKER, url: viperFlicker },
+  { key: RAIDER_EYE_CENTER, url: raiderEyeCenter },
+  { key: RAIDER_EYE_LEFT, url: raiderEyeLeft },
+  { key: RAIDER_EYE_RIGHT, url: raiderEyeRight },
+  { key: BULLET_PLAYER, url: bulletPlayer },
+  { key: BULLET_AIMED, url: bulletAimed },
+  { key: BULLET_STRAY, url: bulletStray },
   { key: EXPLOSION_FRAMES[0], url: explosion1 },
   { key: EXPLOSION_FRAMES[1], url: explosion2 },
   { key: EXPLOSION_FRAMES[2], url: explosion3 },

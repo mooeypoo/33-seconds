@@ -23,7 +23,7 @@ A first picture can invent a ship. The next picture, or the next cell in one she
 
 ## Suggestion
 
-Keep a hero when one looks right: `viper_neutral`, `raider_eye_center`, and each portrait's closed mouth. Paint the other frames from that file in Aseprite, LibreSprite, Pixelorama, or Piskel. Snap the hero to 4× the on-screen size (Raider 48 × 48, Viper 64 × 64) and to the palette in [ART-DIRECTION.md](ART-DIRECTION.md). The game then nearest-neighbors it down to 12 × 12 or 16 × 16. The Raider eye is three frames, and it moves 4 pixels in the 48 × 48 picture so the shift is still there after the shrink.
+Keep a hero when one looks right: `viper_neutral`, `raider_eye_center`, and each portrait's closed mouth. Paint the other frames from that file in Aseprite, LibreSprite, Pixelorama, or Piskel. Snap a ship hero to 4× the on-screen size (Raider 48 × 48, Viper 64 × 64) and to the palette in [ART-DIRECTION.md](ART-DIRECTION.md). The game then nearest-neighbors it down to 12 × 12 or 16 × 16. A portrait is the exception: draw it at 64 × 64, which is the size it is shown. A later pass may display that same file at about 128 CSS pixels on a large screen (PRD 12.6). Do not draw a second portrait size yet. The Raider eye is three frames, and it moves 4 pixels in the 48 × 48 picture so the shift is still there after the shrink.
 
 If the model is tried again, ask for one image per request, and give it the accepted PNG as the only reference. Name the single change (the eye moves left, the mouth opens). Expect to repaint. A strip of variants in one image is the job that already fell apart. Show screenshots and official art stay out of the prompt ([ART-DIRECTION.md](ART-DIRECTION.md) section 6).
 

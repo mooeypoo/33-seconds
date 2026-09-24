@@ -37,6 +37,8 @@ export interface UpgradeOffer {
  */
 export class Loadout {
   private readonly stacks = new Map<CardId, number>();
+  /** Distinct cards in the order they were last taken. The HUD names the last one. */
+  private readonly taken: CardId[] = [];
   private offered: CardId[] = [];
   private rerollAvailable = false;
   private cylonSavesLeft = 0;
@@ -54,11 +56,16 @@ export class Loadout {
     return this.stacks.get(id) ?? 0;
   }
 
-  get cards(): readonly { id: CardId; stacks: number }[] {
+  get cards(): readonly { id: CardId; stacks: number; maxStacks: number }[] {
     return STARTER_CARDS.flatMap((card) => {
       const count = this.stacksOf(card.id);
-      return count > 0 ? [{ id: card.id, stacks: count }] : [];
+      return count > 0 ? [{ id: card.id, stacks: count, maxStacks: maxStacksFor(card.rarity) }] : [];
     });
+  }
+
+  /** Latest card last. A new stack of an old card moves that card to the end. */
+  get upgradeOrder(): readonly CardId[] {
+    return this.taken;
   }
 
   get offer(): UpgradeOffer | null {
@@ -198,7 +205,14 @@ export class Loadout {
     const next = this.stacksOf(id) + 1;
     if (next > maxStacksFor(cardDefinition(id).rarity)) return false;
     this.stacks.set(id, next);
+    this.remember(id);
     return true;
+  }
+
+  private remember(id: CardId): void {
+    const index = this.taken.indexOf(id);
+    if (index >= 0) this.taken.splice(index, 1);
+    this.taken.push(id);
   }
 }
 

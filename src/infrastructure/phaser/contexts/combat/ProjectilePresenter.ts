@@ -6,15 +6,20 @@ import {
 import type { DomainEvent } from '../../../../domain/shared/events';
 import type { GameView, ProjectileView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
-import { PALETTE } from '../../shared/palette';
+import { BULLET_AIMED, BULLET_PLAYER, BULLET_STRAY } from '../../sprites';
+
+/** 12×28 file, nearest-neighbored by 4. Taller than the 3×5 shots, so orange is not the only cue. */
+const STRAY_SHOWN_HEIGHT_UNITS = 7;
 
 /**
- * Draws shots. Player rounds are Dradis green. Cylon rounds are red while Aimed and longer orange
- * once they become Stray, so colour is never the only cue (PRD 7.1, 15).
+ * Draws the shot pictures. Player rounds and aimed rounds are 12×20, shown at 3×5. A stray is
+ * 12×28, shown at 3×7 (PRD 7.1). Player rounds point up. Cylon rounds point down. They stay
+ * upright: rotating a picture this small off the pixel grid smears it, and the path still shows
+ * where the round goes.
  */
 export class ProjectilePresenter implements Presenter {
   private readonly scene: Phaser.Scene;
-  private readonly sprites = new Map<number, Phaser.GameObjects.Rectangle>();
+  private readonly sprites = new Map<number, Phaser.GameObjects.Image>();
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -49,24 +54,31 @@ export class ProjectilePresenter implements Presenter {
     y: number,
     cylon: boolean,
     stray: boolean,
-  ): Phaser.GameObjects.Rectangle {
+  ): Phaser.GameObjects.Image {
     const existing = this.sprites.get(id);
     if (existing) return existing;
 
-    const height = cylon && stray ? VIPER_SHOT_HEIGHT_UNITS + 2 : VIPER_SHOT_HEIGHT_UNITS;
-    const color = cylon ? (stray ? PALETTE.strayShot : PALETTE.aimedShot) : PALETTE.playerShot;
-    const sprite = this.scene.add.rectangle(x, y, VIPER_SHOT_WIDTH_UNITS, height, color);
+    const key = cylon ? (stray ? BULLET_STRAY : BULLET_AIMED) : BULLET_PLAYER;
+    const sprite = this.scene.add.image(x, y, key);
     sprite.setDepth(1);
     this.sprites.set(id, sprite);
     return sprite;
   }
 
-  private paint(sprite: Phaser.GameObjects.Rectangle, shot: ProjectileView, playerScale: number): void {
+  private paint(sprite: Phaser.GameObjects.Image, shot: ProjectileView, playerScale: number): void {
     if (shot.owner === 'player') {
-      sprite.setDisplaySize(VIPER_SHOT_WIDTH_UNITS * playerScale, VIPER_SHOT_HEIGHT_UNITS * playerScale);
+      this.show(sprite, BULLET_PLAYER, VIPER_SHOT_WIDTH_UNITS * playerScale, VIPER_SHOT_HEIGHT_UNITS * playerScale);
       return;
     }
-    sprite.setFillStyle(shot.stray ? PALETTE.strayShot : PALETTE.aimedShot);
-    sprite.setDisplaySize(VIPER_SHOT_WIDTH_UNITS, shot.stray ? VIPER_SHOT_HEIGHT_UNITS + 2 : VIPER_SHOT_HEIGHT_UNITS);
+    if (shot.stray) {
+      this.show(sprite, BULLET_STRAY, VIPER_SHOT_WIDTH_UNITS, STRAY_SHOWN_HEIGHT_UNITS);
+      return;
+    }
+    this.show(sprite, BULLET_AIMED, VIPER_SHOT_WIDTH_UNITS, VIPER_SHOT_HEIGHT_UNITS);
+  }
+
+  private show(sprite: Phaser.GameObjects.Image, key: string, width: number, height: number): void {
+    if (sprite.texture.key !== key) sprite.setTexture(key);
+    sprite.setDisplaySize(width, height);
   }
 }

@@ -31,7 +31,7 @@ Generate only `explosion_small_3` (the widest, most jagged frame — see the her
 
 ## Characters
 
-Every portrait is a bust facing forward, 32 × 32, in `assets/portraits/`. Two flat skin tones and one flat hair color are allowed. Still no red, except none at all on Six: she is a pale Dradis-green outline with no fill. Make the closed-mouth frame first, and derive the other three from it.
+Every portrait is a bust facing forward, drawn at 64 × 64 and shown at 64 CSS pixels, in `assets/portraits/`. These are page images, not playfield sprites, so they are not drawn at 4× and shrunk into the 270 × 480 world. A later UI pass may show this same file at about 128 CSS pixels on a large screen (PRD 12.6). Do not draw a second size yet. Closed, open, and blink are in the game. Signature is not drawn yet: the game shows the closed file for that pose. Two flat skin tones and one flat hair color are allowed. Still no red, except none at all on Six: she is a pale Dradis-green outline with no fill. Make the closed-mouth frame first, and derive the other three from it.
 
 ### Adama
 

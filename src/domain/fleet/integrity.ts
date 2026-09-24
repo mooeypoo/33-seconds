@@ -42,16 +42,16 @@ export const GALACTICA_SHIP_INDEX = 4;
 
 const EDGE_PAD_UNITS = 18;
 
-export function civilianShipX(index: number): number {
-  const span = WORLD_WIDTH_UNITS - EDGE_PAD_UNITS * 2;
+export function civilianShipX(index: number, worldWidth: number = WORLD_WIDTH_UNITS): number {
+  const span = worldWidth - EDGE_PAD_UNITS * 2;
   return EDGE_PAD_UNITS + ((index + 0.5) / CIVILIAN_SHIP_COUNT) * span;
 }
 
-export function nearestCivilianShipIndex(x: number): number {
+export function nearestCivilianShipIndex(x: number, worldWidth: number = WORLD_WIDTH_UNITS): number {
   let best = 0;
   let bestDistance = Infinity;
   for (let index = 0; index < CIVILIAN_SHIP_COUNT; index++) {
-    const distance = Math.abs(civilianShipX(index) - x);
+    const distance = Math.abs(civilianShipX(index, worldWidth) - x);
     if (distance < bestDistance) {
       best = index;
       bestDistance = distance;
@@ -71,9 +71,11 @@ export class Fleet {
   /** Damage of the cycle that just jumped. Still set after the repair wipes the live counter. */
   private lastCycleDamage = 0;
   private lastHitShipId: number | null = null;
+  private readonly worldWidth: number;
 
-  constructor(startingIntegrity: number = FLEET_INTEGRITY_MAX) {
+  constructor(startingIntegrity: number = FLEET_INTEGRITY_MAX, worldWidth: number = WORLD_WIDTH_UNITS) {
     this.integrity = clamp(startingIntegrity, 0, FLEET_INTEGRITY_MAX);
+    this.worldWidth = worldWidth;
   }
 
   get view(): FleetView {
@@ -82,7 +84,7 @@ export class Fleet {
     for (let id = 0; id < CIVILIAN_SHIP_COUNT; id++) {
       ships.push({
         id,
-        x: civilianShipX(id),
+        x: civilianShipX(id, this.worldWidth),
         y: FLEET_LINE_Y_UNITS,
         galactica: id === GALACTICA_SHIP_INDEX,
         healthy: id < healthyCount,
@@ -104,8 +106,8 @@ export class Fleet {
    * actually taken (0 when the cap or the floor is already spent). `x` picks which hull shows the
    * hit; omitted shots land on the centre ship.
    */
-  takeStray(x: number = WORLD_WIDTH_UNITS / 2, cycleCap = FLEET_CYCLE_DAMAGE_CAP): number {
-    return this.takeDamage(FLEET_DAMAGE_PER_STRAY, x, cycleCap);
+  takeStray(x?: number, cycleCap = FLEET_CYCLE_DAMAGE_CAP): number {
+    return this.takeDamage(FLEET_DAMAGE_PER_STRAY, x ?? this.worldWidth / 2, cycleCap);
   }
 
   /** A body that reached the line. Same cap and floor as a stray. */
@@ -118,7 +120,7 @@ export class Fleet {
     if (room <= 0) return 0;
     this.integrity -= room;
     this.damageThisCycle += room;
-    this.lastHitShipId = nearestCivilianShipIndex(x);
+    this.lastHitShipId = nearestCivilianShipIndex(x, this.worldWidth);
     return room;
   }
 

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import type { FrameStats } from '../../application/FrameStats';
 import type { GameSession } from '../../application/GameSession';
 import { VIPER_HULL_HIT_POINTS } from '../../domain/combat/viper';
-import { WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../../domain/shared/world';
+import { WORLD_HEIGHT_UNITS } from '../../domain/shared/world';
 import type { Presenter } from './Presenter';
 import { ExplosionPresenter } from './contexts/combat/ExplosionPresenter';
 import { MissilePresenter } from './contexts/combat/MissilePresenter';
@@ -77,9 +77,15 @@ export class GameScene extends Phaser.Scene {
 
     this.cameras.main.setBackgroundColor(PALETTE.space);
     // A thin frame, so the edges of the play area are visible while there is nothing else on screen.
-    this.add
-      .rectangle(WORLD_WIDTH_UNITS / 2, WORLD_HEIGHT_UNITS / 2, WORLD_WIDTH_UNITS - 2, WORLD_HEIGHT_UNITS - 2)
+    const width = this.scale.width;
+    const frame = this.add
+      .rectangle(width / 2, WORLD_HEIGHT_UNITS / 2, width - 2, WORLD_HEIGHT_UNITS - 2)
       .setStrokeStyle(1, PALETTE.viperCockpit, 0.25);
+    this.scale.on('resize', () => {
+      const next = this.scale.width;
+      frame.setPosition(next / 2, WORLD_HEIGHT_UNITS / 2);
+      frame.setSize(next - 2, WORLD_HEIGHT_UNITS - 2);
+    });
 
     this.presenters = [
       new ClockPresenter(this),
@@ -133,9 +139,9 @@ export class GameScene extends Phaser.Scene {
     this.reportStats({
       fps: measuredFps(this.game),
       ticks: view.tickCount,
-      renderWidth: WORLD_WIDTH_UNITS,
+      renderWidth: view.worldWidth,
       renderHeight: WORLD_HEIGHT_UNITS,
-      scale: Math.round((canvas.clientWidth / WORLD_WIDTH_UNITS) * 10) / 10,
+      scale: Math.round((canvas.clientWidth / view.worldWidth) * 10) / 10,
       viperX: Math.round(view.viper.x),
       viperY: Math.round(view.viper.y),
       raiderY: view.raiders[0] ? Math.round(view.raiders[0].y) : null,
@@ -167,6 +173,8 @@ export class GameScene extends Phaser.Scene {
       speechRemainingSeconds: view.speechRemainingSeconds,
       speechJumpsUntilReady: view.speechJumpsUntilReady,
       cards: view.loadout.reduce((sum, card) => sum + card.stacks, 0),
+      latestUpgradeId: view.upgradeOrder.at(-1) ?? null,
+      olderUpgradeCount: view.upgradeOrder.length > 0 ? view.upgradeOrder.length - 1 : 0,
       cylonEye: view.viper.cylonEye,
       raptorHp: view.raptors.reduce((sum, raptor) => sum + (raptor.hangared ? 0 : raptor.hp), 0),
       raptorHpMax: view.raptors.reduce((sum, raptor) => sum + raptor.hpMax, 0),

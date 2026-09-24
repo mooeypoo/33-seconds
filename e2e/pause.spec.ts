@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
-import { expectTicksToGrow, readTicks, startRun } from './helpers';
+import { expectTicksToGrow, hudButton, readTicks, startRun } from './helpers';
 
 const titleCopy = JSON.parse(
   readFileSync(new URL('../src/content/title.json', import.meta.url), 'utf8'),
@@ -67,10 +67,30 @@ test.describe('pause', () => {
     await expect(page.getByText('window lost focus')).toBeVisible();
   });
 
+  test('About pauses on the how-to sheet, and Resume comes back', async ({ page }) => {
+    await startRun(page);
+    await expectTicksToGrow(page, 0);
+
+    await (await hudButton(page, 'About')).click();
+    const sheet = page.getByRole('dialog', { name: 'About' });
+    await expect(sheet).toBeVisible();
+    await expect(sheet).toContainText('Protect the fleet');
+    await expect(sheet).toContainText('Fan art inspired by Battlestar Galactica.');
+
+    await page.waitForTimeout(400);
+    const ticksWhenPaused = await readTicks(page);
+    await page.waitForTimeout(700);
+    expect(await readTicks(page)).toBe(ticksWhenPaused);
+
+    await sheet.getByRole('button', { name: 'Resume' }).click();
+    await expect(page.getByTestId('countdown')).toBeHidden({ timeout: 10_000 });
+    await expectTicksToGrow(page, ticksWhenPaused);
+  });
+
   test('the pause button is big enough to hit with a thumb', async ({ page }) => {
     await startRun(page);
 
-    const box = (await page.getByRole('button', { name: 'Pause' }).boundingBox())!;
+    const box = (await (await hudButton(page, 'Pause')).boundingBox())!;
 
     expect(box.width).toBeGreaterThanOrEqual(44);
     expect(box.height).toBeGreaterThanOrEqual(44);

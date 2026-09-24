@@ -54,20 +54,30 @@ export class ResurrectionShip {
   private hull: number;
   private readonly maxHull: number;
   private shielded: boolean;
-  private readonly homeX = RESURRECTION_SHIP_SPAWN_X_UNITS;
+  private readonly homeX: number;
+  private readonly worldWidth: number;
   private readonly positionY = RESURRECTION_SHIP_SPAWN_Y_UNITS;
-  private positionX = RESURRECTION_SHIP_SPAWN_X_UNITS;
-  private previousPositionX = RESURRECTION_SHIP_SPAWN_X_UNITS;
+  private positionX: number;
+  private previousPositionX: number;
   private previousPositionY = RESURRECTION_SHIP_SPAWN_Y_UNITS;
-  private targetX = RESURRECTION_SHIP_SPAWN_X_UNITS;
+  private targetX: number;
   private speedUnitsPerSecond = DRIFT_MIN_SPEED_UNITS_PER_SECOND;
   private needsTarget = true;
   private bayElapsedSeconds = 0;
 
-  constructor(hitPoints: number = RESURRECTION_SHIP_HIT_POINTS, shielded = false) {
+  constructor(
+    hitPoints: number = RESURRECTION_SHIP_HIT_POINTS,
+    shielded = false,
+    worldWidth: number = WORLD_WIDTH_UNITS,
+  ) {
     this.hull = hitPoints;
     this.maxHull = hitPoints;
     this.shielded = shielded;
+    this.worldWidth = worldWidth;
+    this.homeX = worldWidth - RESURRECTION_SHIP_HALF_WIDTH_UNITS - 8;
+    this.positionX = this.homeX;
+    this.previousPositionX = this.homeX;
+    this.targetX = this.homeX;
   }
 
   get x(): number {
@@ -161,7 +171,7 @@ export class ResurrectionShip {
     const minX = this.homeX - RESURRECTION_SHIP_DRIFT_RANGE_UNITS;
     const maxX = Math.min(
       this.homeX + DRIFT_RIGHT_SLACK_UNITS,
-      WORLD_WIDTH_UNITS - RESURRECTION_SHIP_HALF_WIDTH_UNITS - 4,
+      this.worldWidth - RESURRECTION_SHIP_HALF_WIDTH_UNITS - 4,
     );
     let next = this.positionX;
     for (let attempt = 0; attempt < 4; attempt++) {
