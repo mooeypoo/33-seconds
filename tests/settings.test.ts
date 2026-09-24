@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   DEFAULT_PLAYER_SETTINGS,
+  DEFAULT_VOLUME,
   PLAYER_SETTINGS_KEY,
   PlayerSettings,
   effectiveReducedEffects,
@@ -66,7 +67,18 @@ describe('parsePlayerSettings', () => {
       dragHintSeen: true,
       // Saved before the readable font existed: off, not a discarded envelope.
       readableFont: false,
+      // Saved before sound existed: the default level, not a discarded envelope.
+      volume: DEFAULT_VOLUME,
     });
+  });
+
+  it('only trusts a volume that is a number between 0 and 1', () => {
+    for (const volume of ['0.5', -0.1, 1.01, null, {}, [0.5], true, Number.POSITIVE_INFINITY]) {
+      expect(parsePlayerSettings({ version: 1, volume }).volume).toBe(DEFAULT_VOLUME);
+    }
+    expect(parsePlayerSettings({ version: 1, volume: 0 }).volume).toBe(0);
+    expect(parsePlayerSettings({ version: 1, volume: 1 }).volume).toBe(1);
+    expect(parsePlayerSettings({ version: 1, volume: 0.35 }).volume).toBe(0.35);
   });
 });
 
@@ -85,10 +97,11 @@ describe('PlayerSettings', () => {
     expect(settings.snapshot.muted).toBe(true);
   });
 
-  it('round-trips mute, reduced-effects, the readable font, and the drag hint through memory storage', () => {
+  it('round-trips mute, volume, reduced-effects, the readable font, and the drag hint through memory storage', () => {
     const storage = new MemoryStorageAdapter();
     const first = new PlayerSettings(storage);
     first.setMuted(true);
+    first.setVolume(0.25);
     first.setReducedEffects(true);
     first.markDragHintSeen();
     first.setReadableFont(true);
@@ -100,7 +113,38 @@ describe('PlayerSettings', () => {
       reducedEffects: true,
       dragHintSeen: true,
       readableFont: true,
+      volume: 0.25,
     });
+  });
+
+  it('clamps a volume out of range and ignores one that is not a number', () => {
+    const settings = new PlayerSettings(new MemoryStorageAdapter());
+    settings.setVolume(4);
+    expect(settings.snapshot.volume).toBe(1);
+    settings.setVolume(-2);
+    expect(settings.snapshot.volume).toBe(0);
+    settings.setVolume(Number.NaN);
+    expect(settings.snapshot.volume).toBe(0);
+  });
+
+  it('reads a hand-edited, corrupt volume back as the default and still plays', () => {
+    const storage = new MemoryStorageAdapter();
+    storage.write(PLAYER_SETTINGS_KEY, { version: 1, muted: true, volume: 'LOUD' });
+    const settings = new PlayerSettings(storage);
+    expect(settings.snapshot).toMatchObject({ muted: true, volume: DEFAULT_VOLUME });
+  });
+
+  it('keeps mute and volume in memory and tells listeners when storage throws', () => {
+    const settings = new PlayerSettings(new ThrowingStorage());
+    const heard: [boolean, number][] = [];
+    settings.subscribe((snapshot) => heard.push([snapshot.muted, snapshot.volume]));
+    settings.setMuted(true);
+    settings.setVolume(0.4);
+    expect(heard).toEqual([
+      [false, DEFAULT_VOLUME],
+      [true, DEFAULT_VOLUME],
+      [true, 0.4],
+    ]);
   });
 
   it('writes the namespaced key, not a bare one', () => {

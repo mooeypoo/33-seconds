@@ -2,6 +2,8 @@
 import { computed } from 'vue';
 import type { PauseReason, SessionStatus } from '../../application/GameSession';
 import { settingsStore } from '../stores/settingsStore';
+import MuteControl from './MuteControl.vue';
+import VolumeControl from './VolumeControl.vue';
 
 const props = defineProps<{ status: SessionStatus }>();
 const emit = defineEmits<{ resume: []; abandon: [] }>();
@@ -34,6 +36,8 @@ const log = computed(() => [...props.status.commsLog].reverse());
       <p class="note">Nothing is running: the clock, the swarm, and every effect are frozen.</p>
       <button class="resume" type="button" @click="emit('resume')">Resume</button>
       <button data-ui class="abandon" type="button" @click="emit('abandon')">Abandon run</button>
+      <MuteControl />
+      <VolumeControl />
       <button
         data-ui
         class="effects"

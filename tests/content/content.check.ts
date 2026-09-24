@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import scenesRaw from '../../src/content/scenes/recovering.json';
+import soundsRaw from '../../src/content/sounds.json';
 import flairRaw from '../../src/content/upgrades.flair.json';
 import fleetRaw from '../../src/content/fleet.json';
 import tiersRaw from '../../src/balance/tiers.json';
@@ -8,6 +9,8 @@ import { isTierId } from '../../src/domain/balance/profile';
 import { BANTER_TEXT_MAX_CHARACTERS, isSpeaker, parseBanterSource } from '../../src/application/banter/lines';
 import { parseScenes } from '../../src/application/banter/recoveringScene';
 import { STARTER_CARDS, isCardId } from '../../src/domain/progression/catalog';
+import { parseSoundBank } from '../../src/application/audio/soundBank';
+import { SOUND_IDS } from '../../src/application/audio/soundIds';
 
 /**
  * `npm run check:content` (ADR-0001 D8, CONTENT-SCHEMA). The game's loaders drop a bad line or
@@ -243,5 +246,17 @@ describe('tier profiles', () => {
       }
     }
     expect(problems).toEqual([]);
+  });
+});
+
+describe('sounds', () => {
+  const { bank, problems } = parseSoundBank(soundsRaw);
+
+  it('has no entry the game would skip: known ids, numeric arrays of valid length, volume under the cap', () => {
+    expect(problems).toEqual([]);
+  });
+
+  it('has a sound for every id, so nothing the game asks for is silent by accident', () => {
+    expect(SOUND_IDS.filter((id) => !bank.has(id))).toEqual([]);
   });
 });

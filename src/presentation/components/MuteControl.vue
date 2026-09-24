@@ -1,7 +1,8 @@
 <script setup lang="ts">
 /**
- * Ready for the first sound (PRD 14.1). Nothing mounts it until then: the title, the HUD, and
- * pause stay quiet while Phaser boots with noAudio. The muted flag in player settings is unchanged.
+ * Sound on / Muted, in words (PRD 14.1). On the title beside the sound notice, in the HUD beside
+ * Pause (folded under Settings on a narrow band, and still there on the Recovering sheet), and in
+ * the pause menu. Muting is instant and total.
  */
 import { settingsStore } from '../stores/settingsStore';
 

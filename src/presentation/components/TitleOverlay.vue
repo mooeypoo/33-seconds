@@ -4,6 +4,7 @@ import titleCopy from '../../content/title.json';
 import viperNeutral from '../../../assets/ships/viper_neutral.png';
 import type { TierId } from '../../domain/balance/profile';
 import { titleQuote } from '../titleQuote';
+import MuteControl from './MuteControl.vue';
 /**
  * In the CIC shell the face sits in the lane only, between the standby consoles, which carry the
  * quote and the disclaimer (ADR-0002 Phase 2). Otherwise it is the whole screen, as on a phone.
@@ -101,6 +102,12 @@ function onSheetKeydown(event: KeyboardEvent): void {
             <p class="kicker">{{ titleCopy.tiers.civilianKicker }}</p>
             <button class="civilian" type="button" @click="emit('start', 'civilian-ship')">Civilian Run</button>
             <p class="tier-note">{{ titleCopy.tiers.civilian }}</p>
+          </div>
+
+          <!-- The choice comes before any sound can play (PRD 14.1). -->
+          <div class="sound-row">
+            <p class="sound">{{ titleCopy.sound }}</p>
+            <MuteControl />
           </div>
 
           <p class="hint">{{ titleCopy.controls }}</p>
