@@ -7,6 +7,7 @@ import {
   FLEET_LINE_Y_UNITS,
 } from '../../../../domain/fleet/integrity';
 import type { Presenter } from '../../Presenter';
+import type { ReducedEffectsSource } from '../../shared/comfort';
 import { PALETTE } from '../../shared/palette';
 
 /** One-beat puff. Pause freezes it. Not a flash (PRD 15). */
@@ -22,16 +23,20 @@ const FLAK_FADE_MS = 140;
  */
 export class FleetPresenter implements Presenter {
   private readonly scene: Phaser.Scene;
-  private readonly fadeMs: number;
+  private readonly reduced: ReducedEffectsSource;
   private line: Phaser.GameObjects.Rectangle | null = null;
   private readonly hulls = new Map<number, Phaser.GameObjects.Rectangle>();
   private readonly notches = new Map<number, Phaser.GameObjects.Rectangle>();
   /** Read from the view's `galactica` flag, not a copied index. */
   private galacticaId: number | null = null;
 
-  constructor(scene: Phaser.Scene, prefersReducedMotion: boolean) {
+  constructor(scene: Phaser.Scene, reduced: ReducedEffectsSource) {
     this.scene = scene;
-    this.fadeMs = prefersReducedMotion ? 0 : FLAK_FADE_MS;
+    this.reduced = reduced;
+  }
+
+  private get fadeMs(): number {
+    return this.reduced() ? 0 : FLAK_FADE_MS;
   }
 
   onEvent(event: DomainEvent): void {

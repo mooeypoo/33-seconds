@@ -4,6 +4,7 @@ import type { DomainEvent } from '../../../../domain/shared/events';
 import { WORLD_HEIGHT_UNITS, clamp } from '../../../../domain/shared/world';
 import type { GameView, GhostView, RaiderView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
+import type { ReducedEffectsSource } from '../../shared/comfort';
 import { PALETTE } from '../../shared/palette';
 import {
   RAIDER_EYE_ANIM,
@@ -44,17 +45,15 @@ interface HullMark {
  */
 export class RaiderPresenter implements Presenter {
   private readonly scene: Phaser.Scene;
-  private readonly fadeMs: number;
-  private readonly sweepMs: number;
+  private readonly reduced: ReducedEffectsSource;
 
   private readonly hulls = new Map<number, HullMark>();
   private readonly blips = new Map<number, GhostMark>();
   private readonly dives = new Map<number, { line: Phaser.GameObjects.Rectangle; chevron: Phaser.GameObjects.Rectangle }>();
 
-  constructor(scene: Phaser.Scene, prefersReducedMotion: boolean) {
+  constructor(scene: Phaser.Scene, reduced: ReducedEffectsSource) {
     this.scene = scene;
-    this.fadeMs = prefersReducedMotion ? 0 : DESTROY_FADE_MS;
-    this.sweepMs = prefersReducedMotion ? 0 : EYE_SWEEP_MS;
+    this.reduced = reduced;
     if (!scene.anims.exists(RAIDER_EYE_ANIM)) {
       scene.anims.create({
         key: RAIDER_EYE_ANIM,
@@ -63,6 +62,14 @@ export class RaiderPresenter implements Presenter {
         repeat: -1,
       });
     }
+  }
+
+  private get fadeMs(): number {
+    return this.reduced() ? 0 : DESTROY_FADE_MS;
+  }
+
+  private get sweepMs(): number {
+    return this.reduced() ? 0 : EYE_SWEEP_MS;
   }
 
   onEvent(event: DomainEvent): void {

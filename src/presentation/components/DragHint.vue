@@ -31,10 +31,11 @@ const visible = computed(
   margin: 0;
   /* Transparent to pointer input, like the rest of the HUD layer. */
   pointer-events: none;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
   font-size: 15px;
-  color: #cfe8d8;
+  color: var(--color-text);
   text-align: center;
-  text-shadow: 0 1px 2px #000;
+  text-shadow: 0 1px 2px var(--color-shadow);
 }
 </style>

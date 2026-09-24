@@ -17,9 +17,10 @@
   pointer-events: none;
   display: grid;
   place-items: center;
-  background: rgb(8 12 16 / 72%);
-  color: #cfe8d8;
-  font-family: ui-monospace, monospace;
+  background: rgb(var(--rgb-ink) / 72%);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
   font-size: 18px;
   letter-spacing: 0.08em;
   text-transform: uppercase;

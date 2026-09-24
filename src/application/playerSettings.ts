@@ -16,6 +16,11 @@ export interface PlayerSettingsSnapshot {
   readonly reducedEffects: boolean;
   /** First-run drag hint on a touch device (PRD 13.2). */
   readonly dragHintSeen: boolean;
+  /**
+   * Swap the pixel display face for the readable one everywhere (PRD 14, 15). Added after v1
+   * shipped: an older envelope without it reads as off, so no version bump.
+   */
+  readonly readableFont: boolean;
 }
 
 export const DEFAULT_PLAYER_SETTINGS: PlayerSettingsSnapshot = {
@@ -23,6 +28,7 @@ export const DEFAULT_PLAYER_SETTINGS: PlayerSettingsSnapshot = {
   muted: false,
   reducedEffects: false,
   dragHintSeen: false,
+  readableFont: false,
 };
 
 /**
@@ -37,6 +43,7 @@ export function parsePlayerSettings(raw: unknown): PlayerSettingsSnapshot {
     muted: record.muted === true,
     reducedEffects: record.reducedEffects === true,
     dragHintSeen: record.dragHintSeen === true,
+    readableFont: record.readableFont === true,
   };
 }
 
@@ -76,6 +83,10 @@ export class PlayerSettings {
 
   setReducedEffects(reducedEffects: boolean): void {
     this.patch({ reducedEffects });
+  }
+
+  setReadableFont(readableFont: boolean): void {
+    this.patch({ readableFont });
   }
 
   markDragHintSeen(): void {

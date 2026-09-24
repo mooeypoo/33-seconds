@@ -20,12 +20,12 @@ defineProps<{ docked?: boolean }>();
   left: 12px;
   margin: 0;
   pointer-events: none;
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   line-height: 1.35;
   text-align: center;
-  color: #e8d8cf;
-  text-shadow: 0 1px 2px #000;
+  color: var(--color-text-warm);
+  text-shadow: 0 1px 2px var(--color-shadow);
 }
 
 .docked {

@@ -81,9 +81,9 @@ function onKeydown(event: KeyboardEvent): void {
   overflow: auto;
   padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
     max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-  background: rgb(5 7 10 / 88%);
-  color: #e8d8cf;
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  background: rgb(var(--rgb-deep) / 88%);
+  color: var(--color-text-warm);
+  font-family: var(--font-body);
 }
 
 .sheet {
@@ -96,17 +96,18 @@ function onKeydown(event: KeyboardEvent): void {
 
 .title {
   margin: 0;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
   font-size: 28px;
   letter-spacing: 0.04em;
-  color: #b8ffdc;
+  color: var(--color-dradis-pale);
 }
 
 .paused,
 .inspired,
 .disclaimer {
   margin: 0;
-  color: #9fb8ab;
+  color: var(--color-text-muted);
   font-size: 14px;
 }
 
@@ -120,10 +121,11 @@ function onKeydown(event: KeyboardEvent): void {
 
 .heading {
   margin: 8px 0 0;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
   font-size: 14px;
   letter-spacing: 0.04em;
-  color: #7fd6a0;
+  color: var(--color-dradis-soft);
 }
 
 .controls {
@@ -139,8 +141,9 @@ function onKeydown(event: KeyboardEvent): void {
 
 .control dt {
   margin: 0;
-  font-family: ui-monospace, monospace;
-  color: #b8ffdc;
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
+  color: var(--color-dradis-pale);
 }
 
 .control dd {
@@ -153,17 +156,18 @@ function onKeydown(event: KeyboardEvent): void {
   min-height: 48px;
   margin-top: 8px;
   font: inherit;
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
   font-size: 18px;
-  color: #06110c;
-  background: #7fd6a0;
+  color: var(--color-dradis-night);
+  background: var(--color-dradis-soft);
   border: 0;
   border-radius: 8px;
   cursor: pointer;
 }
 
 .resume:focus-visible {
-  outline: 2px solid #cfe8d8;
+  outline: 2px solid var(--color-text);
   outline-offset: 3px;
 }
 </style>

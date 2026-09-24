@@ -64,10 +64,10 @@ const partnerInitial = computed(() => props.comms.partnerName?.slice(0, 1) ?? ''
   gap: 8px;
   align-items: flex-start;
   padding: 6px 8px;
-  color: #e8d8cf;
-  background: rgb(8 12 16 / 88%);
-  border-left: 3px solid #c4b08a;
-  font-family: ui-sans-serif, system-ui, sans-serif;
+  color: var(--color-text-warm);
+  background: rgb(var(--rgb-ink) / 88%);
+  border-left: 3px solid var(--color-brass);
+  font-family: var(--font-body);
   font-size: 15px;
   line-height: 1.35;
 }
@@ -82,9 +82,10 @@ const partnerInitial = computed(() => props.comms.partnerName?.slice(0, 1) ?? ''
 .letter {
   display: grid;
   place-items: center;
-  color: #06110c;
-  background: #c4b08a;
-  font-family: ui-monospace, monospace;
+  color: var(--color-dradis-night);
+  background: var(--color-brass);
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
   font-size: 16px;
 }
 
@@ -111,10 +112,11 @@ const partnerInitial = computed(() => props.comms.partnerName?.slice(0, 1) ?? ''
 }
 
 .name {
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
   font-size: 12px;
   letter-spacing: 0.04em;
-  color: #7fd6a0;
+  color: var(--color-dradis-soft);
 }
 
 .text {

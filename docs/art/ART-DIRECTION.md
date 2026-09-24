@@ -108,7 +108,7 @@ Rules:
 - **Anchor:** the sprite center unless noted.
 - **Invulnerability and hit feedback:** a steady outline or a slow pulse (2 Hz or slower). **Never strobe.** No white full-screen or full-sprite flashes.
 - **Portraits:** 64 × 64, shown at 64 CSS pixels. Same four frames for every character so the animation code is shared. These are page images, so they are not drawn at 4× and shrunk into the 270 × 480 world. A later UI pass may show this same file at about 128 CSS pixels on a large screen (PRD 12.6). Do not draw a second size yet. Signature is not drawn yet: the game shows the closed file for that pose.
-- **Fonts:** self-hosted `woff2` files under an open license (for example the SIL Open Font License). Candidates: **Silkscreen** or **Press Start 2P** for style, and **Atkinson Hyperlegible** for the readable-font toggle. Check each license at the time you add it.
+- **Fonts:** self-hosted `woff2` files under an open license (for example the SIL Open Font License). Candidates: **Silkscreen** or **Press Start 2P** for style, and **Atkinson Hyperlegible** for the readable-font toggle. Check each license at the time you add it. **Chosen 2026-09-24:** VT323 for the display face and Atkinson Hyperlegible for sentences, both in `assets/fonts/` with their licenses (see `assets/PROVENANCE.md`).
 
 ## 6. Provenance
 

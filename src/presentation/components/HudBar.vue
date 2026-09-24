@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import CycleClock from './CycleClock.vue';
 import type { SessionPhase } from '../../application/GameSession';
 import { hudStore } from '../stores/hudStore';
 
@@ -89,9 +88,6 @@ const stats = hudStore.state;
       <span v-if="stats.stats.cylonEye" data-testid="cylon-eye"> · two transponders</span>
     </p>
 
-    <!-- The visible 33 is painted in the playfield. This copy is for assistive tech and tests. -->
-    <CycleClock v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" class="clock-mirror" />
-
     <div v-if="phase === 'running' || phase === 'paused' || phase === 'resuming'" class="controls">
       <button
         data-ui
@@ -124,8 +120,9 @@ const stats = hudStore.state;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: ui-monospace, monospace;
-  color: #b8ffdc;
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
+  color: var(--color-dradis-pale);
 }
 
 .debug {
@@ -138,26 +135,14 @@ const stats = hudStore.state;
   pointer-events: none;
   font-size: 11px;
   line-height: 1.35;
-  color: #8a9b58;
-  text-shadow: 0 1px 0 #000;
+  color: var(--color-olive);
+  text-shadow: 0 1px 0 var(--color-shadow);
 }
 
 @media (max-width: 959px) {
   .debug {
     display: none;
   }
-}
-
-.hud :deep(.clock-mirror) {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
 
 .controls {
@@ -176,15 +161,15 @@ const stats = hudStore.state;
   padding: 0 10px;
   font: inherit;
   font-size: 13px;
-  color: #cfe8d8;
-  background: rgb(12 20 28 / 80%);
-  border: 1px solid #2c4a3a;
+  color: var(--color-text);
+  background: rgb(var(--rgb-panel) / 80%);
+  border: 1px solid var(--color-dradis-line);
   border-radius: 6px;
   cursor: pointer;
 }
 
 .hud-button:focus-visible {
-  outline: 2px solid #7fd6a0;
+  outline: 2px solid var(--color-dradis-soft);
   outline-offset: 2px;
 }
 
@@ -215,8 +200,8 @@ const stats = hudStore.state;
     flex-direction: column;
     align-items: stretch;
     padding: 8px;
-    background: #0b0e14;
-    border: 1px solid #2c4a3a;
+    background: var(--color-space);
+    border: 1px solid var(--color-dradis-line);
   }
 
   .menu.open {

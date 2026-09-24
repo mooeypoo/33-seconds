@@ -30,9 +30,9 @@ defineProps<{ compact?: boolean }>();
   padding: 0 10px;
   font: inherit;
   font-size: 14px;
-  color: #cfe8d8;
-  background: rgb(12 20 28 / 80%);
-  border: 1px solid #2c4a3a;
+  color: var(--color-text);
+  background: rgb(var(--rgb-panel) / 80%);
+  border: 1px solid var(--color-dradis-line);
   border-radius: 6px;
   cursor: pointer;
 }
@@ -42,7 +42,7 @@ defineProps<{ compact?: boolean }>();
 }
 
 .mute:focus-visible {
-  outline: 2px solid #7fd6a0;
+  outline: 2px solid var(--color-dradis-soft);
   outline-offset: 2px;
 }
 </style>

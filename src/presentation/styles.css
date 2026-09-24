@@ -1,5 +1,122 @@
+/*
+ * Self-hosted fonts (ADR-0001 D11, assets/PROVENANCE.md). VT323 is the console face for headings,
+ * HUD labels, and numbers. Atkinson Hyperlegible is for anything longer than a label, and for
+ * everything when the player turns on the readable font (PRD 14, 15).
+ */
+@font-face {
+  font-family: 'VT323';
+  src: url('../../assets/fonts/vt323-latin-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  src: url('../../assets/fonts/atkinson-hyperlegible-latin-400-normal.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  src: url('../../assets/fonts/atkinson-hyperlegible-latin-400-italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Atkinson Hyperlegible';
+  src: url('../../assets/fonts/atkinson-hyperlegible-latin-700-normal.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/*
+ * Design tokens (ADR-0002 1.1). Components use these instead of raw values, so a restyle is a
+ * change here. Roles follow the ART-DIRECTION palette. Red is not a UI colour: it means Cylon, and
+ * only the canvas uses it. The loss screen has its own muted rose.
+ */
 :root {
   color-scheme: dark;
+
+  /* Surfaces, darkest first. The rgb triplets are for translucent overlays: rgb(var(--x) / 80%). */
+  --color-deep: #05070a;
+  --rgb-deep: 5 7 10;
+  --color-space: #0b0e14;
+  --rgb-space: 11 14 20;
+  --rgb-ink: 8 12 16;
+  --color-panel: #14202a;
+  --rgb-panel: 12 20 28;
+
+  /* Text. */
+  --color-text: #cfe8d8;
+  --color-text-strong: #f3efe3;
+  --color-text-warm: #e8d8cf;
+  --color-text-muted: #9fb8ab;
+  --color-text-gunmetal: #b3bbc5;
+
+  /* Dradis green: HUD, sensors, the player's side. */
+  --color-dradis-night: #06110c;
+  --rgb-dradis-night: 15 54 38;
+  --color-dradis-deep: #1c8459;
+  --color-dradis-line: #2c4a3a;
+  --rgb-dradis-line: 47 74 58;
+  --color-dradis: #4fe19a;
+  --color-dradis-soft: #7fd6a0;
+  --color-dradis-pale: #b8ffdc;
+
+  /* Warm accents: FTL spool, warnings, comms brass. Never the only cue (PRD 15). */
+  --color-amber: #ffc457;
+  --color-amber-deep: #ffb454;
+  --color-brass: #c4b08a;
+  --color-olive: #8a9b58;
+
+  /* Gunmetal: neutral hardware. */
+  --color-gunmetal: #46505e;
+  --color-gunmetal-light: #c6ced8;
+
+  /* Loss and destructive actions. A muted rose, not Cylon red. */
+  --color-loss: #d67f7f;
+  --color-loss-muted: #b89b9b;
+  --color-loss-border: #5a3a2c;
+  --color-danger-border: #6a3a3a;
+
+  --color-shadow: #000;
+
+  /* Type. The readable-font setting swaps the display face for the body face. */
+  --font-display: 'VT323', ui-monospace, monospace;
+  --font-body: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
+  /* VT323's small x-height reads about a quarter smaller than other faces at the same size. */
+  --display-size-adjust: 0.5;
+
+  /* Spacing scale for new layout. Older components still carry their own numbers. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --radius: 6px;
+}
+
+:root.readable-font {
+  --font-display: var(--font-body);
+  --display-size-adjust: none;
+}
+
+/* Only real weights and styles: a faked bold or italic smears pixel type. */
+* {
+  font-synthesis: none;
+}
+
+/*
+ * Sentences read in the body face, whatever panel they sit in. A label, number, or heading that
+ * is a paragraph opts back in to the display face in its own component.
+ */
+:where(p, dd, li) {
+  font-family: var(--font-body);
 }
 
 * {
@@ -10,8 +127,9 @@ html,
 body {
   height: 100%;
   margin: 0;
-  background: #05070a;
-  color: #cfe8d8;
+  background: var(--color-deep);
+  color: var(--color-text);
+  font-family: var(--font-body);
 }
 
 #game-root {

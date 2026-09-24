@@ -144,20 +144,30 @@ One PR for this documentation, then at least one PR per phase. Phase 0 may be tw
   `crypto` in the browser, a pinned seed in tests. ADR-0001 D3 and PRD decision 9 rewritten.
 
 
-### Phase 1: Quick UX wins
+### Phase 1: Quick UX wins — done 2026-09-24
 
 Detail in the [UI and UX review](../review/2026-09-24-ui-ux.md), section "Phase 1."
 
-- [ ] **1.1** Design tokens: CSS custom properties for palette, spacing, and type, replacing the
-  hard-coded hex colours in the Vue files.
-- [ ] **1.2** Self-hosted pixel font plus the readable-font toggle (PRD 14).
-- [ ] **1.3** The text tells reach the shipped HUD: loop / offline, bays / sealed, ejected, hull,
-  two transponders, Raptor, Six (decision 7).
-- [ ] **1.4** The Missile and Speech buttons show only on touch, and never cover the fleet.
-- [ ] **1.5** The countdown moves out of the playfield into the HUD, still visible while
-  playing (decision 2). PRD 5.1 changes with it.
-- [ ] **1.6** An objective line that changes with the stage of the run.
-- [ ] **1.7** The reduced-effects toggle applies without a reload.
+- [x] **1.1** (2026-09-24) Design tokens: CSS custom properties for palette, spacing, and type, replacing the
+  hard-coded hex colours in the Vue files. 140 raw values replaced in `src/presentation/styles.css`
+  tokens; exact colours kept, so the step changed nothing on screen. Older components keep their own
+  spacing numbers; new ones use the scale.
+- [x] **1.2** (2026-09-24) Self-hosted pixel font plus the readable-font toggle (PRD 14). VT323 (owner's pick)
+  for labels, headings, numbers; Atkinson Hyperlegible for sentences. `font-size-adjust` evens out
+  VT323's small x-height, and `font-synthesis: none` stops faked bold and italic. The toggle is a
+  new remembered setting (`readableFont`, additive to the v1 envelope).
+- [x] **1.3** (2026-09-24) The text tells reach the shipped HUD: loop / offline, bays / sealed, ejected, hull,
+  two transponders, Raptor, Six (decision 7). A `StatusRow` under fleet health; alerts also get a
+  thicker amber edge.
+- [x] **1.4** (2026-09-24) The Missile and Speech buttons show only on touch, and never cover the fleet.
+  They flank the comms strip (owner's pick), and stay in place, disabled, between cycles.
+- [x] **1.5** (2026-09-24) The countdown moves out of the playfield into the HUD, still visible while
+  playing (decision 2). PRD 5.1 changes with it. Top band beside fleet health (owner's pick), with a
+  bar across the cycle that turns amber for the spool. `ClockPresenter` is gone.
+- [x] **1.6** (2026-09-24) An objective line that changes with the stage of the run. Stages derived in
+  `HudViewModel`; words in `content/hud.json`.
+- [x] **1.7** (2026-09-24) The reduced-effects toggle applies without a reload. Presenters take a
+  `ReducedEffectsSource` and ask it each time an effect plays.
 
 ### Phase 2: CIC layout
 

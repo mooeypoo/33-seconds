@@ -41,9 +41,18 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
       >
         {{ settingsStore.state.snapshot.reducedEffects ? 'Reduced effects on' : 'Reduced effects off' }}
       </button>
+      <button
+        data-ui
+        class="effects"
+        type="button"
+        :aria-pressed="settingsStore.state.snapshot.readableFont"
+        @click="settingsStore.toggleReadableFont()"
+      >
+        {{ settingsStore.state.snapshot.readableFont ? 'Readable font on' : 'Readable font off' }}
+      </button>
       <p class="note small">
-        Abandon run goes back to the title and discards this run. Reduced effects apply after you
-        reload the page. The comms log and the complaints board wait.
+        Abandon run goes back to the title and discards this run. The comms log and the complaints
+        board wait.
       </p>
     </template>
   </div>
@@ -62,9 +71,10 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
   justify-content: center;
   padding: 24px;
   text-align: center;
-  background: rgb(5 7 10 / 82%);
-  color: #cfe8d8;
-  font-family: ui-monospace, monospace;
+  background: rgb(var(--rgb-deep) / 82%);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
 }
 
 .heading {
@@ -73,6 +83,8 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
 }
 
 .countdown {
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
   margin: 0;
   font-size: clamp(48px, 18vw, 120px);
   line-height: 1;
@@ -82,7 +94,7 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
   max-width: 34ch;
   margin: 0;
   font-size: 14px;
-  color: #9fb8ab;
+  color: var(--color-text-muted);
 }
 
 .small {
@@ -94,8 +106,8 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
   min-height: 48px;
   font: inherit;
   font-size: 18px;
-  color: #06110c;
-  background: #7fd6a0;
+  color: var(--color-dradis-night);
+  background: var(--color-dradis-soft);
   border: 0;
   border-radius: 8px;
   cursor: pointer;
@@ -104,7 +116,7 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
 .resume:focus-visible,
 .abandon:focus-visible,
 .effects:focus-visible {
-  outline: 2px solid #cfe8d8;
+  outline: 2px solid var(--color-text);
   outline-offset: 3px;
 }
 
@@ -113,9 +125,9 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
   min-height: 44px;
   font: inherit;
   font-size: 15px;
-  color: #cfe8d8;
+  color: var(--color-text);
   background: transparent;
-  border: 1px solid #6a3a3a;
+  border: 1px solid var(--color-danger-border);
   border-radius: 8px;
   cursor: pointer;
 }
@@ -125,9 +137,9 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
   min-height: 44px;
   font: inherit;
   font-size: 15px;
-  color: #cfe8d8;
+  color: var(--color-text);
   background: transparent;
-  border: 1px solid #2c4a3a;
+  border: 1px solid var(--color-dradis-line);
   border-radius: 8px;
   cursor: pointer;
 }

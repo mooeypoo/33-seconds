@@ -9,11 +9,11 @@ import { ProjectilePresenter } from './contexts/combat/ProjectilePresenter';
 import { ImaginarySixPresenter } from './contexts/combat/ImaginarySixPresenter';
 import { ViperPresenter } from './contexts/combat/ViperPresenter';
 import { StickPresenter, type StickSource } from './contexts/controls/StickPresenter';
-import { ClockPresenter } from './contexts/cycle/ClockPresenter';
 import { FleetPresenter } from './contexts/fleet/FleetPresenter';
 import { RaptorPresenter } from './contexts/fleet/RaptorPresenter';
 import { RaiderPresenter } from './contexts/swarm/RaiderPresenter';
 import { ResurrectionShipPresenter } from './contexts/swarm/ResurrectionShipPresenter';
+import type { ReducedEffectsSource } from './shared/comfort';
 import { PALETTE } from './shared/palette';
 import { loadSpriteImages } from './sprites';
 
@@ -38,7 +38,7 @@ export class GameScene extends Phaser.Scene {
   private readonly session: GameSession;
   private readonly stick: StickSource;
   private readonly reportStats: (stats: FrameStats) => void;
-  private readonly reducedEffects: boolean;
+  private readonly reducedEffects: ReducedEffectsSource;
   private presenters: Presenter[] = [];
   private spritesReady = false;
   private closed = false;
@@ -49,7 +49,7 @@ export class GameScene extends Phaser.Scene {
     session: GameSession,
     stick: StickSource,
     reportStats: (stats: FrameStats) => void,
-    reducedEffects: boolean,
+    reducedEffects: ReducedEffectsSource,
   ) {
     super({ key: 'game' });
     this.session = session;
@@ -87,7 +87,6 @@ export class GameScene extends Phaser.Scene {
     });
 
     this.presenters = [
-      new ClockPresenter(this),
       new FleetPresenter(this, this.reducedEffects),
       new RaptorPresenter(this),
       new ViperPresenter(this, this.reducedEffects),

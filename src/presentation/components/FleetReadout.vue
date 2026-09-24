@@ -38,12 +38,15 @@ const filledPips = computed(() => Math.round(integrity.value / 10));
   flex-direction: column;
   align-items: stretch;
   gap: 4px;
-  font-family: ui-monospace, monospace;
-  color: #cfe8d8;
-  text-shadow: 0 1px 0 #000;
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
+  color: var(--color-text);
+  text-shadow: 0 1px 0 var(--color-shadow);
 }
 
 .line {
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -57,7 +60,7 @@ const filledPips = computed(() => Math.round(integrity.value / 10));
   font-size: 13px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #4fe19a;
+  color: var(--color-dradis);
 }
 
 .value {
@@ -65,7 +68,7 @@ const filledPips = computed(() => Math.round(integrity.value / 10));
   font-size: 18px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  color: #b8ffdc;
+  color: var(--color-dradis-pale);
 }
 
 .pips {
@@ -76,10 +79,10 @@ const filledPips = computed(() => Math.round(integrity.value / 10));
 .pip {
   flex: 1;
   height: 4px;
-  background: rgb(47 74 58 / 70%);
+  background: rgb(var(--rgb-dradis-line) / 70%);
 }
 
 .pip.filled {
-  background: #7fd6a0;
+  background: var(--color-dradis-soft);
 }
 </style>
