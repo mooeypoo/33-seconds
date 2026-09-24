@@ -256,6 +256,16 @@ MVP ships The Speech only. The loadout pick screen arrives with the second speci
 ### 8.4 Hitboxes `[Tunable]`
 - A Raider's collision circle is **8 world units**, near the drawn box (half-width 7), a little generous so a graze counts. It started at 6; two plays called that tight. Widened with the Viper hull in the same fairness pass.
 
+### 8.5 The heavy Raider `[Tunable]`
+
+Built 2026-09-24 (ADR-0002 3.3), with the owner's rules: its **own queue**, and it **never downloads**. Only Raiders resurrect.
+
+- From the tier's `heavyFromCycle`, up to `heavyPerCycle` arrive each cycle, the first 8 s in and then every 8 s, never more than `heavyMax` alive. None arrive once the resurrection ship is gone. They do not count against the Raider cap or floor.
+- Bigger (hitbox 12 wu), slower (35 wu/s against 55), 8 hull. A missile does 3 to it rather than a kill.
+- It carries its **own attack token**: it may fire whenever it is above the Viper, whatever the Raiders' tokens. It does not dive the fleet.
+- It leaves at the jump like any live body, and does not come back as the last wave.
+- Its arrival calls the big-Raider comms lines. Until `raider_heavy` is drawn, it is the Raider picture at 1.7× with eight hull pips: size and pips are the tell, not a colour.
+
 ## 9. Keeping the screen readable `[Core]`
 
 These rules exist so "smarter and angrier" never becomes "a big mass mess."
@@ -666,3 +676,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-24 | The Recovering pick is three cards (ADR-0002 2.3): rarity as a word and a frame, the stack it would become, an art banner, the joke, and the effect with both advisors. A wide window shows a full-screen board with everything at once; a phone stacks the cards and opens one at a time, with Apply pinned in reach. | The approved mock-up; the pick should feel like a reward, not a settings list. |
 | 2026-09-24 | The Director gets a floor as well as a cap, both per cycle: below the floor, fresh Raiders come even while downloads are pending, and a finished download waits for a free slot rather than pass the cap. Downloads are staggered by a per-tier jitter. The resurrection ship's death tops the swarm up to the cap once (the last wave). | Owner: "always about 3 to 5 on screen"; the simulator showed 0.6 on screen for a pilot chasing kills. |
 | 2026-09-24 | Raiders dive straight, and a per-cycle share weaves a shallow sine (18 wu, 2.6 s) inside the lane. | Owner: "straight dive, and occasional shallow sine". |
+| 2026-09-24 | The heavy Raider: its own queue, never downloads, 8 hull, slower, a missile does 3, its own attack token, at most `heavyMax` alive from `heavyFromCycle`. | MVP scope had one heavy; owner: "own queue, one or two on screen, from about cycle 2." |

@@ -36,6 +36,10 @@ import { PHONE_PLAYFIELD, type Playfield } from './shared/world';
  */
 export const DEFAULT_RUN_SEED = 1;
 
+/** When heavy Raiders arrive in a cycle: the first this far in, then one per interval (ADR-0002 3.3). */
+export const HEAVY_FIRST_ARRIVAL_SECONDS = 8;
+export const HEAVY_INTERVAL_SECONDS = 8;
+
 export interface GameOptions {
   /** Gameplay stream seed (ADR-0001 D3). With the same inputs, the same seed repeats the run. */
   readonly seed?: number;
@@ -132,6 +136,8 @@ export class Game {
   private cachedView: GameView | null = null;
   /** Set once the resurrection ship's death has topped the swarm up for the last wave. */
   private lastWaveSent = false;
+  /** Heavy Raiders sent this cycle; reset when the next cycle starts. */
+  private heaviesThisCycle = 0;
 
   constructor(options: GameOptions = {}) {
     const seed = options.seed ?? DEFAULT_RUN_SEED;
@@ -205,6 +211,7 @@ export class Game {
 
     if (this.cycle.isInCombat) {
       this.resurrectionShip?.advanceBays(TICK_SECONDS);
+      this.maybeSendHeavy(events);
       this.fillTheSwarm(events);
       const cycleIndex = this.cycle.view.cycleIndex;
       this.swarm.assignAttackTokens(
@@ -249,6 +256,7 @@ export class Game {
     this.loadout.clearOffer();
     this.loadout.onCycleStart();
     const events: DomainEvent[] = [change];
+    this.heaviesThisCycle = 0;
     this.launchRaptors();
     this.syncSix();
     this.viper.resetAtJump();
@@ -395,6 +403,23 @@ export class Game {
       floor: rampAt(this.profile.swarmFloor, cycleIndex),
       sineShare: rampAt(this.profile.sineShare, cycleIndex),
     };
+  }
+
+  /**
+   * Heavy Raiders have their own queue (ADR-0002 3.3): from the tier's first heavy cycle, up to
+   * `heavyPerCycle` arrive, the first 8 s in and then every 8 s, never more than `heavyMax` alive.
+   * None arrive once the resurrection ship is gone: the last wave is Raiders.
+   */
+  private maybeSendHeavy(events: DomainEvent[]): void {
+    const { heavyFromCycle, heavyPerCycle, heavyMax } = this.profile;
+    const cycle = this.cycle.view;
+    if (heavyFromCycle <= 0 || cycle.cycleIndex < heavyFromCycle) return;
+    if (this.resurrectionShip?.isDestroyed === true) return;
+    if (this.heaviesThisCycle >= heavyPerCycle || this.swarm.heavyCount >= heavyMax) return;
+    const due = HEAVY_FIRST_ARRIVAL_SECONDS + this.heaviesThisCycle * HEAVY_INTERVAL_SECONDS;
+    if (cycle.combatElapsedSeconds < due) return;
+    this.swarm.spawnHeavy(events);
+    this.heaviesThisCycle += 1;
   }
 
   private maybeSendLastWave(events: DomainEvent[]): void {

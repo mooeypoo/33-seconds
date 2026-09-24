@@ -28,6 +28,12 @@ export interface CycleProfile {
   readonly downloadJitterSeconds: number;
   /** Share of new Raiders, 0 to 1 by cycle, that weave a shallow sine instead of diving straight. */
   readonly sineShare: Ramp;
+  /** First cycle heavy Raiders arrive; 0 means never (ADR-0002 3.3). */
+  readonly heavyFromCycle: number;
+  /** Heavy Raiders that arrive in each cycle from then on, 8 seconds apart. */
+  readonly heavyPerCycle: number;
+  /** Most heavy Raiders alive at once. They do not count against the Raider cap. */
+  readonly heavyMax: number;
   /** Raiders allowed to fire at once, by cycle (PRD 9). */
   readonly attackTokens: Ramp;
   /** Raiders allowed to dive the fleet at once, by cycle (PRD 7.1). */

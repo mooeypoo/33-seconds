@@ -449,6 +449,13 @@ const SABOTAGE = [
     mustFail: 'npm run test',
   },
   {
+    what: 'a heavy Raider downloads like a Raider',
+    file: 'src/domain/swarm/Swarm.ts',
+    find: '    if (loopOn && !heavy) {',
+    replace: '    if (loopOn) {',
+    mustFail: 'npm run test',
+  },
+  {
     what: 'a tier repairs more of the fleet than it lost',
     file: 'src/balance/tiers.json',
     find: '"fleetRepairOfMissing": 0.4,',

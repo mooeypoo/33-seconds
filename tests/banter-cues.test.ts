@@ -9,7 +9,7 @@ import {
 import type { DomainEvent } from '../src/domain/shared/events';
 import { TICK_SECONDS, TICKS_PER_SECOND } from '../src/domain/shared/time';
 
-const killed: DomainEvent = { type: 'RaiderDestroyed', id: 1, x: 0, y: 0 };
+const killed: DomainEvent = { type: 'RaiderDestroyed', id: 1, x: 0, y: 0, heavy: false };
 
 function view(patch: Partial<CueSnapshot> = {}): CueSnapshot {
   return {

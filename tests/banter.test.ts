@@ -287,6 +287,17 @@ describe('Banter', () => {
         poolId: 'back',
       },
       {
+        id: 'adama-big-raider-entered-01',
+        speaker: 'adama',
+        trigger: 'BigRaiderEntered',
+        text: 'Heavy.',
+        weight: 1,
+        cooldownSeconds: 30,
+        priority: 'normal',
+        chance: 1,
+        poolId: 'heavy',
+      },
+      {
         id: 'adama-resurrection-ship-destroyed-01',
         speaker: 'adama',
         trigger: 'ResurrectionShipDestroyed',
@@ -312,11 +323,17 @@ describe('Banter', () => {
       y: 0,
       returned: false,
       deaths: 0,
+      heavy: false,
     };
     comms.observe([spawned], quiet);
     expect(comms.line).toBeNull();
     comms.observe([{ ...spawned, returned: true, deaths: 1 }], quiet);
     expect(comms.line).toEqual({ speakerName: 'Starbuck', text: 'Back.' });
+
+    comms.advance(20);
+    // A heavy Raider's arrival is the moment the big-Raider lines were written for (ADR-0002 3.3).
+    comms.observe([{ ...spawned, id: 3, identityId: 3, heavy: true }], quiet);
+    expect(comms.line).toEqual({ speakerName: 'Adama', text: 'Heavy.' });
 
     comms.advance(20);
     const destroyed: DomainEvent = { type: 'ResurrectionShipDestroyed', x: 0, y: 0 };

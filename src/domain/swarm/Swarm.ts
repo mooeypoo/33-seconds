@@ -4,6 +4,8 @@ import type { Playfield } from '../shared/world';
 import { movingCircleHitAlong } from '../shared/collision';
 import {
   type FlightPattern,
+  HEAVY_HALF_HEIGHT_UNITS,
+  HEAVY_RADIUS_UNITS,
   Raider,
   SINE_AMPLITUDE_UNITS,
   RAIDER_HALF_HEIGHT_UNITS,
@@ -59,8 +61,20 @@ export class Swarm {
     return this.bodies.length === 0 && this.queue.length === 0;
   }
 
-  get raiderRadius(): number {
-    return RAIDER_RADIUS_UNITS * this.playfield.fighterScale;
+  /** Hitbox for this body: a heavy Raider is bigger (ADR-0002 3.3). */
+  radiusOf(raider: Raider): number {
+    return (raider.kind === 'heavy' ? HEAVY_RADIUS_UNITS : RAIDER_RADIUS_UNITS) * this.playfield.fighterScale;
+  }
+
+  /** Raiders only: heavies have their own count and do not use the Director's cap or floor. */
+  private get raiderCount(): number {
+    let count = 0;
+    for (const body of this.bodies) if (body.kind === 'raider') count += 1;
+    return count;
+  }
+
+  get heavyCount(): number {
+    return this.bodies.length - this.raiderCount;
   }
 
   /** Where Raiders appear, and where *Spoilers* shows the blips. */
@@ -77,8 +91,10 @@ export class Swarm {
    * while the loop is on (PRD 6), and the body leaves the swarm.
    */
   destroy(raider: Raider, events: DomainEvent[], loopOn: boolean, downloadSeconds: number): void {
-    events.push({ type: 'RaiderDestroyed', id: raider.id, x: raider.x, y: raider.y });
-    if (loopOn) {
+    const heavy = raider.kind === 'heavy';
+    events.push({ type: 'RaiderDestroyed', id: raider.id, x: raider.x, y: raider.y, heavy });
+    // Only Raiders resurrect. A heavy Raider is gone for good (ADR-0002 3.3).
+    if (loopOn && !heavy) {
       this.queue.push(new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y, downloadSeconds));
     }
     const index = this.bodies.indexOf(raider);
@@ -90,8 +106,10 @@ export class Swarm {
   assignAttackTokens(viperX: number, viperY: number, allowed: boolean, tokens: number): void {
     for (const raider of this.bodies) raider.setArmed(false);
     if (!allowed) return;
+    // A heavy Raider carries its own token: armed whenever it is above the Viper.
+    for (const body of this.bodies) if (body.kind === 'heavy' && body.y < viperY) body.setArmed(true);
     const ranked = this.bodies
-      .filter((raider) => raider.y < viperY)
+      .filter((raider) => raider.kind === 'raider' && raider.y < viperY)
       .sort((left, right) => {
         const leftDistance = Math.hypot(left.x - viperX, left.y - viperY);
         const rightDistance = Math.hypot(right.x - viperX, right.y - viperY);
@@ -103,7 +121,8 @@ export class Swarm {
   /** The `tokens` Raiders farthest from the Viper dive the fleet (PRD 7.1). */
   assignStrafeTokens(viperX: number, viperY: number, tokens: number): void {
     for (const raider of this.bodies) raider.setStrafing(false);
-    const ranked = [...this.bodies].sort((left, right) => {
+    // Heavies do not dive the fleet.
+    const ranked = this.bodies.filter((body) => body.kind === 'raider').sort((left, right) => {
       const leftDistance = Math.hypot(left.x - viperX, left.y - viperY);
       const rightDistance = Math.hypot(right.x - viperX, right.y - viperY);
       return rightDistance - leftDistance || left.id - right.id;
@@ -162,6 +181,7 @@ export class Swarm {
   clearAtJump(shipGone: boolean, downloadSeconds: number): void {
     if (shipGone) {
       for (const raider of this.bodies) {
+        if (raider.kind === 'heavy') continue;
         this.queue.push(new Download(raider.identityId, raider.deaths, raider.x, raider.y, downloadSeconds));
       }
     }
@@ -177,7 +197,7 @@ export class Swarm {
    */
   fill(events: DomainEvent[], shipGone: boolean, rules: SpawnRules): void {
     const { cap, floor } = rules;
-    while (this.bodies.length < cap) {
+    while (this.raiderCount < cap) {
       const readyIndex = this.queue.findIndex((download) => download.isReady);
       if (readyIndex >= 0) {
         const ready = this.queue[readyIndex];
@@ -188,8 +208,8 @@ export class Swarm {
       }
 
       if (shipGone) return;
-      const reserved = this.bodies.length + this.queue.length >= cap;
-      if (reserved && this.bodies.length >= floor) return;
+      const reserved = this.raiderCount + this.queue.length >= cap;
+      if (reserved && this.raiderCount >= floor) return;
       this.spawn(events, rules);
     }
   }
@@ -199,7 +219,7 @@ export class Swarm {
    * Nothing downloads after that, so these are the last Raiders of the run.
    */
   lastWave(events: DomainEvent[], rules: SpawnRules): void {
-    while (this.bodies.length < rules.cap) this.spawn(events, rules);
+    while (this.raiderCount < rules.cap) this.spawn(events, rules);
   }
 
   private spawn(
@@ -207,7 +227,7 @@ export class Swarm {
     rules: SpawnRules,
     returning?: { readonly identityId: number; readonly deaths: number; readonly x: number },
   ): void {
-    if (this.bodies.length >= rules.cap) return;
+    if (this.raiderCount >= rules.cap) return;
     const minX = raiderSpawnMinX(this.playfield.fighterScale);
     const maxX = raiderSpawnMaxX(this.playfield.width, this.playfield.fighterScale);
     const column = returning?.x ?? this.pickFreshColumn(minX, maxX);
@@ -232,6 +252,28 @@ export class Swarm {
       y: raider.y,
       returned: raider.returned,
       deaths: raider.deaths,
+      heavy: false,
+    });
+  }
+
+  /** One heavy Raider on a fresh column (ADR-0002 3.3). It never comes from the download queue. */
+  spawnHeavy(events: DomainEvent[]): void {
+    const minX = raiderSpawnMinX(this.playfield.fighterScale) + HEAVY_RADIUS_UNITS;
+    const maxX = raiderSpawnMaxX(this.playfield.width, this.playfield.fighterScale) - HEAVY_RADIUS_UNITS;
+    const x = this.pickFreshColumn(minX, maxX);
+    const y = HEAVY_HALF_HEIGHT_UNITS * this.playfield.fighterScale + 8;
+    const heavy = new Raider(this.allocateId(), this.nextIdentityId, x, y, { kind: 'heavy' });
+    this.nextIdentityId += 1;
+    this.bodies.push(heavy);
+    events.push({
+      type: 'RaiderSpawned',
+      id: heavy.id,
+      identityId: heavy.identityId,
+      x: heavy.x,
+      y: heavy.y,
+      returned: false,
+      deaths: 0,
+      heavy: true,
     });
   }
 

@@ -62,6 +62,9 @@ export function parseTierProfile(id: TierId, raw: unknown): CycleProfile {
     swarmFloor: ramp(field, 'swarmFloor', 0),
     downloadJitterSeconds: number(field, 'downloadJitterSeconds', 0, 5),
     sineShare: ramp(field, 'sineShare', 0, true),
+    heavyFromCycle: number(field, 'heavyFromCycle', 0, 20),
+    heavyPerCycle: number(field, 'heavyPerCycle', 0, 4),
+    heavyMax: number(field, 'heavyMax', 0, 4),
     attackTokens: ramp(field, 'attackTokens', 0),
     strafeTokens: ramp(field, 'strafeTokens', 0),
   };

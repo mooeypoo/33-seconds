@@ -4,7 +4,6 @@ import type { BanterTrigger } from './lines';
 
 /**
  * How the written lines meet the fight. These are assumptions until a playtest says otherwise.
- * A heavy Raider is not in the simulation, so BigRaiderEntered stays quiet.
  */
 export const HULL_LOW_AT = 2;
 export const KILL_DROUGHT_SECONDS = 12;

@@ -20,6 +20,9 @@ export const MISSILE_HEIGHT_UNITS = 9;
 /** A missile one-shots a Raider (PRD 8.2: it explodes). */
 export const MISSILE_RAIDER_DAMAGE = RAIDER_HIT_POINTS;
 
+/** A missile dents a heavy Raider rather than killing it (ADR-0002 3.3). */
+export const MISSILE_HEAVY_DAMAGE = 3;
+
 /**
  * A chunk of the resurrection ship, not a one-shot. Three missiles are 24 of 60 if they all land.
  * ASSUMPTION: 8 until the fairness pass; the gun is still the main chip.

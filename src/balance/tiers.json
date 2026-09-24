@@ -6,6 +6,9 @@
     "swarmFloor": [0],
     "downloadJitterSeconds": 0,
     "sineShare": [0],
+    "heavyFromCycle": 0,
+    "heavyPerCycle": 0,
+    "heavyMax": 0,
     "attackTokens": [1],
     "strafeTokens": [1]
   },
@@ -16,6 +19,9 @@
     "swarmFloor": [0],
     "downloadJitterSeconds": 0,
     "sineShare": [0],
+    "heavyFromCycle": 0,
+    "heavyPerCycle": 0,
+    "heavyMax": 0,
     "attackTokens": [1],
     "strafeTokens": [1]
   }

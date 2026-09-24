@@ -14,6 +14,9 @@ export const DEFAULT_CYCLE_PROFILE: CycleProfile = {
   swarmFloor: [0],
   downloadJitterSeconds: 0,
   sineShare: [0],
+  heavyFromCycle: 0,
+  heavyPerCycle: 0,
+  heavyMax: 0,
   attackTokens: [ATTACK_TOKENS],
   strafeTokens: [STRAFE_TOKENS],
 };

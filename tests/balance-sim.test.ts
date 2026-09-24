@@ -25,7 +25,7 @@ describe('the balance harness', () => {
     }
   });
 
-  it('never has more Raiders up than the Director cap for that cycle, whoever is flying', () => {
+  it('never has more Raiders up than the Director cap, or more heavies than their limit, whoever is flying', () => {
     for (const [tierId, profile] of Object.entries(TIER_PROFILES)) {
       for (const [botName, bot] of Object.entries(BOTS)) {
         const game = createGame({ seed: 3, tierProfile: profile });
@@ -38,7 +38,10 @@ describe('the balance harness', () => {
           }
           game.tick(bot(view, tick));
           const cap = rampAt(profile.directorCap, game.view.cycle.cycleIndex);
-          expect(game.view.raiders.length, `${tierId} / ${botName}`).toBeLessThanOrEqual(cap);
+          const raiders = game.view.raiders.filter((raider) => raider.kind === 'raider').length;
+          const heavies = game.view.raiders.length - raiders;
+          expect(raiders, `${tierId} / ${botName}`).toBeLessThanOrEqual(cap);
+          expect(heavies, `${tierId} / ${botName}`).toBeLessThanOrEqual(profile.heavyMax);
         }
       }
     }

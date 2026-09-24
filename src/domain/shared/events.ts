@@ -24,6 +24,8 @@ export interface RaiderSpawned {
   readonly y: number;
   readonly returned: boolean;
   readonly deaths: number;
+  /** A heavy Raider: bigger, and it never comes back (ADR-0002 3.3). */
+  readonly heavy: boolean;
 }
 
 export interface RaiderDestroyed {
@@ -31,6 +33,7 @@ export interface RaiderDestroyed {
   readonly id: number;
   readonly x: number;
   readonly y: number;
+  readonly heavy: boolean;
 }
 
 export interface CyclePhaseChanged {
