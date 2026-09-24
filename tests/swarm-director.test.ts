@@ -75,15 +75,19 @@ describe('the Director floor', () => {
 
 describe('the last wave', () => {
   it('tops the swarm up to the cap when the ship dies, then sends nothing fresh', () => {
+    // No floor, so a kill leaves a real gap: the pending download holds a slot until the ship dies.
     const game = createGame({
       seed: 1,
       raidersFire: false,
       resurrectionShipArrivesCycle: 1,
       resurrectionShipVulnerableCycle: 1,
       resurrectionShipHitPoints: 1,
-      tierProfile: profile({ directorCap: [4], swarmFloor: [4] }),
+      tierProfile: profile({ directorCap: [4], swarmFloor: [0] }),
     });
     game.tick(IDLE_INTENT);
+    killOne(game);
+    expect(game.view.raiders.length).toBeLessThan(4);
+
     let destroyed = false;
     for (let i = 0; i < TICKS_PER_SECOND * 10 && !destroyed; i++) {
       const events = steerUnder(game, game.view.resurrectionShip?.x ?? game.view.viper.x);

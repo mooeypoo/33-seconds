@@ -199,8 +199,8 @@ const SABOTAGE = [
     {
       what: 'a destroyed resurrection ship still queues downloads',
       file: 'src/domain/swarm/Swarm.ts',
-      find: '    if (loopOn) {\n      this.queue.push(new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y, downloadSeconds));\n    }',
-      replace: '    this.queue.push(new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y, downloadSeconds));',
+      find: '    if (loopOn && !heavy) {\n      this.queue.push(new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y, downloadSeconds));\n    }',
+      replace: '    if (!heavy) {\n      this.queue.push(new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y, downloadSeconds));\n    }',
       mustFail: 'npm run test',
     },
     {
@@ -437,7 +437,7 @@ const SABOTAGE = [
   {
     what: 'the Director ignores its floor while downloads are pending',
     file: 'src/domain/swarm/Swarm.ts',
-    find: '      if (reserved && this.bodies.length >= floor) return;',
+    find: '      if (reserved && this.raiderCount >= floor) return;',
     replace: '      if (reserved) return;',
     mustFail: 'npm run test',
   },
