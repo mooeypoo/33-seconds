@@ -5,6 +5,9 @@ import type { Presenter } from '../../Presenter';
 import type { ReducedEffectsSource } from '../../shared/comfort';
 import { EXPLOSION_ANIM, EXPLOSION_FRAME_RATE, EXPLOSION_FRAMES, SHIP_SHOWN_UNITS } from '../../sprites';
 
+/** A heavy Raider's burst, matching the size it is drawn at until `explosion_large` exists. */
+const HEAVY_BURST_SCALE = 1.7;
+
 /** Reduced effects holds the widest cell instead of stepping through the burst. */
 const STILL_MS = 280;
 
@@ -33,7 +36,8 @@ export class ExplosionPresenter implements Presenter {
   onEvent(event: DomainEvent): void {
     if (event.type !== 'RaiderDestroyed') return;
     const sprite = this.scene.add.sprite(event.x, event.y, EXPLOSION_FRAMES[2]);
-    const shown = SHIP_SHOWN_UNITS * this.fighterScale;
+    // A heavy Raider goes up bigger, in step with how it is drawn (ADR-0002 3.3).
+    const shown = SHIP_SHOWN_UNITS * this.fighterScale * (event.heavy ? HEAVY_BURST_SCALE : 1);
     sprite.setDisplaySize(shown, shown);
     sprite.setDepth(4);
 

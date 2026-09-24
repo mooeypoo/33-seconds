@@ -87,6 +87,8 @@ function resolvePlayerHits(field: Battlefield, events: DomainEvent[]): void {
       if (raider.takeHit()) {
         field.destroyRaider(raider, events);
         index -= 1;
+      } else {
+        events.push({ type: 'RaiderHit', id: raider.id, x: view.x, y: view.y, hp: raider.hp, heavy: raider.kind === 'heavy' });
       }
       if (!shot.tryPierce()) {
         shot.kill();
@@ -109,8 +111,11 @@ function resolvePlayerHits(field: Battlefield, events: DomainEvent[]): void {
     );
     if (!hitsShip) continue;
     shot.kill();
+    const shielded = ship.isShielded;
     if (ship.takeHit(loadout.shipDamage(1, ship.baysOpen))) {
       events.push({ type: 'ResurrectionShipDestroyed', x: ship.x, y: ship.y });
+    } else {
+      events.push({ type: 'ResurrectionShipHit', x: view.x, y: view.y, hp: ship.hp, shielded });
     }
   }
 }
@@ -202,11 +207,19 @@ function resolveMissileHits(field: Battlefield, events: DomainEvent[]): void {
 
     if (!hitRaider && !hitShip) continue;
     missile.kill();
+    const shipShielded = ship?.isShielded === true;
     // A missile kills a Raider outright and dents a heavy one (ADR-0002 3.3).
     const missileDamage = hitRaider?.kind === 'heavy' ? MISSILE_HEAVY_DAMAGE : MISSILE_RAIDER_DAMAGE;
-    if (hitRaider?.takeHit(missileDamage)) field.destroyRaider(hitRaider, events);
-    if (hitShip && ship?.takeHit(loadout.shipDamage(MISSILE_SHIP_DAMAGE, ship.baysOpen))) {
-      events.push({ type: 'ResurrectionShipDestroyed', x: ship.x, y: ship.y });
+    if (hitRaider) {
+      if (hitRaider.takeHit(missileDamage)) field.destroyRaider(hitRaider, events);
+      else events.push({ type: 'RaiderHit', id: hitRaider.id, x: view.x, y: view.y, hp: hitRaider.hp, heavy: hitRaider.kind === 'heavy' });
+    }
+    if (hitShip && ship) {
+      if (ship.takeHit(loadout.shipDamage(MISSILE_SHIP_DAMAGE, ship.baysOpen))) {
+        events.push({ type: 'ResurrectionShipDestroyed', x: ship.x, y: ship.y });
+      } else {
+        events.push({ type: 'ResurrectionShipHit', x: view.x, y: view.y, hp: ship.hp, shielded: shipShielded });
+      }
     }
   }
 }
@@ -242,6 +255,7 @@ function resolveCylonHits(field: Battlefield, events: DomainEvent[]): void {
       events.push({ type: 'ViperEjected', x: viper.x, y: viper.y });
       return;
     }
+    events.push({ type: 'ViperHit', x: view.x, y: view.y, hp: viper.hp });
   }
 }
 
@@ -327,7 +341,9 @@ export function fireSix(field: Battlefield, tickSeconds: number, events: DomainE
     events.push({ type: 'SixIntercepted', x: target.x, y: target.y });
     return;
   }
-  if (target.raider.takeHit(SIX_DAMAGE)) field.destroyRaider(target.raider, events);
+  const raider = target.raider;
+  if (raider.takeHit(SIX_DAMAGE)) field.destroyRaider(raider, events);
+  else events.push({ type: 'RaiderHit', id: raider.id, x: raider.x, y: raider.y, hp: raider.hp, heavy: raider.kind === 'heavy' });
 }
 
 function pickSixTarget(

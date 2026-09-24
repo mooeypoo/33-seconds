@@ -456,6 +456,13 @@ const SABOTAGE = [
     mustFail: 'npm run test',
   },
   {
+    what: 'a hit the Viper survives goes unreported',
+    file: 'src/domain/combat/hits.ts',
+    find: "    events.push({ type: 'ViperHit', x: view.x, y: view.y, hp: viper.hp });",
+    replace: '    // sabotage: silent hits',
+    mustFail: 'npm run test',
+  },
+  {
     what: 'a tier repairs more of the fleet than it lost',
     file: 'src/balance/tiers.json',
     find: '"fleetRepairOfMissing": 0.4,',
