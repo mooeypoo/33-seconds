@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Status** | Living document (see below) |
-| **Last changed** | 2026-09-23 (see the changelog at the end) |
+| **Last changed** | 2026-09-24 (see the changelog at the end) |
 | **Owner** | Moriel |
 | **Related** | [Architecture guidelines (ADR-0001)](adr/0001-architecture.md), [AGENTS.md](../AGENTS.md) |
 
@@ -225,7 +225,7 @@ Losing on Viper Pilot requires taking near-cap damage over and over, meaning ign
 - Free movement in world units, with a little acceleration smoothing so it feels spacey but not drifty.
 - **Auto-fire** always on. No fire button. The gun points at the swarm side (up); it does not track a target. Start at about 5 shots per second.
 - Hull is reset by Tyrol at each jump. Start at **5** hits, so you outlast one Raider's 3 HP. If destroyed mid-cycle, you eject and are picked up after about 3 seconds. That costs downtime, never the run. A short cover on pickup so a round already in the cockpit is not an instant second eject.
-- **Eject and download must not look like the same pop.** Default death is an eject: you leave the board. *Anyone Could Be a Cylon* is a download: you never leave (PRD 10.2). **Live now:** the hull vanishes and the HUD says `ejected`; a still placeholder seat (not a flash) sits where you were until pickup. The card keeps the hull, adds a red-eye pixel, and the HUD says `two transponders`. **Graphics pass:** a real pilot-ejection symbol (seat / chute) for eject only. The download never uses that symbol. Colour is never the only cue.
+- **Eject and download must not look like the same pop.** Default death is an eject: you leave the board. *Anyone Could Be a Cylon* is a download: you never leave (PRD 10.2). **Live now:** the hull vanishes and the HUD says `ejected`; a placeholder parachute (canopy, lines, and a seat, not a flash) drifts in one slow arc from where you were until pickup. Reduced effects keeps the chute and skips the arc. The card keeps the hull, adds a red-eye pixel, and the HUD says `two transponders`. **Graphics pass:** a real pilot-ejection symbol (seat / chute) for eject only. The download never uses that symbol. Colour is never the only cue.
 - **Hull is visible on the Viper** as a row of pips (count, not only a colour), the same language as Raider pips. The HUD also names `hull n/max`.
 - **Mid-cycle hull pickups** ("life") wait. They should be rare and need a funny reason. Design them with the Recovering bonus cards, not as a combat drop in this pass.
 - Raider guns **aim at the Viper** (perfect lead, no spread). A later look may switch them to **straight down** (a column you bodyguard while you hunt). Not this pass.
@@ -656,3 +656,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-23 | A wide window plays a 324-wide lane. The Viper and the Raiders are a quarter larger there, pictures and hitboxes. The fleet and the shots stay the phone size. The same seed is the same scenario on the same playfield. A shared result carries the run's numbers, not a replay. | The fighters were about 28 pixels on a monitor. A phone and a desktop do not have to play the same lane. |
 | 2026-09-23 | Recovering is a sheet of three titles. Opening a title shows the effect, the joke, and Baltar and Roslin. Apply starts the next cycle immediately and ends the scene if it is still speaking. The reroll button says Refresh the list. The newest bonus name sits between fleet health and mute. | The old table showed every line at once, and a tap only held a choice until the scene finished, so a second tap could change it. |
 | 2026-09-23 | A closed Recovering row shows the name and the joke. The effect and the two advisors stay behind the row. Apply counts 3-2-1 before the next cycle. The pause menu does not cover that sheet, including Esc and the Pause button. Mute stays. | The joke is the line you choose from. The countdown is time to get back to the keyboard. The sheet was already a wait, so a second menu on top of it was in the way. |
+| 2026-09-24 | The eject marker is a placeholder parachute that drifts in one slow arc until pickup. Reduced effects holds it still. The download card still never shows it. | A seat of three bars did not read as an eject, and a still mark did not show the wait. |

@@ -146,7 +146,7 @@ Do not restyle this while proving other rules. Arrive cycle, expose cycle, HP, a
 
 Hull to zero is never a run loss (PRD 8.1). There are two ways back onto the board, and they must read as different deaths at a glance.
 
-**Eject** (default): the Viper leaves. You are gone for about 3 seconds, then a pickup at spawn. Play uses a vanished hull, HUD `ejected`, and a still placeholder seat where you were. The real `pilot_eject` sprite replaces that seat: a pilot-ejection symbol (seat / chute), still, no flash, no strobe. It sits until the Viper reappears, then it is gone. Olive/gunmetal, never Cylon red.
+**Eject** (default): the Viper leaves. You are gone for about 3 seconds, then a pickup at spawn. Play uses a vanished hull, HUD `ejected`, and a placeholder parachute that drifts in one slow arc from where you were. Reduced effects keeps the chute and skips the arc. The real `pilot_eject` sprite replaces that drawing: a pilot-ejection symbol (seat / chute), one frame, no flash, no strobe. The drift can stay in code. It sits until the Viper reappears, then it is gone. Olive/gunmetal, never Cylon red.
 
 **Download** (*Anyone Could Be a Cylon*): you do not leave. The hull stays, a red-eye pixel appears until the next jump, HUD says `two transponders`. No seat, no chute, no empty sky. The joke is that you resurrect like they do.
 
