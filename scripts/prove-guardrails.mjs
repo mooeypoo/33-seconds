@@ -108,8 +108,15 @@ const SABOTAGE = [
   {
     what: 'the Raider hitbox shrinks back to a near-miss',
     file: 'src/domain/swarm/raider.ts',
-    find: 'export const RAIDER_RADIUS_UNITS = 8;',
-    replace: 'export const RAIDER_RADIUS_UNITS = 4;',
+    find: 'export const RAIDER_RADIUS_UNITS = 10;',
+    replace: 'export const RAIDER_RADIUS_UNITS = 5;',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'the Raider hitbox grows past its wingtips',
+    file: 'src/domain/swarm/raider.ts',
+    find: 'export const RAIDER_RADIUS_UNITS = 10;',
+    replace: 'export const RAIDER_RADIUS_UNITS = 12;',
     mustFail: 'npm run test',
   },
   {

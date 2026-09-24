@@ -114,7 +114,7 @@ describe('derived lines', () => {
 
 describe('the session says the quiet part', () => {
   it('grumbles when a fight goes twelve seconds without a kill', () => {
-    const session = new GameSession(IDLE_INPUT, { raidersFire: false });
+    const session = new GameSession(IDLE_INPUT, { raidersFire: false, viperFires: false });
     session.start();
     const drought = BANTER_LINES.filter((line) => line.trigger === 'KillDrought').map((line) => line.text);
     let heard = false;

@@ -59,7 +59,8 @@ describe('Raptor Escort in a run', () => {
   });
 
   it('soaks a stray that lands on it', () => {
-    const game = createGame({ seed: 1, startingCards: ['raptor-escort'] });
+    // Held gun: the Raiders live to keep firing, so strays keep landing.
+    const game = createGame({ seed: 1, viperFires: false, startingCards: ['raptor-escort'] });
     let soaked = false;
     for (let i = 0; i < ticksFor(CYCLE_COMBAT_SECONDS); i++) {
       // Weave so aimed shots miss mid-field. Parking on an edge sends landings off the line

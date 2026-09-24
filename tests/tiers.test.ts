@@ -72,6 +72,7 @@ describe('tier profiles', () => {
     const game = createGame({
       seed: 1,
       raidersFire: false,
+      viperFires: false,
       fleetStartingIntegrity: FLEET_DAMAGE_PER_STRAFE,
       tierProfile: TIER_PROFILES['viper-pilot'],
     });

@@ -6,6 +6,7 @@ import { GameScene } from './GameScene';
 import type { StickSource } from './contexts/controls/StickPresenter';
 import type { ReducedEffectsSource } from './shared/comfort';
 import { PALETTE } from './shared/palette';
+import { PIXELS_PER_WORLD_UNIT } from './shared/renderScale';
 
 /**
  * The only composition root for Phaser (ADR-0001 D4). Phaser is imported nowhere else, which the
@@ -24,8 +25,8 @@ export function bootPhaser(
   const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent,
-    width: worldWidth,
-    height: WORLD_HEIGHT_UNITS,
+    width: worldWidth * PIXELS_PER_WORLD_UNIT,
+    height: WORLD_HEIGHT_UNITS * PIXELS_PER_WORLD_UNIT,
     backgroundColor: PALETTE.space,
     // Nearest-neighbour upscaling of the low-resolution world (PRD 14, ADR-0001 D4b).
     pixelArt: true,
@@ -53,7 +54,7 @@ export function bootPhaser(
       game.destroy(true);
     },
     resize: (width: number) => {
-      game.scale.resize(width, WORLD_HEIGHT_UNITS);
+      game.scale.resize(width * PIXELS_PER_WORLD_UNIT, WORLD_HEIGHT_UNITS * PIXELS_PER_WORLD_UNIT);
     },
   };
 }

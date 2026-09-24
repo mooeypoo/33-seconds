@@ -2,6 +2,7 @@ import type Phaser from 'phaser';
 import type { GameView } from '../../../../domain/views';
 import { MAX_RADIUS_PX, type StickState } from '../../../input/PointerStickInput';
 import type { Presenter } from '../../Presenter';
+import { PIXELS_PER_WORLD_UNIT } from '../../shared/renderScale';
 import type { ReducedEffectsSource } from '../../shared/comfort';
 import { PALETTE } from '../../shared/palette';
 
@@ -84,7 +85,7 @@ export class StickPresenter implements Presenter {
     const dot = this.dot;
     if (!bounds || !ring || !dot) return;
 
-    const pixelsPerUnit = bounds.width / this.scene.scale.width;
+    const pixelsPerUnit = bounds.width / (this.scene.scale.width / PIXELS_PER_WORLD_UNIT);
     ring.setPosition((state.originX - bounds.left) / pixelsPerUnit, (state.originY - bounds.top) / pixelsPerUnit);
     ring.setRadius(MAX_RADIUS_PX / pixelsPerUnit);
 
