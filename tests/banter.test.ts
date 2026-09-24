@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { Banter, commsDurationSeconds } from '../src/application/banter/Banter';
+import {
+  Banter,
+  COMMS_GAP_SECONDS,
+  COMMS_MIN_SHOWN_SECONDS,
+  commsDurationSeconds,
+  FLAVOR_LINES_PER_CYCLE,
+} from '../src/application/banter/Banter';
 import { BANTER_LINES, parseBanterLine, parseBanterSource, type BanterLine } from '../src/application/banter/lines';
 import type { DomainEvent } from '../src/domain/shared/events';
 import type { RandomStream } from '../src/domain/shared/random';
@@ -418,5 +424,163 @@ describe('Banter', () => {
     const comms = new Banter(stream(0), lines);
     expect(comms.mention('ResurrectionShipMilestone', { ...quiet, spoolPercent: 10, shipPercent: 75 })).toBe(true);
     expect(comms.line?.text).toBe('At 75.');
+  });
+});
+
+function pool(speaker: BanterLine['speaker'], trigger: BanterLine['trigger'], priority: BanterLine['priority'], texts: readonly string[], cooldownSeconds = 15): BanterLine[] {
+  return texts.map((text, index) => ({
+    id: `${speaker}-${trigger}-${String(index)}`,
+    speaker,
+    trigger,
+    text,
+    weight: 1,
+    cooldownSeconds,
+    priority,
+    chance: 1,
+    poolId: `${speaker}:${trigger}`,
+  }));
+}
+
+const fleetHit: DomainEvent = { type: 'FleetHit', damage: 1, integrity: 99, x: 1, shipId: 0, kind: 'stray' };
+const returned: DomainEvent = {
+  type: 'RaiderSpawned',
+  id: 2,
+  identityId: 2,
+  x: 0,
+  y: 0,
+  returned: true,
+  deaths: 1,
+  heavy: false,
+};
+
+/** Runs the strip until it is empty, and returns how long that took. */
+function waitForSilence(comms: Banter): number {
+  let seconds = 0;
+  while (comms.line !== null && seconds < 30) {
+    comms.advance(0.1);
+    seconds += 0.1;
+  }
+  return seconds;
+}
+
+describe('Banter pacing', () => {
+  it('keeps a quiet gap after a line, and only a critical call speaks into it', () => {
+    const lines = [
+      ...pool('gaeta', 'FleetHit', 'normal', ['Logged.'], 0),
+      ...pool('gaeta', 'FtlSpoolProgress', 'critical', ['Spooling.'], 0),
+    ];
+    const comms = new Banter(stream(0), lines);
+    comms.observe([fleetHit], quiet);
+    waitForSilence(comms);
+
+    comms.advance(COMMS_GAP_SECONDS - 0.5);
+    comms.observe([fleetHit], quiet);
+    expect(comms.line).toBeNull();
+
+    comms.observe([spool], quiet);
+    expect(comms.line?.text).toBe('Spooling.');
+    waitForSilence(comms);
+
+    comms.advance(COMMS_GAP_SECONDS + 0.1);
+    comms.observe([fleetHit], quiet);
+    expect(comms.line?.text).toBe('Logged.');
+  });
+
+  it('measures the gap from when the line ran out, even across one long step', () => {
+    const comms = new Banter(stream(0), pool('gaeta', 'FleetHit', 'normal', ['Logged.'], 0));
+    comms.observe([fleetHit], quiet);
+    comms.advance(commsDurationSeconds('Logged.') + COMMS_GAP_SECONDS + 0.1);
+    comms.observe([fleetHit], quiet);
+    expect(comms.line?.text).toBe('Logged.');
+  });
+
+  it('lets a new cycle open at once, even inside the last cycle’s gap', () => {
+    const lines = [
+      ...pool('gaeta', 'FleetHit', 'normal', ['Logged.'], 0),
+      ...pool('adama', 'CycleStarted', 'normal', ['Hold the line.'], 0),
+    ];
+    const comms = new Banter(stream(0), lines);
+    comms.observe([fleetHit], quiet);
+    waitForSilence(comms);
+    comms.observe([arrived], quiet);
+    expect(comms.line?.text).toBe('Hold the line.');
+  });
+
+  it('allows a few flavor lines per cycle, then only normal lines, until the next cycle', () => {
+    const lines = [
+      ...pool('starbuck', 'MissileLaunched', 'flavor', ['Catch.'], 0),
+      ...pool('gaeta', 'FleetHit', 'normal', ['Logged.'], 0),
+    ];
+    const comms = new Banter(stream(0), lines);
+    const speakAfterGap = (events: DomainEvent[]): string | null => {
+      waitForSilence(comms);
+      comms.advance(COMMS_GAP_SECONDS + 0.1);
+      comms.observe(events, quiet);
+      return comms.line?.text ?? null;
+    };
+    for (let said = 0; said < FLAVOR_LINES_PER_CYCLE; said++) expect(speakAfterGap([missile])).toBe('Catch.');
+    expect(speakAfterGap([missile])).toBeNull();
+    expect(speakAfterGap([fleetHit])).toBe('Logged.');
+
+    comms.observe([arrived], quiet);
+    expect(speakAfterGap([missile])).toBe('Catch.');
+  });
+
+  it('gives a flavor line a moment to be read, then lets a newer one take the strip', () => {
+    const lines = [
+      ...pool('starbuck', 'MissileLaunched', 'flavor', ['Catch.']),
+      ...pool('starbuck', 'RaiderResurrected', 'flavor', ['Back again.']),
+    ];
+    const comms = new Banter(stream(0), lines);
+    comms.observe([missile], quiet);
+    comms.advance(COMMS_MIN_SHOWN_SECONDS - 0.5);
+    comms.observe([returned], quiet);
+    expect(comms.line?.text).toBe('Catch.');
+
+    comms.advance(1);
+    comms.observe([returned], quiet);
+    expect(comms.line?.text).toBe('Back again.');
+  });
+
+  it('never lets a joke or another report push a report off the strip', () => {
+    const lines = [
+      ...pool('gaeta', 'FleetHit', 'normal', ['Logged.']),
+      ...pool('starbuck', 'MissileLaunched', 'flavor', ['Catch.']),
+      ...pool('adama', 'SpecialUsed', 'normal', ['Good speech.']),
+    ];
+    const comms = new Banter(stream(0), lines);
+    comms.observe([fleetHit], quiet);
+    comms.advance(COMMS_MIN_SHOWN_SECONDS + 1);
+    comms.observe([missile], quiet);
+    expect(comms.line?.text).toBe('Logged.');
+    comms.observe([speech], quiet);
+    expect(comms.line?.text).toBe('Logged.');
+  });
+
+  it('does not let a speaker answer the same moment with another joke until the cooldown ends', () => {
+    const comms = new Banter(stream(0), pool('starbuck', 'MissileLaunched', 'flavor', ['Catch.', 'Fox two.', 'Boom.'], 15));
+    comms.observe([missile], quiet);
+    waitForSilence(comms);
+    comms.advance(COMMS_GAP_SECONDS + 1);
+    comms.observe([missile], quiet);
+    expect(comms.line).toBeNull();
+
+    comms.advance(15);
+    comms.observe([missile], quiet);
+    expect(comms.line).not.toBeNull();
+  });
+
+  it('picks one responder per moment, and a quieter speaker can win it', () => {
+    const lines = [
+      ...pool('gaeta', 'FleetHit', 'normal', ['Logged.']),
+      ...pool('tigh', 'FleetHit', 'flavor', ['Frak.']),
+    ];
+    const low = new Banter(stream(0), lines);
+    low.observe([fleetHit], quiet);
+    expect(low.line?.speakerName).toBe('Gaeta');
+
+    const high = new Banter(stream(0.99), lines);
+    high.observe([fleetHit], quiet);
+    expect(high.line?.speakerName).toBe('Tigh');
   });
 });

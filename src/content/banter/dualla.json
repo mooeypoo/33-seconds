@@ -20,6 +20,7 @@
       "trigger": "FleetHit",
       "priority": "normal",
       "cooldownSeconds": 20,
+      "chance": 0.5,
       "lines": [
         { "id": "dualla-fleet-hit-01", "text": "We took a hit. Casualties being counted." },
         { "id": "dualla-fleet-hit-02", "text": "Minor damage reported. Nobody panic." },

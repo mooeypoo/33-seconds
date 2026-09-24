@@ -21,6 +21,7 @@
       "trigger": "FleetHit",
       "priority": "normal",
       "cooldownSeconds": 20,
+      "chance": 0.5,
       "lines": [
         { "id": "gaeta-fleet-hit-01", "text": "Civilian hull breach reported. Logging it." },
         { "id": "gaeta-fleet-hit-02", "text": "Stray round, aft quarter. Noted." },

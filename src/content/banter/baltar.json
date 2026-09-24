@@ -5,6 +5,7 @@
       "trigger": "FleetHit",
       "priority": "flavor",
       "cooldownSeconds": 25,
+      "chance": 0.5,
       "lines": [
         { "id": "baltar-fleet-hit-01", "text": "We're hit? We're hit. Is it bad? Don't answer." },
         { "id": "baltar-fleet-hit-02", "text": "Is that smoke? That's probably fine." },

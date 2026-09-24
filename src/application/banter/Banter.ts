@@ -38,6 +38,13 @@ export function commsDurationSeconds(text: string): number {
   return Math.min(8, Math.max(4, 1.5 + text.length / 12));
 }
 
+/** Silence after a line clears, so the strip breathes. Only a critical line speaks into it (PRD 12.2). */
+export const COMMS_GAP_SECONDS = 3;
+/** Flavor lines per cycle. Critical and normal lines do not count (PRD 12.2). */
+export const FLAVOR_LINES_PER_CYCLE = 3;
+/** A flavor line is up at least this long before a newer flavor line may take the strip. */
+export const COMMS_MIN_SHOWN_SECONDS = 2;
+
 function priorityRank(priority: BanterPriority): number {
   if (priority === 'critical') return 3;
   if (priority === 'normal') return 2;
@@ -49,16 +56,20 @@ interface ShownLine {
   readonly trigger: BanterTrigger;
   readonly priority: BanterPriority;
   readonly line: CommsLine;
+  readonly shownAtSeconds: number;
   remainingSeconds: number;
 }
 
 /**
- * Picks one comms line from domain events. Low priority is dropped, not queued (PRD 12.2).
- * Flavor stays quiet when the hull is at 1. The clock is the caller's, so pause freezes a line.
+ * Picks one comms line from domain events. Nothing is queued: a line that cannot speak now is
+ * dropped, so the strip never talks about something that is long over (PRD 12.2). Flavor stays
+ * quiet when the hull is at 1. The clock is the caller's, so pause freezes a line.
  */
 export class Banter {
   private readonly readyAtSeconds = new Map<string, number>();
   private elapsedSeconds = 0;
+  private quietUntilSeconds = 0;
+  private flavorShownThisCycle = 0;
   private shown: ShownLine | null = null;
 
   constructor(
@@ -71,29 +82,33 @@ export class Banter {
   }
 
   observe(events: readonly DomainEvent[], context: BanterContext): void {
+    // A new cycle gets a fresh flavor budget, and its opening line never waits on the last cycle's gap.
+    if (events.some((event) => event.type === 'CyclePhaseChanged' && event.phase === 'arriving')) {
+      this.flavorShownThisCycle = 0;
+      this.quietUntilSeconds = 0;
+    }
     const crisis = context.hull <= 1 || events.some((event) => event.type === 'ResurrectionShipArrived');
     const poolOpen = new Map<string, boolean>();
-    const candidates: BanterLine[] = [];
+    let chosen: BanterLine | null = null;
     for (const event of events) {
       for (const trigger of triggersFor(event)) {
-        for (const line of this.lines) {
-          if (line.trigger !== trigger) continue;
-          if (line.priority === 'flavor' && crisis) continue;
-          if ((this.readyAtSeconds.get(line.id) ?? 0) > this.elapsedSeconds) continue;
-          if (!this.poolIsOpen(line, poolOpen)) continue;
-          if (!offerMatches(line, context.offeredCardIds)) continue;
-          candidates.push(line);
+        const candidates = this.lines.filter(
+          (line) =>
+            line.trigger === trigger &&
+            this.eligible(line, crisis) &&
+            offerMatches(line, context.offeredCardIds) &&
+            this.poolIsOpen(line, poolOpen),
+        );
+        const heard = this.pickOne(candidates);
+        if (heard !== null && (chosen === null || priorityRank(heard.priority) > priorityRank(chosen.priority))) {
+          chosen = heard;
         }
       }
     }
 
-    const chosen = this.pickHighest(candidates);
     if (chosen === null) return;
     // A new hand replaces whatever was still on the strip. The jump is over.
-    if (chosen.trigger !== 'UpgradeOffered') {
-      if (this.shown !== null && priorityRank(chosen.priority) <= priorityRank(this.shown.priority)) return;
-    }
-
+    if (chosen.trigger !== 'UpgradeOffered' && !this.mayReplace(chosen, false)) return;
     this.show(chosen, context);
   }
 
@@ -103,21 +118,40 @@ export class Banter {
    */
   mention(trigger: BanterTrigger, context: BanterContext): boolean {
     const crisis = context.hull <= 1;
-    const ready = this.lines.filter((line) => {
-      if (line.trigger !== trigger) return false;
-      if (line.priority === 'flavor' && crisis) return false;
-      return (this.readyAtSeconds.get(line.id) ?? 0) <= this.elapsedSeconds;
-    });
-    const best = ready.reduce((rank, line) => Math.max(rank, priorityRank(line.priority)), 0);
-    if (best === 0) return false;
-    if (this.shown !== null && !replaces(best, this.shown, trigger)) return false;
-
     const poolOpen = new Map<string, boolean>();
-    const candidates = ready.filter((line) => this.poolIsOpen(line, poolOpen));
-    const chosen = this.pickHighest(candidates);
-    if (chosen === null) return false;
+    const candidates = this.lines.filter(
+      (line) => line.trigger === trigger && this.eligible(line, crisis) && this.poolIsOpen(line, poolOpen),
+    );
+    const chosen = this.pickOne(candidates);
+    if (chosen === null || !this.mayReplace(chosen, true)) return false;
     this.show(chosen, context);
     return true;
+  }
+
+  /** Cooldowns, the crisis rule, the gap after a line, and the flavor budget. */
+  private eligible(line: BanterLine, crisis: boolean): boolean {
+    if ((this.readyAtSeconds.get(cooldownKey(line)) ?? 0) > this.elapsedSeconds) return false;
+    if (line.priority === 'critical') return true;
+    if (this.elapsedSeconds < this.quietUntilSeconds) return false;
+    if (line.priority !== 'flavor') return true;
+    return !crisis && this.flavorShownThisCycle < FLAVOR_LINES_PER_CYCLE;
+  }
+
+  /**
+   * A louder line always takes the strip. A same-trigger mention can update itself (the spool
+   * countdown). A flavor line that has been read for a moment gives way to a newer one, so the
+   * strip follows the fight instead of lagging behind it.
+   */
+  private mayReplace(chosen: BanterLine, sameTriggerReplaces: boolean): boolean {
+    if (this.shown === null) return true;
+    const rank = priorityRank(chosen.priority);
+    const shownRank = priorityRank(this.shown.priority);
+    if (rank > shownRank) return true;
+    if (rank < shownRank) return false;
+    if (sameTriggerReplaces && this.shown.trigger === chosen.trigger) return true;
+    return (
+      chosen.priority === 'flavor' && this.elapsedSeconds - this.shown.shownAtSeconds >= COMMS_MIN_SHOWN_SECONDS
+    );
   }
 
   private show(chosen: BanterLine, context: BanterContext): void {
@@ -127,25 +161,28 @@ export class Banter {
       trigger: chosen.trigger,
       priority: chosen.priority,
       line: { speakerName: speakerName(chosen.speaker), text },
+      shownAtSeconds: this.elapsedSeconds,
       remainingSeconds: commsDurationSeconds(text),
     };
-    this.readyAtSeconds.set(chosen.id, this.elapsedSeconds + chosen.cooldownSeconds);
+    this.readyAtSeconds.set(cooldownKey(chosen), this.elapsedSeconds + chosen.cooldownSeconds);
+    if (chosen.priority === 'flavor') this.flavorShownThisCycle += 1;
   }
 
-  /** Game seconds. A paused session simply stops calling this. */
   /** Drops the line on the strip, if any. Cooldowns are kept, so it does not come straight back. */
   silence(): void {
     this.shown = null;
   }
 
+  /** Game seconds. A paused session simply stops calling this. */
   advance(seconds: number): void {
-    if (!Number.isFinite(seconds) || seconds <= 0 || this.shown === null) {
-      if (Number.isFinite(seconds) && seconds > 0) this.elapsedSeconds += seconds;
-      return;
-    }
+    if (!Number.isFinite(seconds) || seconds <= 0) return;
     this.elapsedSeconds += seconds;
+    if (this.shown === null) return;
     this.shown.remainingSeconds -= seconds;
-    if (this.shown.remainingSeconds <= 0) this.shown = null;
+    if (this.shown.remainingSeconds > 0) return;
+    // The gap starts when the line ran out, not at the end of this (possibly long) step.
+    this.quietUntilSeconds = this.elapsedSeconds + this.shown.remainingSeconds + COMMS_GAP_SECONDS;
+    this.shown = null;
   }
 
   /** One roll per pool per observe. Chance 1 does not touch the stream. */
@@ -157,20 +194,27 @@ export class Banter {
     return open;
   }
 
-  private pickHighest(candidates: readonly BanterLine[]): BanterLine | null {
-    const first = candidates[0];
-    if (!first) return null;
-    let best = priorityRank(first.priority);
-    for (const line of candidates) best = Math.max(best, priorityRank(line.priority));
-    const group = candidates.filter((line) => priorityRank(line.priority) === best);
-    return pickWeighted(group, this.random);
+  /**
+   * One response per moment: every speaker who may answer has the same chance, whatever their
+   * priority, so a quieter character still gets a word in. Then a joke from that speaker's pool.
+   */
+  private pickOne(candidates: readonly BanterLine[]): BanterLine | null {
+    const pools = [...new Set(candidates.map((line) => line.poolId))];
+    if (pools.length === 0) return null;
+    const pool = pools.length === 1 ? pools[0] : pools[Math.min(pools.length - 1, Math.floor(this.random.next() * pools.length))];
+    return pickWeighted(
+      candidates.filter((line) => line.poolId === pool),
+      this.random,
+    );
   }
 }
 
-function replaces(best: number, shown: ShownLine, trigger: BanterTrigger): boolean {
-  const rank = priorityRank(shown.priority);
-  if (best > rank) return true;
-  return best === rank && shown.trigger === trigger;
+/**
+ * A speaker who has just answered a moment does not answer it again with another joke (PRD 12.2).
+ * Critical calls keep one cooldown per line, so the spool countdown can speak at every mark.
+ */
+function cooldownKey(line: BanterLine): string {
+  return line.priority === 'critical' ? line.id : `${line.speaker}:${line.trigger}`;
 }
 
 function fillPlaceholders(text: string, context: BanterContext, trigger: BanterTrigger): string {

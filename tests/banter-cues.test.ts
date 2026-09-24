@@ -118,7 +118,8 @@ describe('the session says the quiet part', () => {
     session.start();
     const drought = BANTER_LINES.filter((line) => line.trigger === 'KillDrought').map((line) => line.text);
     let heard = false;
-    for (let frame = 0; frame < TICKS_PER_SECOND * 16 && !heard; frame++) {
+    // Twelve seconds, then it may wait out a line already on the strip and the gap after it.
+    for (let frame = 0; frame < TICKS_PER_SECOND * 24 && !heard; frame++) {
       session.advance(TICK_SECONDS);
       heard = drought.includes(session.status.comms?.text ?? '');
     }

@@ -29,6 +29,7 @@
       "trigger": "MissileLaunched",
       "priority": "flavor",
       "cooldownSeconds": 15,
+      "chance": 0.25,
       "lines": [
         { "id": "starbuck-missile-launched-01", "text": "Fox two. Try not to come back from that.", "weight": 2 },
         { "id": "starbuck-missile-launched-02", "text": "Special delivery, right in the head.", "weight": 2 },
@@ -58,6 +59,7 @@
       "trigger": "CloseCall",
       "priority": "flavor",
       "cooldownSeconds": 15,
+      "chance": 0.5,
       "lines": [
         { "id": "starbuck-close-call-01", "text": "That one had my name on it. Missed." },
         { "id": "starbuck-close-call-02", "text": "Too close. I'm counting that as a win." },

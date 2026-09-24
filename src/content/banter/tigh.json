@@ -5,6 +5,7 @@
       "trigger": "FleetHit",
       "priority": "flavor",
       "cooldownSeconds": 25,
+      "chance": 0.5,
       "lines": [
         { "id": "tigh-fleet-hit-01", "text": "Somebody's filing a report on this." },
         { "id": "tigh-fleet-hit-02", "text": "That's coming out of somebody's pay." },
