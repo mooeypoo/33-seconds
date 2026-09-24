@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import CycleClock from './CycleClock.vue';
-import MuteControl from './MuteControl.vue';
 import type { SessionPhase } from '../../application/GameSession';
 import { hudStore } from '../stores/hudStore';
 
@@ -104,7 +103,6 @@ const stats = hudStore.state;
         ⚙
       </button>
       <div class="menu" :class="{ open: settingsOpen }" data-ui>
-        <MuteControl compact />
         <button v-if="phase === 'running' && allowPause !== false" data-ui class="hud-button" type="button" @click="pause">
           Pause
         </button>
@@ -201,7 +199,7 @@ const stats = hudStore.state;
   gap: 8px;
 }
 
-/* Sound, Pause, and About need about 440px beside the fleet score. */
+/* Pause and About need about 440px beside the fleet score. Mute returns with the first sound. */
 @container topband (max-width: 440px) {
   .cog {
     display: inline-block;

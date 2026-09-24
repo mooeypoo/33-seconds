@@ -1,4 +1,8 @@
 <script setup lang="ts">
+/**
+ * Ready for the first sound (PRD 14.1). Nothing mounts it until then: the title, the HUD, and
+ * pause stay quiet while Phaser boots with noAudio. The muted flag in player settings is unchanged.
+ */
 import { settingsStore } from '../stores/settingsStore';
 
 defineProps<{ compact?: boolean }>();

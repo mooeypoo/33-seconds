@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { PauseReason, SessionStatus } from '../../application/GameSession';
-import MuteControl from './MuteControl.vue';
 import { settingsStore } from '../stores/settingsStore';
 
 const props = defineProps<{ status: SessionStatus }>();
@@ -33,7 +32,6 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
       <p class="note">Nothing is running: the clock, the swarm, and every effect are frozen.</p>
       <button class="resume" type="button" @click="emit('resume')">Resume</button>
       <button data-ui class="abandon" type="button" @click="emit('abandon')">Abandon run</button>
-      <MuteControl />
       <button
         data-ui
         class="effects"

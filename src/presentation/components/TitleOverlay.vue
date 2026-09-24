@@ -4,8 +4,6 @@ import titleCopy from '../../content/title.json';
 import viperNeutral from '../../../assets/ships/viper_neutral.png';
 import type { TierId } from '../../domain/balance/profile';
 import { createRandomStream } from '../../domain/shared/random';
-import MuteControl from './MuteControl.vue';
-
 const emit = defineEmits<{ start: [tier: TierId] }>();
 
 type Sheet = 'manual' | 'credits';
@@ -99,11 +97,6 @@ function onSheetKeydown(event: KeyboardEvent): void {
             <p class="kicker">{{ titleCopy.tiers.civilianKicker }}</p>
             <button class="civilian" type="button" @click="emit('start', 'civilian-ship')">Civilian Run</button>
             <p class="tier-note">{{ titleCopy.tiers.civilian }}</p>
-          </div>
-
-          <div class="sound-row">
-            <p class="sound">{{ titleCopy.sound }}</p>
-            <MuteControl />
           </div>
 
           <p class="hint">{{ titleCopy.controls }}</p>

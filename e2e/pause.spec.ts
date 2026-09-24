@@ -119,18 +119,4 @@ test.describe('pause', () => {
       .toBeLessThan(ticksWhenAbandoned);
   });
 
-  test('mute is labeled, large enough, and remembered', async ({ page }) => {
-    await page.goto('/');
-    const mute = page.getByRole('button', { name: 'Mute' });
-    await expect(mute).toBeVisible();
-    const box = (await mute.boundingBox())!;
-    expect(box.width).toBeGreaterThanOrEqual(44);
-    expect(box.height).toBeGreaterThanOrEqual(44);
-
-    await mute.click();
-    await expect(page.getByRole('button', { name: 'Unmute' })).toBeVisible();
-
-    await page.reload();
-    await expect(page.getByRole('button', { name: 'Unmute' })).toBeVisible();
-  });
 });

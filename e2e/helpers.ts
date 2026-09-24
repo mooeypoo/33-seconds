@@ -14,7 +14,7 @@ export async function viperPosition(page: Page): Promise<{ x: number; y: number 
   return { x: Number(x), y: Number(y) };
 }
 
-/** Pause, About, and Mute fold under Settings when the column is narrow. */
+/** Pause and About fold under Settings when the column is narrow. */
 export async function hudButton(page: Page, name: string): Promise<Locator> {
   const button = page.getByRole('button', { name, exact: true });
   if (!(await button.isVisible())) {
