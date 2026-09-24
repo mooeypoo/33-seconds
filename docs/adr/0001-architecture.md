@@ -144,7 +144,7 @@ The domain does not know that screen effects, audio, or jokes exist. Presentatio
 | Drawing, animation, filters, lighting, particles, tweens, fades, loading, scaling | Phaser |
 | Cosmetic physics (debris, casings) | Phaser, and the domain never reads it |
 | Input | Our adapters (D6), or Phaser's input plugin if the platform check shows it can listen on our root element with pointer capture |
-| Audio | Phaser's sound manager behind `AudioPort`, if the platform check passes on iOS |
+| Audio | ZzFX behind `AudioPort` (D12). Phaser's sound manager is not used; Phaser boots with `noAudio` |
 
 **Why the domain keeps the kinematics.** Movement here is simple (integrate velocity, clamp to the play area, circle overlap), so a physics engine adds little. Keeping it in the domain buys: headless tests and the balance simulation harness (D13), a shared daily scenario and fixed-step determinism (D2, D3), pause safety (D7), and a bounded cost if we ever leave Phaser. This is the one place we hold the line. Everything else can lean on Phaser as a platform.
 
@@ -350,7 +350,10 @@ export interface CycleProfile {
 - Suspend and resume with the session (D7). Separate volumes for music, effects, and comms.
 - Every audio cue has a visual equivalent (PRD section 15).
 - **Mute is a setting, not an audio-engine detail.** It lives in the application layer beside the other player settings, so the HUD, the pause menu, and the title screen all read one piece of state, and `AudioPort` is told about it rather than owning it. That keeps the control available even before an audio engine exists, and it keeps a muted game silent if the audio adapter is ever swapped.
-- Until an `AudioPort` exists, Phaser boots with `audio: { noAudio: true }`, so no audio context is created at all.
+- Phaser boots with `audio: { noAudio: true }`: it never makes an audio context. Sound is ours alone.
+- **Built (2026-09-24, ADR-0002 3.5).** `AudioPort` (application) has four verbs: unlock, play, suspend, master gain. `AudioDirector` (application) owns the cue table (domain event to sound id), the repeat limits (50 ms per sound, 3 voices per sound, 8 overall), pitch jitter from its own seeded stream, mute and volume, and when sound is held. `GameSession` feeds it running frames, the way it feeds comms, so pause freezes its clock. `ZzfxAudio` (infrastructure) synthesizes each sound once into a buffer and plays it through one master gain and a limiter.
+- **ZzFX makes an `AudioContext` when its module loads.** So it is imported dynamically inside `unlock` (its own 1 KB chunk), our own context is created synchronously in the Launch gesture (iOS needs that), only its sample builder is used, and its spare context is closed. A static import anywhere would break "no audio before the first gesture"; an end-to-end test counts contexts to catch that.
+- Sounds are data: `src/content/sounds.json`, validated by `check:content`. A hidden tab suspends sound separately from pause, because the Recovering sheet does not pause (PRD 13.3).
 
 ### D13. Quality strategy
 

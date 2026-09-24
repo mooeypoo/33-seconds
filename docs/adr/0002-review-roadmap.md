@@ -197,7 +197,7 @@ Detail in the [UI and UX review](../review/2026-09-24-ui-ux.md), section "Phase 
 
 Ask first: the brainstorm items in the UI and UX review.
 
-### Phase 3: Fun pass
+### Phase 3: Fun pass — done 2026-09-24
 
 - [x] **3.1** (2026-09-24) Balance simulation harness (ADR-0001 D13, `tools/sim/`), before any retuning.
   PR 3a. `npm run sim` prints win/loss, run length, fleet low, Raiders on screen, and ejects for each
@@ -216,8 +216,11 @@ Ask first: the brainstorm items in the UI and UX review.
   will reuse. `ImpactPresenter` (sparks, shield ripple), a 2-pixel cosmetic knock on the Raider, and a
   larger burst for a heavy. **No global hit-stop:** with auto-fire and four to six targets, kills come
   about once a second, and a freeze each time would stutter the game. Reduced effects: a still spark.
-- [ ] **3.5** Audio: `AudioPort`, the cue catalog (ADR-0001 D4), ZzFX effects, mute back in
-  the HUD (PRD 14.1).
+- [x] **3.5** (2026-09-24) Audio: `AudioPort`, the cue catalog (ADR-0001 D4), ZzFX effects, mute back in
+  the HUD (PRD 14.1). PR 3e. The cue table and limits live in `AudioDirector` (application), not in
+  the Phaser cue catalog, because sound is not a Phaser concern here (ADR-0001 D12). Placeholder
+  sounds for every id; auto-fire silent. Mute on the title, HUD, and pause menu, plus a master
+  volume. A dev-only sound test page at `/tools/sound-test/`.
 
 Ask first: the brainstorm items in the gameplay review.
 
