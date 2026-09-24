@@ -388,7 +388,7 @@ Gaeta and Dualla announce the same jump from two angles. The civilian count cree
 - **Duration:** `clamp(1.5 s + characters / 12, 4 s, 8 s)`, multiplied by a player setting (Short 0.75x, Normal 1x, Long 1.5x).
 - A **comms log** in the pause menu keeps the last 20 lines.
 - All comms timing runs on the game clock, so pause works.
-- The banter random stream is separate from gameplay, so choosing a joke never changes a seeded run.
+- The banter random stream is separate from gameplay, so choosing a joke never changes what happens in the fight.
 - Lines that share a moment live in one pool (same trigger, priority, and cooldown; the jokes are an array). A pool may set `chance` below 1 so that speaker is only sometimes eligible. The game still shows one line. Starbuck's cycle-start pool starts at 0.25, so Adama opens most cycles.
 
 **Live now:** one line at a time, from JSON pools, with the speaker's 64×64 portrait and name. Closed, open, and blink step on the game clock, two changes a second. Reduced effects holds the closed mouth. The signature frame is that closed picture until those files exist. The other person in a scene stays on closed. A name with no picture keeps the letter block. A scene shows the previous speaker beside the one who is talking. The line sits in a fixed-height band under the playfield, and a touch on it still steers. It does not cover the score, and a longer line does not resize the playfield. Pause and About stay above. On a narrow band they fold under Settings. The mute button is off the screen until there is sound. About pauses and opens how to play and what the game is. Missile and Speech sit on the playfield corners, above the dialogue strip. Cycle start (Adama, and sometimes Starbuck), FTL spool, the resurrection ship's arrival, a missile, the Speech, win, and loss. A dealt hand can speak about a card on that table, and a reroll can replace that line, unless a Recovering scene is using the strip. Someone asks who the pilot is talking to once each time Imaginary Six appears, and only when the strip is empty. `{seconds}`, `{percent}`, `{count}`, and `{total}` are filled when the line is chosen. Critical spool text can replace a lower line. A new hand can replace a line that is still up. Flavor stays quiet at 1 hull. The line follows the game clock, so pause freezes it. A fleet hit, a Raider coming back, and the factory's death each get a line. Three kills inside 2 seconds, a Cylon round that misses inside 16 units of the Viper, hull at 2 or below (once until it is repaired), and 12 seconds without a kill are noticed from the fight, not from new rules. The factory is called at 75, 50, and 25 percent of the hull it has left, with that percent in the line. The spool is also called at 5 seconds and at 2. Those timings are assumptions until a playtest. A heavy Raider is not in the fight, so those lines stay quiet. The comms log and the duration setting wait.
@@ -526,7 +526,7 @@ Later: remappable keys, left-handed layout, gamepad.
 
 - No accounts, no free-text input, no cookies, no third-party scripts or fonts, no analytics.
 - Local storage holds only: settings (volume, comms duration, reduced effects, readable font), best scores per tier, and the "seen" state for scenes and hints. It is versioned, validated when read, and treated as untrusted because a user can edit it.
-- **Leaderboard (later):** no free-text names. Players get a **generated callsign** or pick from a curated list. That removes both privacy risk and moderation burden. Stored: callsign, score, tier, daily seed date, timestamp. No accounts, so no personal data to delete. Server-side plausibility checks on scores. The leaderboard is for fun, not cheat-proof (see open questions).
+- **Leaderboard (later):** no free-text names. Players get a **generated callsign** or pick from a curated list. That removes both privacy risk and moderation burden. Stored: callsign, score, tier, game version, timestamp. No accounts, so no personal data to delete. Server-side plausibility checks on scores. The leaderboard is for fun, not cheat-proof (see open questions).
 - **Soon — share a finished run.** After a win or a loss, a link back to this site shows that run's points and details graphically and offers another game. A shareable image may go with the link; the page is useful without it. Not built yet. The link should carry the result itself: no account, no free text, nothing stored, nothing that identifies a person. A server-side share id needs the leaderboard design note before any server code.
 - If analytics are ever added: aggregate, cookieless, and disclosed on the title screen. Requires an ADR first.
 - The community may include minors, so the design assumes it does.
@@ -559,7 +559,7 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | M5 | **Personality** | feel the humor | Comms overlay, portraits (placeholder art), banter from JSON, Recovering scenes, Dradis-style HUD, audio, filters and effects with a reduced-effects mode. Your content and asset passes plug in here. **Player settings and storage arrive here, before the first sound**, so mute, the sound notice, and the reduced-effects toggle exist the moment there is anything to mute (section 14.1). Pause menu also gets **Abandon run** (back to title). |
 | M6 | **Polish and launch** | share it | Accessibility pass, phone QA, the full settings screen (built on the storage seam from M5), logo (title copy and disclaimer are live), local best scores, deploy. |
 
-**After MVP:** Vengeful, traits, Mandatory Firmware Update and loadout screen, remaining cards, more tiers, mutators, daily seed and leaderboard, gamepad, PWA install.
+**After MVP:** Vengeful, traits, Mandatory Firmware Update and loadout screen, remaining cards, more tiers, mutators, a seeded challenge and leaderboard, gamepad, PWA install.
 
 ## 19. Decisions and open questions
 
@@ -575,7 +575,7 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 6 | Playable pilot | Starbuck only (cosmetic). A wingman squad that blocks bullets, and lines that name those pilots, wait together (12.5). |
 | 7 | Endless tier | `[Later]` |
 | 8 | Leaderboard integrity | `[Later]`. Needs a short design note before any server code. Assume client scores can be forged. |
-| 9 | Daily seed | `[Later]`. Same seed on the same playfield means the same scenario (spawns and card offers), not a frame-identical replay. A phone and a desktop do not have to match. |
+| 9 | Seeds and a daily challenge | Every run is random. Seeds exist so tests can repeat a run; they promise nothing to players (ADR-0001 D3). A daily challenge or a "try my run" link is `[Later]` and would need a scenario discipline added back. |
 | 10 | Analytics | None. |
 | 11 | Languages | English. All text is data, so translation stays possible. |
 | 12 | Community heads-up | The owner does this before going public. |
@@ -585,7 +585,7 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 16 | Visual construction | Hybrid: hand-drawn sprites for ships, and code and filters for the background and effects (ADR-0001, D4b). |
 | 17 | A first-run tutorial | `[Later]`. A short lesson the first time someone launches, separate from Civilian Run. Civilian Run stays the same fight with an easier fleet, not that lesson. |
 
-**Still open (ask before deciding):** the license, the leaderboard and daily-seed design, and PWA scope.
+**Still open (ask before deciding):** the license, the leaderboard and seeded-challenge design, and PWA scope.
 
 ---
 
@@ -659,3 +659,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-24 | The eject marker is a placeholder parachute that drifts in one slow arc until pickup. Reduced effects holds it still. The download card still never shows it. | A seat of three bars did not read as an eject, and a still mark did not show the wait. |
 | 2026-09-24 | The mute button and the title's sound notice are off the screen until something can play. The `muted` setting and `MuteControl` stay. | A Sound on button with no sound was a control for a feature that is not in the game yet. |
 | 2026-09-24 | Decided after a full review, not built yet (ADR-0002): the countdown may leave the playfield as long as it stays visible while playing (changes 5.1 when built). A score and a run summary are in (feeds 17's share link). The swarm grows on a middle path, ramping across cycles while download / refill stays the rule (changes 9 when built). The heavy Raider comes with a cap on how many are on the field. The text half of every colour tell must reach the shipped HUD, not only the debug readout. Proposed, not decided: drop "same seed, same scenario" (decision 9). | A release build showed two Raiders, an empty desktop, and tells that only existed in the development readout. |
+| 2026-09-24 | Every run draws a fresh random seed. "Same seed, same scenario" and the daily seed are dropped; seeds exist for tests. A daily challenge or "try my run" link stays `[Later]` (decision 9). | Every run was seed 1, and a shared scenario would tax every future random feature for a challenge nobody asked for. |

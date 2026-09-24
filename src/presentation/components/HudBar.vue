@@ -35,7 +35,8 @@ const stats = hudStore.state;
       {{ stats.stats.fps }} fps · {{ stats.stats.ticks }} ticks · {{ stats.stats.renderWidth }}×{{
         stats.stats.renderHeight
       }}
-      @ {{ stats.stats.scale }}× · {{ phase }}<br />
+      @ {{ stats.stats.scale }}× · {{ phase }} ·
+      <span data-testid="sim">{{ stats.stats.frozen ? 'frozen' : 'live' }}</span><br />
       viper <span data-testid="viper-x">{{ stats.stats.viperX }}</span
       >, <span data-testid="viper-y">{{ stats.stats.viperY }}</span> · shots
       <span data-testid="shots">{{ stats.stats.shots }}</span> · kills

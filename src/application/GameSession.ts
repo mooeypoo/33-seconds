@@ -1,17 +1,15 @@
 import { DEFAULT_PLAY_TIER, profileFor } from '../balance/tiers';
-import { Banter, banterSeed, type BanterContext, type CommsLine } from './banter/Banter';
-import { BANTER_LINES } from './banter/lines';
-import { BanterCues, type Cue, type CueSnapshot } from './banter/cues';
-import { ScenePlayer } from './banter/recoveringScene';
+import type { CommsLine } from './banter/Banter';
+import { CommsDirector } from './banter/CommsDirector';
 import type { TierId } from '../domain/balance/profile';
 import { createGame, DEFAULT_RUN_SEED, type Game, type GameOptions } from '../domain/game';
 import { PHONE_PLAYFIELD, type Playfield } from '../domain/shared/world';
 import type { DomainEvent } from '../domain/shared/events';
 import { IDLE_INTENT } from '../domain/shared/intent';
-import { createRandomStream, type RandomStream } from '../domain/shared/random';
 import { TICK_SECONDS } from '../domain/shared/time';
 import type { GameView } from '../domain/views';
 import type { InputPort } from './ports/InputPort';
+import type { SeedSource } from './ports/SeedSource';
 import { buildHudViewModel, type HudViewModel } from './HudViewModel';
 
 /**
@@ -42,6 +40,14 @@ export interface FrameResult {
   readonly ticksAdvanced: number;
 }
 
+export interface SessionOptions extends GameOptions {
+  /**
+   * Draws each new run's seed (ADR-0002 D1). Ignored when `seed` is set, which is how tests pin a
+   * run. Without either, every run uses the default seed.
+   */
+  readonly seedSource?: SeedSource;
+}
+
 /** A frame longer than this is treated as a stall (a breakpoint, a backgrounded tab) and discarded. */
 export const MAX_FRAME_SECONDS = 0.25;
 
@@ -57,7 +63,9 @@ const NO_FRAME: FrameResult = { events: [], interpolationAlpha: 0, ticksAdvanced
  * stops feeding it ticks (ADR-0001 D7).
  */
 export class GameSession {
-  private readonly options: GameOptions;
+  private readonly options: SessionOptions;
+  /** This run's seed. Gameplay and comms each derive their own stream from it. */
+  private runSeed: number;
   private game: Game;
   private readonly input: InputPort;
   private readonly listeners = new Set<(status: SessionStatus) => void>();
@@ -68,20 +76,16 @@ export class GameSession {
   private accumulatorSeconds = 0;
   private countdownRemainingSeconds = 0;
   private pendingEvents: DomainEvent[] = [];
-  private banter: Banter;
-  private readonly scene = new ScenePlayer();
-  private sceneRandom!: RandomStream;
+  private readonly comms: CommsDirector;
   /** A card waiting out the 3-2-1 after Apply. The fight starts when that countdown ends. */
   private pendingUpgradeId: string | null = null;
-  private sixRemarkOwed = false;
-  private sixWasPresent = false;
-  private readonly cues = new BanterCues();
 
-  constructor(input: InputPort, options: GameOptions = {}) {
+  constructor(input: InputPort, options: SessionOptions = {}) {
     this.input = input;
     this.options = options;
-    this.game = createGame(options);
-    this.banter = this.freshBanter();
+    this.runSeed = options.seed ?? DEFAULT_RUN_SEED;
+    this.game = createGame({ ...options, seed: this.runSeed });
+    this.comms = new CommsDirector(this.runSeed);
   }
 
   get status(): SessionStatus {
@@ -89,7 +93,7 @@ export class GameSession {
       phase: this.phase,
       pauseReason: this.reason,
       countdownSeconds: Math.ceil(this.countdownRemainingSeconds),
-      comms: this.phase === 'title' ? null : this.scene.active ? this.scene.line : this.banter.line,
+      comms: this.phase === 'title' ? null : this.comms.line,
       choosingUpgrade:
         this.phase === 'running' && this.pendingUpgradeId === null && this.game.view.cycle.phase === 'recovering',
     };
@@ -120,7 +124,8 @@ export class GameSession {
   start(tier: TierId = DEFAULT_PLAY_TIER, playfield?: Playfield): void {
     if (this.phase !== 'title') return;
     const lane = playfield ?? this.options.playfield ?? PHONE_PLAYFIELD;
-    this.game = createGame({ ...this.options, tierProfile: profileFor(tier), playfield: lane });
+    this.runSeed = this.options.seed ?? this.options.seedSource?.() ?? DEFAULT_RUN_SEED;
+    this.game = createGame({ ...this.options, seed: this.runSeed, tierProfile: profileFor(tier), playfield: lane });
     this.resetChatter();
     this.phase = 'running';
     this.reason = null;
@@ -163,7 +168,7 @@ export class GameSession {
    */
   continueFromJump(): void {
     if (this.phase !== 'running') return;
-    this.scene.stop();
+    this.comms.stopScene();
     this.pendingEvents.push(...this.game.continueFromJump());
   }
 
@@ -244,7 +249,7 @@ export class GameSession {
         const cardId = this.pendingUpgradeId;
         this.pendingUpgradeId = null;
         if (cardId !== null) {
-          this.scene.stop();
+          this.comms.stopScene();
           this.pendingEvents.push(...this.game.pickUpgrade(cardId));
         }
         this.phase = 'running';
@@ -300,80 +305,14 @@ export class GameSession {
     };
   }
 
-  private freshBanter(): Banter {
-    const seed = this.options.seed ?? DEFAULT_RUN_SEED;
-    this.sceneRandom = createRandomStream(banterSeed(seed));
-    return new Banter(this.sceneRandom, BANTER_LINES);
-  }
-
   private resetChatter(): void {
-    this.banter = this.freshBanter();
-    this.scene.stop();
+    this.comms.reset(this.runSeed);
     this.pendingUpgradeId = null;
-    this.sixRemarkOwed = false;
-    this.sixWasPresent = false;
-    this.cues.reset();
   }
 
   /** Comms follows the game clock: this is only called from a frame that was running. */
   private noteBanter(events: readonly DomainEvent[], deltaSeconds: number): void {
-    const before = commsKey(this.status.comms);
-    const view = this.game.view;
-    const ships = view.fleet.ships;
-    // ASSUMPTION: Dualla's "ready" count is healthy civilian hulls. There is no separate FTL checklist yet.
-    const context = {
-      secondsRemaining: view.cycle.secondsRemaining,
-      hull: view.viper.hp,
-      spoolPercent: Math.round(view.cycle.spoolProgress * 100),
-      readyShips: ships.filter((ship) => ship.healthy).length,
-      shipTotal: ships.length,
-      offeredCardIds: view.upgradeOffer?.cardIds ?? [],
-    };
-
-    const enteredRecovering = events.some((event) => event.type === 'CyclePhaseChanged' && event.phase === 'recovering');
-    if (enteredRecovering) this.scene.start(view.recoveryBand, this.sceneRandom);
-
-    this.banter.observe(events, context);
-    if (!this.scene.active) this.playCues(events, view, context, deltaSeconds);
-    this.banter.advance(deltaSeconds);
-    const justLeftTheScene = this.scene.active && this.scene.advance(deltaSeconds);
-    // The arriving line is in next frame's events. Let it speak before anyone asks about Six.
-    if (!this.scene.active && !justLeftTheScene) this.maybeMentionSix(context);
-    if (enteredRecovering || commsKey(this.status.comms) !== before) this.publish();
-  }
-
-  /**
-   * Derived lines. Only the one still on the strip is accepted, so a louder line in the same
-   * frame does not eat a quieter moment.
-   */
-  private playCues(
-    events: readonly DomainEvent[],
-    view: GameView,
-    context: BanterContext,
-    deltaSeconds: number,
-  ): void {
-    let spoken: Cue | null = null;
-    for (const cue of this.cues.note(events, cueSnapshot(view), deltaSeconds)) {
-      const heard =
-        cue.shipPercent === undefined
-          ? this.banter.mention(cue.trigger, context)
-          : this.banter.mention(cue.trigger, { ...context, shipPercent: cue.shipPercent });
-      if (heard) spoken = cue;
-    }
-    if (spoken) this.cues.accept(spoken);
-  }
-
-  /**
-   * Someone asks who the pilot is talking to, once each time Six appears. Flavor, so it waits
-   * for a quiet strip and stays silent at 1 hull.
-   */
-  private maybeMentionSix(context: BanterContext): void {
-    const present = this.game.view.imaginarySix !== null;
-    if (present && !this.sixWasPresent) this.sixRemarkOwed = true;
-    if (!present) this.sixRemarkOwed = false;
-    this.sixWasPresent = present;
-    if (!this.sixRemarkOwed || this.banter.line !== null) return;
-    if (this.banter.mention('ImaginarySixActive', context)) this.sixRemarkOwed = false;
+    if (this.comms.noteFrame(events, this.game.view, deltaSeconds)) this.publish();
   }
 
   private publish(): void {
@@ -386,32 +325,6 @@ export class GameSession {
     const hud = buildHudViewModel(this.game.view);
     for (const listener of this.hudListeners) listener(hud);
   }
-}
-
-function cueSnapshot(view: GameView): CueSnapshot {
-  const ship = view.resurrectionShip;
-  return {
-    phase: view.cycle.phase,
-    secondsRemaining: view.cycle.secondsRemaining,
-    hull: view.viper.hp,
-    viperX: view.viper.x,
-    viperY: view.viper.y,
-    shots: view.projectiles.map((shot) => ({
-      id: shot.id,
-      x: shot.x,
-      y: shot.y,
-      previousX: shot.previousX,
-      previousY: shot.previousY,
-      owner: shot.owner,
-    })),
-    shipHp: ship !== null && !ship.destroyed ? ship.hp : null,
-    shipHpMax: ship?.hpMax ?? null,
-  };
-}
-
-function commsKey(line: CommsLine | null): string {
-  if (line === null) return '';
-  return `${line.speakerName}|${line.partnerName ?? ''}|${line.text}`;
 }
 
 function clampFrameSeconds(frameSeconds: number): number {

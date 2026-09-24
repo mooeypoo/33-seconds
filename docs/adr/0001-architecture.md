@@ -31,7 +31,7 @@ Read this section every session. The rest of the document explains and details.
 
 ## Context
 
-We are building a small browser game: a pixel-art, survivors-style shooter played on desktop and phone, with a 33-second cycle, resurrecting enemies, a persistent boss, a data-driven comedy layer, and later an optional daily-seed leaderboard.
+We are building a small browser game: a pixel-art, survivors-style shooter played on desktop and phone, with a 33-second cycle, resurrecting enemies, a persistent boss, a data-driven comedy layer, and later an optional leaderboard.
 
 Forces at play:
 
@@ -118,19 +118,18 @@ The domain does not know that screen effects, audio, or jokes exist. Presentatio
 
 ### D3. Determinism and random streams
 
-**Under review (2026-09-24):** ADR-0002 D1 proposes dropping "same seed, same scenario" and keeping only an injected, seedable stream for tests plus a separate cosmetic stream. Until the owner confirms, this section stands.
+**Revised 2026-09-24 (ADR-0002 D1).** The earlier version promised that the same seed gives the same scenario, for a daily seed. That promise is dropped.
 
 **Decision:**
-- A seedable RNG (for example a small mulberry32 or sfc32 implementation) with **separate streams**:
-  - `scenario`: spawn schedule and upgrade offers, seeded from `runSeed + cycleIndex`.
-  - `combat`: aim error, drops, chance-based effects.
-  - `banter` and `cosmetic`: never affect the simulation.
+- A seedable RNG (a small mulberry32) is injected into the domain. The domain never creates randomness from the outside world.
+- **Runs are random for players.** The composition root draws a fresh seed per run through the `SeedSource` port (the browser's `crypto`). Tests and the simulation harness pass a fixed seed, so a given seed plus the same inputs replays the same run in Node.
+- **Gameplay and comms use separate streams**, both derived from the run seed. Picking a joke never changes what a gameplay test sees.
 - `Math.random` and `Date` are forbidden in the domain (D1).
-- **Determinism scope:** the same seed gives the same **scenario** (what spawns and which cards are offered), not a frame-identical replay.
+- **No promise across play or versions:** the same seed with different inputs is a different run, and the order in which the domain draws numbers may change in any release.
 
-**Why:** the daily seed only needs a fair, shared scenario. Frame-identical replay across browsers is not reliable, since engines can differ in the last bits of trigonometric functions. Keeping banter on its own stream means picking a joke can never change a run.
+**Why:** the game is waves and jokes under fixed rules, and nobody asked for a shared scenario. Keeping one would tax every feature that uses randomness (hordes, patterns, drops) with a fixed draw order, for a daily seed that is only `[Later]`.
 
-**Consequence:** we do not promise anti-cheat by replay. See Risks and open question 5.
+**Consequence:** a daily challenge or a "try my run" link would need a scenario discipline added back (per-cycle and per-spawn streams, a version stamp). Because randomness is already injected, that is contained to the domain's draws. We do not promise anti-cheat by replay (open question 5).
 
 ### D4. Rendering and platform: Phaser 4 behind an anti-corruption layer
 
@@ -269,6 +268,8 @@ DOM structure and pointer policy:
 
 **Decision:** Lines, scenes, upgrade flair text, and portrait mappings live in `content/` as JSON, with TypeScript types and a **build-time validation script** (schema, length limits, unknown speakers, duplicate IDs, placeholders that do not exist). The Banter service in `application/banter` subscribes to domain events, applies priority, cooldowns, no-repeat memory, and shuffle-bag cameo rotation, and pushes a `CommsMessage` to the presentation store.
 
+**Live now (2026-09-24):** `npm run check:content` (in CI) runs the game's own loaders over every file and names each line or scene they would drop, duplicate ids, unknown placeholders, markup, emoji, unknown cards, and missing flair. The loaders still drop bad content quietly at runtime, so a player never sees a broken line.
+
 **Why:** writing jokes never touches game logic, and community contributors can send a pull request with only JSON. Content is bundled at build time, so nothing at runtime is fetched from a user-controlled source.
 
 **Consequence:** a content checklist (spoilers, IP, tone, length) applies to every content pull request. It lives in AGENTS.md.
@@ -328,7 +329,7 @@ export interface CycleProfile {
 - Netlify Functions with Netlify Blobs (or Supabase if more is needed).
 - **No free-text names.** Generated callsigns or a curated list.
 - Server validates with a schema, checks score plausibility bounds, and applies rate limiting (confirm what the platform provides, or implement it).
-- Same-origin only. Store the minimum: callsign, score, tier, daily seed date, timestamp. Define retention.
+- Same-origin only. Store the minimum: callsign, score, tier, game version, timestamp. Define retention.
 - Client-submitted scores are forgeable. Position the board as for fun, and record that decision (open question 5).
 
 ### D11. Hosting, build, and security headers

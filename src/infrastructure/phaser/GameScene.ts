@@ -135,6 +135,7 @@ export class GameScene extends Phaser.Scene {
     const view = this.session.view;
     this.reportStats({
       fps: measuredFps(this.game),
+      frozen: this.session.isFrozen,
       renderWidth: view.worldWidth,
       renderHeight: WORLD_HEIGHT_UNITS,
       scale: Math.round((canvas.clientWidth / view.worldWidth) * 10) / 10,
