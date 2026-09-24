@@ -1,4 +1,5 @@
 import { DEFAULT_PLAY_TIER, profileFor } from '../balance/tiers';
+import { AudioDirector } from './audio/AudioDirector';
 import type { CommsLine } from './banter/Banter';
 import { CommsDirector } from './banter/CommsDirector';
 import { fleetNamesForRun } from './fleetRoster';
@@ -9,6 +10,7 @@ import type { DomainEvent } from '../domain/shared/events';
 import { IDLE_INTENT } from '../domain/shared/intent';
 import { TICK_SECONDS } from '../domain/shared/time';
 import type { GameView } from '../domain/views';
+import { SILENT_AUDIO, type AudioPort } from './ports/AudioPort';
 import type { InputPort } from './ports/InputPort';
 import type { SeedSource } from './ports/SeedSource';
 import { buildHudViewModel, type HudViewModel } from './HudViewModel';
@@ -51,6 +53,8 @@ export interface SessionOptions extends GameOptions {
    * run. Without either, every run uses the default seed.
    */
   readonly seedSource?: SeedSource;
+  /** Where sound goes (ADR-0001 D12). Without one the game is silent, which is how tests run. */
+  readonly audio?: AudioPort;
 }
 
 /** A frame longer than this is treated as a stall (a breakpoint, a backgrounded tab) and discarded. */
@@ -84,6 +88,7 @@ export class GameSession {
   private countdownRemainingSeconds = 0;
   private pendingEvents: DomainEvent[] = [];
   private readonly comms: CommsDirector;
+  private readonly sound: AudioDirector;
   /** A card waiting out the 3-2-1 after Apply. The fight starts when that countdown ends. */
   private pendingUpgradeId: string | null = null;
 
@@ -93,6 +98,7 @@ export class GameSession {
     this.runSeed = options.seed ?? DEFAULT_RUN_SEED;
     this.game = createGame({ ...options, seed: this.runSeed });
     this.comms = new CommsDirector(this.runSeed);
+    this.sound = new AudioDirector(options.audio ?? SILENT_AUDIO, this.runSeed);
     this.fleetNames = fleetNamesForRun(this.runSeed);
   }
 
@@ -138,12 +144,32 @@ export class GameSession {
     this.fleetNames = fleetNamesForRun(this.runSeed);
     this.game = createGame({ ...this.options, seed: this.runSeed, tierProfile: profileFor(tier), playfield: lane });
     this.resetChatter();
+    // Launch is the player's first deliberate gesture: the first moment sound may exist (PRD 14.1).
+    this.sound.unlock();
     this.phase = 'running';
     this.reason = null;
     this.accumulatorSeconds = 0;
     this.input.clear();
     this.publish();
     this.publishHud();
+  }
+
+  /** Mute and master volume (0..1) from player settings. Applies at once, mid-sound included. */
+  setSoundLevel(muted: boolean, volume: number): void {
+    this.sound.setLevel(muted, volume);
+  }
+
+  /**
+   * The tab was hidden or shown. Sound stops while it is hidden, even on the Recovering sheet,
+   * which the session does not pause (PRD 13.3).
+   */
+  setPageHidden(hidden: boolean): void {
+    this.sound.setPageHidden(hidden);
+  }
+
+  /** A Recovering card was highlighted (not applied). Only a sound: the choice is still open. */
+  cardHighlighted(): void {
+    if (this.status.choosingUpgrade) this.sound.cue('card_select');
   }
 
   /**
@@ -194,6 +220,7 @@ export class GameSession {
     const offered = this.game.view.upgradeOffer?.cardIds ?? [];
     if (!offered.some((id) => id === cardId)) return;
     this.pendingUpgradeId = cardId;
+    this.sound.cue('card_apply');
     this.phase = 'resuming';
     this.reason = null;
     this.countdownRemainingSeconds = RESUME_COUNTDOWN_SECONDS;
@@ -308,6 +335,7 @@ export class GameSession {
     }
 
     this.noteBanter(events, delta);
+    this.sound.noteFrame(events, this.game.view.cycle, delta);
 
     return {
       events,
@@ -318,6 +346,7 @@ export class GameSession {
 
   private resetChatter(): void {
     this.comms.reset(this.runSeed);
+    this.sound.reset(this.runSeed);
     this.pendingUpgradeId = null;
   }
 
@@ -327,6 +356,9 @@ export class GameSession {
   }
 
   private publish(): void {
+    // Paused, or counting back in from a pause: sound holds where it was (ADR-0001 D7). The 3-2-1
+    // after Apply is not a pause, so the Apply sound plays through it.
+    this.sound.setHeld(this.phase === 'paused' || (this.phase === 'resuming' && this.pendingUpgradeId === null));
     const status = this.status;
     for (const listener of this.listeners) listener(status);
   }

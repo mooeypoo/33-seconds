@@ -21,7 +21,15 @@ export interface PlayerSettingsSnapshot {
    * shipped: an older envelope without it reads as off, so no version bump.
    */
   readonly readableFont: boolean;
+  /**
+   * Master volume, 0..1 (PRD 14.1). Added after v1 shipped: an older envelope without it reads as
+   * the default, so no version bump.
+   */
+  readonly volume: number;
 }
+
+/** Loud enough to hear over a phone speaker, with room to turn it up. */
+export const DEFAULT_VOLUME = 0.7;
 
 export const DEFAULT_PLAYER_SETTINGS: PlayerSettingsSnapshot = {
   version: PLAYER_SETTINGS_VERSION,
@@ -29,7 +37,13 @@ export const DEFAULT_PLAYER_SETTINGS: PlayerSettingsSnapshot = {
   reducedEffects: false,
   dragHintSeen: false,
   readableFont: false,
+  volume: DEFAULT_VOLUME,
 };
+
+/** Anything that is not a finite number in 0..1 is not a volume we trust. */
+function parseVolume(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 1 ? value : DEFAULT_VOLUME;
+}
 
 /**
  * Treats storage as hostile. Unknown shapes, wrong versions, and non-booleans become defaults.
@@ -44,6 +58,7 @@ export function parsePlayerSettings(raw: unknown): PlayerSettingsSnapshot {
     reducedEffects: record.reducedEffects === true,
     dragHintSeen: record.dragHintSeen === true,
     readableFont: record.readableFont === true,
+    volume: parseVolume(record.volume),
   };
 }
 
@@ -62,6 +77,7 @@ export function effectiveReducedEffects(osPrefersReducedMotion: boolean, setting
  */
 export class PlayerSettings {
   private current: PlayerSettingsSnapshot;
+  private readonly listeners = new Set<(snapshot: PlayerSettingsSnapshot) => void>();
 
   constructor(private readonly storage: StoragePort) {
     let raw: unknown;
@@ -77,8 +93,21 @@ export class PlayerSettings {
     return this.current;
   }
 
+  /** Called now and after every change. Returns an unsubscribe function. */
+  subscribe(listener: (snapshot: PlayerSettingsSnapshot) => void): () => void {
+    this.listeners.add(listener);
+    listener(this.current);
+    return () => this.listeners.delete(listener);
+  }
+
   setMuted(muted: boolean): void {
     this.patch({ muted });
+  }
+
+  /** Clamped to 0..1. A value that is not a number is ignored, not stored. */
+  setVolume(volume: number): void {
+    if (!Number.isFinite(volume)) return;
+    this.patch({ volume: Math.min(1, Math.max(0, volume)) });
   }
 
   setReducedEffects(reducedEffects: boolean): void {
@@ -100,5 +129,6 @@ export class PlayerSettings {
     } catch {
       // Quota, a hostile adapter, private browsing: mute still holds in memory (ADR-0001 D10).
     }
+    for (const listener of this.listeners) listener(this.current);
   }
 }
