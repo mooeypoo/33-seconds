@@ -1,6 +1,7 @@
 import { DEFAULT_PLAY_TIER, profileFor } from '../balance/tiers';
 import type { CommsLine } from './banter/Banter';
 import { CommsDirector } from './banter/CommsDirector';
+import { fleetNamesForRun } from './fleetRoster';
 import type { TierId } from '../domain/balance/profile';
 import { createGame, DEFAULT_RUN_SEED, type Game, type GameOptions } from '../domain/game';
 import { PHONE_PLAYFIELD, type Playfield } from '../domain/shared/world';
@@ -28,6 +29,10 @@ export interface SessionStatus {
   readonly countdownSeconds: number;
   /** The one comms line on screen, or null. A Recovering scene takes the strip. Pause freezes it. */
   readonly comms: CommsLine | null;
+  /** Past comms lines this run, oldest first, newest last (PRD 12.2). Empty on the title. */
+  readonly commsLog: readonly CommsLine[];
+  /** One name per fleet-line hull, in order, for this run (PRD 7.4). */
+  readonly fleetNames: readonly string[];
   /** The Recovering sheet is up. Focus loss does not cover it with the pause menu. */
   readonly choosingUpgrade: boolean;
 }
@@ -66,6 +71,8 @@ export class GameSession {
   private readonly options: SessionOptions;
   /** This run's seed. Gameplay and comms each derive their own stream from it. */
   private runSeed: number;
+  /** Drawn once per run from the roster stream. */
+  private fleetNames: readonly string[];
   private game: Game;
   private readonly input: InputPort;
   private readonly listeners = new Set<(status: SessionStatus) => void>();
@@ -86,6 +93,7 @@ export class GameSession {
     this.runSeed = options.seed ?? DEFAULT_RUN_SEED;
     this.game = createGame({ ...options, seed: this.runSeed });
     this.comms = new CommsDirector(this.runSeed);
+    this.fleetNames = fleetNamesForRun(this.runSeed);
   }
 
   get status(): SessionStatus {
@@ -94,6 +102,8 @@ export class GameSession {
       pauseReason: this.reason,
       countdownSeconds: Math.ceil(this.countdownRemainingSeconds),
       comms: this.phase === 'title' ? null : this.comms.line,
+      commsLog: this.phase === 'title' ? [] : [...this.comms.log],
+      fleetNames: this.fleetNames,
       choosingUpgrade:
         this.phase === 'running' && this.pendingUpgradeId === null && this.game.view.cycle.phase === 'recovering',
     };
@@ -125,6 +135,7 @@ export class GameSession {
     if (this.phase !== 'title') return;
     const lane = playfield ?? this.options.playfield ?? PHONE_PLAYFIELD;
     this.runSeed = this.options.seed ?? this.options.seedSource?.() ?? DEFAULT_RUN_SEED;
+    this.fleetNames = fleetNamesForRun(this.runSeed);
     this.game = createGame({ ...this.options, seed: this.runSeed, tierProfile: profileFor(tier), playfield: lane });
     this.resetChatter();
     this.phase = 'running';
@@ -168,7 +179,7 @@ export class GameSession {
    */
   continueFromJump(): void {
     if (this.phase !== 'running') return;
-    this.comms.stopScene();
+    this.comms.endRecovering();
     this.pendingEvents.push(...this.game.continueFromJump());
   }
 
@@ -249,7 +260,7 @@ export class GameSession {
         const cardId = this.pendingUpgradeId;
         this.pendingUpgradeId = null;
         if (cardId !== null) {
-          this.comms.stopScene();
+          this.comms.endRecovering();
           this.pendingEvents.push(...this.game.pickUpgrade(cardId));
         }
         this.phase = 'running';

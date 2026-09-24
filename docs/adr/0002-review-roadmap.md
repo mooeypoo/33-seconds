@@ -181,8 +181,15 @@ Detail in the [UI and UX review](../review/2026-09-24-ui-ux.md), section "Phase 
     game needs is now one checklist in `docs/art/SPRITE-FILES.md`.
   - Civilian ship names: nine drawn per run from a pool in `src/content/fleet.json` that the owner
     writes; Galactica always present. Rule in PRD 7.4, format in CONTENT-SCHEMA.
-- [ ] **2.2** Desktop consoles in the side margins, phone strips, one shell for title and run.
-- [ ] **2.3** Upgrade picks become cards (rarity, stacks, icon).
+- [x] **2.2** (2026-09-24) Desktop consoles in the side margins, phone strips, one shell for title and run.
+  PR 2a. `FleetConsole` (health, `JumpRing`, the named ship list from `fleetRoster`, objective) and
+  `CommsConsole` (128 px portrait, recent log, loadout, readouts, Pause and About) from 1100 px wide
+  (`useCicLayout`); the laptop collapse is CSS at under 1360 × 820. The lane element never changes,
+  because Phaser mounts into it once. The title stands the consoles by and sits in the lane. The
+  pause-menu comms log (PRD 12.2) came into this PR, because the laptop collapse points at it. Found
+  on the way: a card-advice line waiting under the Recovering scene surfaced in the next cycle;
+  `CommsDirector.endRecovering` now silences it.
+- [ ] **2.3** Upgrade picks become cards (rarity, stacks, icon). PR 2b. Card art slots per SPRITE-FILES.
 
 Ask first: the brainstorm items in the UI and UX review.
 

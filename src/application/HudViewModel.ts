@@ -1,5 +1,14 @@
 import { CYCLE_COMBAT_SECONDS } from '../domain/cycle/jumpCycle';
+import { cardDefinition, type CardRarity } from '../domain/progression/catalog';
 import type { GameView } from '../domain/views';
+
+/** One owned card, for the loadout list. Newest last, like the upgrade order. */
+export interface LoadoutEntry {
+  readonly id: string;
+  readonly stacks: number;
+  readonly maxStacks: number;
+  readonly rarity: CardRarity;
+}
 
 /**
  * Where the run is, for the objective line (ADR-0002 1.6). The words live in `content/hud.json`.
@@ -57,6 +66,19 @@ export interface HudViewModel {
   readonly raptorHpMax: number;
   readonly sixPresent: boolean;
   readonly objective: ObjectiveId;
+  /**
+   * One character per fleet-line hull, in order: `1` ready, `0` dinged. A string, so the overlay's
+   * field-by-field copy re-renders the ship list only when a hull changes.
+   */
+  readonly fleetShips: string;
+  /** Owned cards, newest last. Replaced only when the loadout changes (see `sameLoadout`). */
+  readonly loadout: readonly LoadoutEntry[];
+}
+
+/** True when two loadouts list the same cards and stacks, so the overlay can keep the old array. */
+export function sameLoadout(left: readonly LoadoutEntry[], right: readonly LoadoutEntry[]): boolean {
+  if (left.length !== right.length) return false;
+  return left.every((entry, index) => entry.id === right[index]?.id && entry.stacks === right[index].stacks);
 }
 
 function shipStatusOf(view: GameView): ShipStatus {
@@ -108,5 +130,11 @@ export function buildHudViewModel(view: GameView): HudViewModel {
     raptorHpMax: view.raptors.reduce((sum, raptor) => sum + raptor.hpMax, 0),
     sixPresent: view.imaginarySix?.present === true,
     objective: objectiveFor(shipStatus),
+    fleetShips: view.fleet.ships.map((hull) => (hull.healthy ? '1' : '0')).join(''),
+    loadout: view.upgradeOrder.flatMap((id) => {
+      const owned = view.loadout.find((card) => card.id === id);
+      if (!owned) return [];
+      return [{ id, stacks: owned.stacks, maxStacks: owned.maxStacks, rarity: cardDefinition(id).rarity }];
+    }),
   };
 }

@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import copy from '../../content/hud.json';
+import type { ObjectiveId } from '../../application/HudViewModel';
 import { hudStore } from '../stores/hudStore';
+
+/** On a phone the objective rides at the front of this row, to give the lane its height back. */
+const props = defineProps<{ withObjective?: boolean }>();
+const SHORT_OBJECTIVES: Record<ObjectiveId, string> = copy.objectivesShort;
 
 /**
  * The words behind every colour tell, in a release build (PRD 15, ADR-0002 1.3). Each item is a
@@ -11,12 +17,14 @@ interface StatusItem {
   readonly text: string;
   /** A state worth a second look: ejected, the spool, a factory you can hurt. Styled, and named. */
   readonly alert?: boolean;
+  readonly objective?: boolean;
 }
 
 const items = computed<StatusItem[]>(() => {
   const hud = hudStore.state.hud;
   if (!hud) return [];
   const list: StatusItem[] = [];
+  if (props.withObjective) list.push({ key: 'objective', text: SHORT_OBJECTIVES[hud.objective], objective: true });
 
   list.push(
     hud.ejected
@@ -49,7 +57,7 @@ const items = computed<StatusItem[]>(() => {
 
 <template>
   <ul class="status" data-testid="status-row" aria-label="Status">
-    <li v-for="item in items" :key="item.key" class="item" :class="{ alert: item.alert }" :data-testid="`status-${item.key}`">
+    <li v-for="item in items" :key="item.key" class="item" :class="{ alert: item.alert, objective: item.objective }" :data-testid="`status-${item.key}`">
       {{ item.text }}
     </li>
   </ul>
@@ -76,6 +84,12 @@ const items = computed<StatusItem[]>(() => {
   border: 1px solid var(--color-dradis-line);
   border-radius: 3px;
   white-space: nowrap;
+}
+
+.item.objective {
+  color: var(--color-text-strong);
+  background: var(--color-dradis-night);
+  border-color: var(--color-dradis-deep);
 }
 
 /* A thicker amber edge as well as the word itself, so the alert is never colour alone. */

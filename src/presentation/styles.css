@@ -75,6 +75,14 @@
   --color-brass: #c4b08a;
   --color-olive: #8a9b58;
 
+  /* The civilian line, as the playfield draws it. Olive, never Cylon red. */
+  --color-civilian-hull: #6b8f73;
+  --color-civilian-dinged: #2f4536;
+
+  /* A console on standby: present, powered down. */
+  --color-standby: #080b10;
+  --color-standby-line: #1e2c26;
+
   /* Gunmetal: neutral hardware. */
   --color-gunmetal: #46505e;
   --color-gunmetal-light: #c6ced8;

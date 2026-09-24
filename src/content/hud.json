@@ -4,5 +4,11 @@
     "shielded": "The resurrection ship is shielded. Hold until it drops.",
     "destroy": "Destroy the resurrection ship.",
     "last-wave": "The resurrection ship is down. Clear the last wave."
+  },
+  "objectivesShort": {
+    "hold": "Hold to the jump",
+    "shielded": "Hold: ship shielded",
+    "destroy": "Destroy the ship",
+    "last-wave": "Clear the last wave"
   }
 }

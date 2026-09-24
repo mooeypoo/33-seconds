@@ -3,16 +3,18 @@ import { nextTick, useTemplateRef, ref } from 'vue';
 import titleCopy from '../../content/title.json';
 import viperNeutral from '../../../assets/ships/viper_neutral.png';
 import type { TierId } from '../../domain/balance/profile';
-import { createRandomStream } from '../../domain/shared/random';
+import { titleQuote } from '../titleQuote';
+/**
+ * In the CIC shell the face sits in the lane only, between the standby consoles, which carry the
+ * quote and the disclaimer (ADR-0002 Phase 2). Otherwise it is the whole screen, as on a phone.
+ */
+defineProps<{ inLane?: boolean }>();
 const emit = defineEmits<{ start: [tier: TierId] }>();
 
 type Sheet = 'manual' | 'credits';
 type ManualTab = 'controls' | 'fight';
 
-const quotes = titleCopy.quotes;
-const buffer = new Uint32Array(1);
-crypto.getRandomValues(buffer);
-const quote = quotes[createRandomStream(buffer[0] ?? 1).index(quotes.length)] ?? '';
+const quote = titleQuote();
 const lead = titleCopy.body[1] ?? '';
 
 const sheet = ref<Sheet | null>(null);
@@ -64,7 +66,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
 
 <template>
   <!-- data-ui: the whole face is a control, including the clear well over the playfield, so a touch here is not the drag stick. -->
-  <div data-ui class="stage">
+  <div data-ui class="stage" :class="{ 'in-lane': inLane }">
     <div class="board" :inert="sheet !== null">
       <span class="bracket bracket-nw" aria-hidden="true"></span>
       <span class="bracket bracket-ne" aria-hidden="true"></span>
@@ -78,8 +80,10 @@ function onSheetKeydown(event: KeyboardEvent): void {
             <h1 class="title">{{ titleCopy.title }}</h1>
           </div>
           <p class="pitch">{{ titleCopy.body[0] }}</p>
-          <p class="inspired">{{ titleCopy.inspired }}</p>
-          <p v-if="quote" class="quote" data-testid="title-quote">{{ quote }}</p>
+          <template v-if="!inLane">
+            <p class="inspired">{{ titleCopy.inspired }}</p>
+            <p v-if="quote" class="quote" data-testid="title-quote">{{ quote }}</p>
+          </template>
         </div>
       </section>
 
@@ -108,7 +112,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
             </button>
           </div>
 
-          <p class="disclaimer">{{ titleCopy.disclaimer }}</p>
+          <p v-if="!inLane" class="disclaimer">{{ titleCopy.disclaimer }}</p>
         </div>
       </section>
     </div>
@@ -645,5 +649,44 @@ function onSheetKeydown(event: KeyboardEvent): void {
   .title {
     font-size: 48px;
   }
+}
+
+/* In the CIC lane: one centred column over the empty playfield, whatever the window width. */
+.stage.in-lane {
+  align-items: safe center;
+  padding: var(--space-4);
+  overflow: auto;
+  background: transparent;
+}
+
+.stage.in-lane .board {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: min(440px, 100%);
+  height: auto;
+}
+
+.stage.in-lane .mast,
+.stage.in-lane .actions {
+  display: block;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.stage.in-lane .mast-inner,
+.stage.in-lane .actions-inner {
+  width: auto;
+  padding: 0;
+  text-align: center;
+}
+
+.stage.in-lane .wordmark {
+  align-items: center;
+}
+
+.stage.in-lane .well {
+  min-height: 0;
 }
 </style>

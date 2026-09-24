@@ -17,6 +17,8 @@ const REASON_TEXT: Record<PauseReason, string> = {
 
 const reasonText = computed(() => (props.status.pauseReason ? REASON_TEXT[props.status.pauseReason] : 'Paused.'));
 const isCountingDown = computed(() => props.status.phase === 'resuming');
+/** The comms log, newest first (PRD 12.2). Frozen with everything else while paused. */
+const log = computed(() => [...props.status.commsLog].reverse());
 </script>
 
 <template>
@@ -50,10 +52,14 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
       >
         {{ settingsStore.state.snapshot.readableFont ? 'Readable font on' : 'Readable font off' }}
       </button>
-      <p class="note small">
-        Abandon run goes back to the title and discards this run. The comms log and the complaints
-        board wait.
-      </p>
+      <p class="note small">Abandon run goes back to the title and discards this run.</p>
+      <section class="log" aria-label="Comms log" data-testid="comms-log">
+        <h3 class="log-heading">Comms log</h3>
+        <p v-if="log.length === 0" class="note small">Nothing said yet.</p>
+        <ol v-else class="log-lines">
+          <li v-for="(line, index) in log" :key="index"><strong>{{ line.speakerName }}.</strong> {{ line.text }}</li>
+        </ol>
+      </section>
     </template>
   </div>
 </template>
@@ -68,7 +74,9 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
   flex-direction: column;
   gap: 12px;
   align-items: center;
-  justify-content: center;
+  /* safe: with the comms log, a short screen scrolls instead of clipping the top. */
+  justify-content: safe center;
+  overflow: auto;
   padding: 24px;
   text-align: center;
   background: rgb(var(--rgb-deep) / 82%);
@@ -142,5 +150,41 @@ const isCountingDown = computed(() => props.status.phase === 'resuming');
   border: 1px solid var(--color-dradis-line);
   border-radius: 8px;
   cursor: pointer;
+}
+.log {
+  width: min(440px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: left;
+}
+
+.log-heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
+  font-weight: 400;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-dradis-soft);
+}
+
+/* Up to twenty lines: it scrolls rather than pushing the buttons off a short screen. */
+.log-lines {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  max-height: 28vh;
+  overflow: auto;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--color-text-warm);
+  background: rgb(var(--rgb-panel) / 80%);
+  border: 1px solid var(--color-dradis-line);
+  border-radius: var(--radius);
 }
 </style>

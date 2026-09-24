@@ -1,6 +1,6 @@
 import { reactive } from 'vue';
 import type { FrameStats } from '../../application/FrameStats';
-import type { HudViewModel } from '../../application/HudViewModel';
+import { sameLoadout, type HudViewModel } from '../../application/HudViewModel';
 
 /**
  * A plain reactive store for the overlay (ADR-0001 D5, open question 3: no Pinia until something
@@ -31,8 +31,13 @@ export const hudStore = {
    * triggers nothing, and a frame where only the clock moved re-renders only the clock.
    */
   setHud(hud: HudViewModel): void {
-    if (state.hud === null) state.hud = { ...hud };
-    else Object.assign(state.hud, hud);
+    if (state.hud === null) {
+      state.hud = { ...hud };
+      return;
+    }
+    // A fresh loadout array every frame would re-render the list every frame; keep the old one.
+    const loadout = sameLoadout(state.hud.loadout, hud.loadout) ? state.hud.loadout : hud.loadout;
+    Object.assign(state.hud, hud, { loadout });
   },
   setStats(stats: FrameStats): void {
     state.stats = stats;

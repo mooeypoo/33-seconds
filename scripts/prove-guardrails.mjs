@@ -421,6 +421,13 @@ const SABOTAGE = [
     mustFail: 'npm run check:content',
   },
   {
+    what: 'a ship name overflows its console row',
+    file: 'src/content/fleet.json',
+    find: '"civilianNames": [',
+    replace: '"civilianNames": [\n    "A name far too long for one row of the fleet console",',
+    mustFail: 'npm run check:content',
+  },
+  {
     what: 'a card loses its flair',
     file: 'src/content/upgrades.flair.json',
     find: '"id": "accidentally-wide"',
