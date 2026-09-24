@@ -9,6 +9,12 @@ import type { GameView } from '../domain/views';
  */
 export interface RenderStats {
   readonly fps: number;
+  /**
+   * Whether the session was frozen when this snapshot was taken. The readout lags the game by up
+   * to a few frames, so a test that needs the paused tick count waits for a frozen snapshot rather
+   * than for time to pass.
+   */
+  readonly frozen: boolean;
   readonly renderWidth: number;
   readonly renderHeight: number;
   readonly scale: number;

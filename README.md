@@ -31,6 +31,7 @@ Pause with Esc, P, or the pause button.
 | `npm run test` | Vitest engine tests (domain and session), headless, no DOM |
 | `npm run test:e2e` | Playwright flows: input over overlays, pause, CSP boot |
 | `npm run check:arch` | dependency-cruiser layer-boundary check |
+| `npm run check:content` | Validates banter, scenes, and card flair in `src/content` |
 | `npm run check:guardrails` | Breaks the code on purpose and checks something fails |
 
 ## How it is put together

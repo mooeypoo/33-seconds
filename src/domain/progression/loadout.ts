@@ -32,8 +32,8 @@ export interface UpgradeOffer {
 }
 
 /**
- * Stacks and the numbers they produce. Offers are drawn from the scenario stream so the same seed
- * means the same table (PRD decision 9).
+ * Stacks and the numbers they produce. Offers are drawn from the gameplay stream, so a pinned seed
+ * and the same inputs give the same table in tests.
  */
 export class Loadout {
   private readonly stacks = new Map<CardId, number>();

@@ -8,6 +8,7 @@ import { KeyboardInput } from './infrastructure/input/KeyboardInput';
 import { PointerStickInput } from './infrastructure/input/PointerStickInput';
 import { ButtonLatchInput } from './infrastructure/input/ButtonLatchInput';
 import { bootPhaser } from './infrastructure/phaser/PhaserGame';
+import { cryptoSeed } from './infrastructure/random/cryptoSeed';
 import { createStoragePort } from './infrastructure/storage/LocalStorageAdapter';
 import App from './presentation/App.vue';
 import {
@@ -44,7 +45,8 @@ const keyboard = new KeyboardInput({
 });
 
 const playfield = playfieldForWindow(window.innerWidth);
-const session = new GameSession(new CombinedInput(stick, keyboard, buttons), { playfield });
+// Every Launch draws a fresh seed, so runs differ (ADR-0002 D1).
+const session = new GameSession(new CombinedInput(stick, keyboard, buttons), { playfield, seedSource: cryptoSeed });
 let resizePlayfield = (_worldWidth: number): void => {};
 
 keyboard.attach();

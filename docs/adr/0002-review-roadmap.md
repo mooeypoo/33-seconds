@@ -1,6 +1,6 @@
 # ADR-0002: Review follow-up roadmap
 
-**Status:** Accepted (plan), 2026-09-24. D1 (seeds) is **proposed**, waiting for the owner.
+**Status:** Accepted, 2026-09-24. D1 (seeds) accepted by the owner on 2026-09-24 after comparing it with keeping the promise.
 **Deciders:** Moriel (owner)
 **Related:** [ADR-0001](0001-architecture.md), [PRD](../PRD.md),
 [gameplay review](../review/2026-09-24-gameplay.md), [UI and UX review](../review/2026-09-24-ui-ux.md),
@@ -49,7 +49,7 @@ the release build on a 1440×900 desktop, a 1280×720 laptop, and a Pixel 7. All
 
 ## Decisions
 
-### D1. Seeds: random per run, seedable for tests (proposed)
+### D1. Seeds: random per run, seedable for tests (accepted)
 
 **Proposal:** drop the promise that the same seed gives the same scenario, and drop the daily seed.
 Keep randomness injected into the domain.
@@ -82,7 +82,7 @@ asked for. Without it, horde and spawn design can use randomness freely.
 to come back. At this size that is a few days of work, and it would need a version stamp anyway,
 because any balance change breaks old seeds.
 
-**Owner to confirm.** Until then, Phase 0 does not touch the random streams.
+**Accepted 2026-09-24.** Built in Phase 0.9 through a `SeedSource` port. ADR-0001 D3 is rewritten to match. The two existing gameplay streams (scenario, and the resurrection ship's station-keeping) stay as they are: merging them would reshuffle every seeded test for no player benefit.
 
 ### D2. The HUD reads an application view model, not the renderer
 
@@ -114,7 +114,7 @@ One PR for this documentation, then at least one PR per phase. Phase 0 may be tw
 
 ## Phases
 
-### Phase 0: Architecture groundwork (no visible change)
+### Phase 0: Architecture groundwork (no visible change) — done 2026-09-24
 
 - [x] **0.1** (2026-09-24) Ghost bar reads progress from the view. Failing test first: with *Your Call Is
   Important to Us*, a fresh ghost shows 0 progress and fills evenly over 8 s.
@@ -128,14 +128,21 @@ One PR for this documentation, then at least one PR per phase. Phase 0 may be tw
   progress (the chute no longer counts ticks against a constant); top speed after cards (bank
   frames); Galactica by flag, not index. Drawing sizes stay imported, as D3 allows.
 - [x] **0.5** (2026-09-24) `Game.view` is built once per tick and reused, including the missile lock.
-- [ ] **0.6** Split `Game` into domain services (D4). Behavior-preserving: the existing tests
-  are the proof.
-- [ ] **0.7** `CommsDirector` takes banter, cues, scenes, and the Six remark out of `GameSession`.
-- [ ] **0.8** Content validation (ADR-0001 D8): a `check:content` script for unknown speakers,
-  duplicate ids, length limits, and placeholders that do not exist. Runs in CI.
-- [ ] **0.9** Random streams per D1, once the owner confirms it.
+- [x] **0.6** (2026-09-24) Split `Game` into domain services (D4). Behavior-preserving: the existing tests
+  are the proof. `swarm/Swarm.ts` (live Raiders, download queue, Director, tokens, the kill),
+  `combat/Munitions.ts` (shot and missile pools), and `combat/hits.ts` (gun, missile, Cylon rounds,
+  fleet line, Raptor soak, flak, Six's beam) over a typed `Battlefield`. `game.ts` went from 1,164
+  to 628 lines and keeps the tick order, firing, the missile lock, the ship's arrival, win and loss,
+  and the view. The 205 tests passed unchanged; five guardrail anchors moved with the code.
+- [x] **0.7** (2026-09-24) `CommsDirector` takes banter, cues, scenes, and the Six remark out of `GameSession`.
+  `GameSession` went from 432 to 339 lines.
+- [x] **0.8** (2026-09-24) Content validation (ADR-0001 D8): a `check:content` script for unknown speakers,
+  duplicate ids, length limits, and placeholders that do not exist. Runs in CI. It reuses the
+  game's own loaders and names every line or scene they would drop, plus markup, emoji, unknown
+  cards, and flair coverage. Four new guardrail sabotages prove it fails.
+- [x] **0.9** (2026-09-24) Random streams per D1: a fresh seed per run through a `SeedSource` port, docs aligned.
+  `crypto` in the browser, a pinned seed in tests. ADR-0001 D3 and PRD decision 9 rewritten.
 
-Ask first: D1.
 
 ### Phase 1: Quick UX wins
 
@@ -188,6 +195,11 @@ Ask first: the brainstorm items in the gameplay review.
 - [ ] **6.2** Real-phone gates (ADR-0001 D4), deploy preview check.
 
 ## Open, to discuss when convenient
+
+- CONTENT-SCHEMA 5 says `check:content` "fails a scene that would run longer" than 12 seconds.
+  PRD 12.3 (newer) says the beats shrink together so the scene still finishes, and the code does
+  that. The check follows the PRD and does not fail long scenes. Owner to confirm, then align the
+  schema.
 
 - The PRD has become part changelog: its "Live now" paragraphs repeat the changelog and bury the
   rules. Suggestion: move them to a short status file and keep the PRD to rules.

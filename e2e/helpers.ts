@@ -76,24 +76,14 @@ export async function readTicks(page: Page): Promise<number> {
 }
 
 /**
- * The tick count once the readout has stopped moving, for a baseline while paused. The renderer
- * refreshes the readout a few times a second and can fall behind on a loaded machine, so a fixed
- * wait can still read a count from before the pause. Two equal reads a readout-refresh apart are
- * the settled value.
+ * The tick count while paused. The readout is a snapshot the renderer takes a few times a second,
+ * and on a loaded machine it can lag the game by longer than any fixed wait. Each snapshot says
+ * whether the session was frozen when it was taken, so the first frozen snapshot carries the
+ * paused tick count. If the game never pauses, this times out.
  */
 export async function settledTicks(page: Page): Promise<number> {
-  let previous = await readTicks(page);
-  await expect
-    .poll(
-      async () => {
-        await page.waitForTimeout(300);
-        const now = await readTicks(page);
-        const settled = now === previous;
-        previous = now;
-        return settled;
-      },
-      { message: 'the tick readout should settle while paused', timeout: 10_000 },
-    )
-    .toBe(true);
-  return previous;
+  await expect(page.getByTestId('sim'), 'the readout should report a frozen session').toHaveText('frozen', {
+    timeout: 10_000,
+  });
+  return readTicks(page);
 }

@@ -542,3 +542,45 @@ describe('the HUD feed', () => {
     expect(older).toBe(1);
   });
 });
+
+describe('run seeds', () => {
+  function firstSpawnX(seed: number): number {
+    const seeded = new GameSession(new FakeInput(), { seedSource: () => seed });
+    seeded.start();
+    seeded.advance(ONE_FRAME_AT_60HZ);
+    return seeded.view.raiders[0]?.x ?? Number.NaN;
+  }
+
+  it('draws a fresh seed for every Launch, so runs differ', () => {
+    const drawn: number[] = [];
+    let next = 100;
+    const fresh = new GameSession(new FakeInput(), {
+      seedSource: () => {
+        next += 1;
+        drawn.push(next);
+        return next;
+      },
+    });
+    fresh.start();
+    fresh.pause('player');
+    fresh.abandonRun();
+    fresh.start();
+    expect(drawn).toEqual([101, 102]);
+
+    expect(firstSpawnX(7)).toBe(firstSpawnX(7));
+    expect(firstSpawnX(7)).not.toBe(firstSpawnX(8));
+  });
+
+  it('keeps a pinned seed over the seed source, so tests and the harness stay repeatable', () => {
+    let asked = 0;
+    const pinned = new GameSession(new FakeInput(), {
+      seed: 3,
+      seedSource: () => {
+        asked += 1;
+        return 99;
+      },
+    });
+    pinned.start();
+    expect(asked).toBe(0);
+  });
+});

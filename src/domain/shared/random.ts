@@ -1,7 +1,7 @@
 /**
  * Seeded randomness (ADR-0001 D3). The domain never reaches for `Math.random`: a stream is created
- * from a seed and passed in, so the same seed gives the same scenario, tests are repeatable, and the
- * balance harness can replay a run.
+ * from a seed and passed in, so tests are repeatable and the balance harness can replay a run with the
+ * same inputs. Players get a fresh seed per run; nothing promises them a shared scenario.
  *
  * Streams are separate on purpose. `scenario` decides what spawns; `cosmetic` and `banter` arrive
  * later and must never touch the simulation, because picking a joke cannot be allowed to change a
