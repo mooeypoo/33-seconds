@@ -6,12 +6,12 @@ import { hudStore } from '../stores/hudStore';
 const titles = new Map((flair as { id: string; title: string }[]).map((card) => [card.id, card.title]));
 
 const title = computed(() => {
-  const id = hudStore.state.stats?.latestUpgradeId;
+  const id = hudStore.state.hud?.latestUpgradeId;
   if (!id) return null;
   return titles.get(id) ?? id;
 });
 
-const older = computed(() => hudStore.state.stats?.olderUpgradeCount ?? 0);
+const older = computed(() => hudStore.state.hud?.olderUpgradeCount ?? 0);
 </script>
 
 <template>

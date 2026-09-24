@@ -17,8 +17,8 @@ const SABOTAGE = [
   {
     what: 'domain imports Phaser',
     file: 'src/domain/game.ts',
-    find: "import { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';",
-    replace: "import Phaser from 'phaser';\nimport { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';",
+    find: "import { Viper, VIPER_HALF_HEIGHT_UNITS, VIPER_HULL_HIT_POINTS } from './combat/viper';",
+    replace: "import Phaser from 'phaser';\nimport { Viper, VIPER_HALF_HEIGHT_UNITS, VIPER_HULL_HIT_POINTS } from './combat/viper';",
     mustFail: 'npm run check:arch',
   },
   {
@@ -199,8 +199,8 @@ const SABOTAGE = [
     {
       what: 'a destroyed resurrection ship still queues downloads',
       file: 'src/domain/game.ts',
-      find: '          if (!this.resurrectionShip?.isDestroyed) {\n            this.downloads.push(\n              new Download(\n                raider.identityId,\n                raider.deaths + 1,\n                raider.x,\n                raider.y,\n                this.loadout.downloadSeconds,\n              ),\n            );\n          }',
-      replace: '          this.downloads.push(\n              new Download(\n                raider.identityId,\n                raider.deaths + 1,\n                raider.x,\n                raider.y,\n                this.loadout.downloadSeconds,\n              ),\n            );',
+      find: '    if (!this.resurrectionShip?.isDestroyed) {\n      this.downloads.push(\n        new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y, this.loadout.downloadSeconds),\n      );\n    }',
+      replace: '    this.downloads.push(\n      new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y, this.loadout.downloadSeconds),\n    );',
       mustFail: 'npm run test',
     },
     {
@@ -311,14 +311,14 @@ const SABOTAGE = [
     {
       what: 'Raptor Escort never launches',
       file: 'src/domain/game.ts',
-      find: '    const count = this.loadout.raptorCount;\n    this.raptors = [];\n    for (let index = 0; index < count; index++) {\n      this.raptors.push(new Raptor(index, raptorLaunchX(index, count), index % 2 === 0 ? 1 : -1));\n    }',
+      find: '    const count = this.loadout.raptorCount;\n    this.raptors = [];\n    for (let index = 0; index < count; index++) {\n      this.raptors.push(\n        new Raptor(index, raptorLaunchX(index, count, this.playfield.width), index % 2 === 0 ? 1 : -1, this.playfield.width),\n      );\n    }',
       replace: '    // sabotage: the escort stayed in the barn',
       mustFail: 'npm run test',
     },
     {
       what: 'Imaginary Six never appears',
       file: 'src/domain/game.ts',
-      find: '    if (this.loadout.hasImaginarySix) this.six ??= new ImaginarySix();\n    else this.six = null;',
+      find: '    if (this.loadout.hasImaginarySix) this.six ??= new ImaginarySix(this.playfield.width);\n    else this.six = null;',
       replace: '    // sabotage: she was never there',
       mustFail: 'npm run test',
     },

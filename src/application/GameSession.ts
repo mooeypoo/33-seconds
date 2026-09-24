@@ -12,6 +12,7 @@ import { createRandomStream, type RandomStream } from '../domain/shared/random';
 import { TICK_SECONDS } from '../domain/shared/time';
 import type { GameView } from '../domain/views';
 import type { InputPort } from './ports/InputPort';
+import { buildHudViewModel, type HudViewModel } from './HudViewModel';
 
 /**
  * Where the run is. `resuming` is the 3-2-1 countdown that pause ends with (PRD 13.3): the
@@ -60,6 +61,7 @@ export class GameSession {
   private game: Game;
   private readonly input: InputPort;
   private readonly listeners = new Set<(status: SessionStatus) => void>();
+  private readonly hudListeners = new Set<(hud: HudViewModel) => void>();
 
   private phase: SessionPhase = 'title';
   private reason: PauseReason | null = null;
@@ -104,6 +106,16 @@ export class GameSession {
     return () => this.listeners.delete(listener);
   }
 
+  /**
+   * Subscribe to the HUD model (ADR-0002 D2). It is published after every frame and whenever a new
+   * run starts, so the overlay never waits on the renderer. Returns an unsubscribe function.
+   */
+  subscribeHud(listener: (hud: HudViewModel) => void): () => void {
+    this.hudListeners.add(listener);
+    listener(buildHudViewModel(this.game.view));
+    return () => this.hudListeners.delete(listener);
+  }
+
   /** Leaves the title screen. Also the first user gesture, which is when audio may start (D12). */
   start(tier: TierId = DEFAULT_PLAY_TIER, playfield?: Playfield): void {
     if (this.phase !== 'title') return;
@@ -115,6 +127,7 @@ export class GameSession {
     this.accumulatorSeconds = 0;
     this.input.clear();
     this.publish();
+    this.publishHud();
   }
 
   /**
@@ -216,6 +229,12 @@ export class GameSession {
    * @param frameSeconds real time since the previous frame
    */
   advance(frameSeconds: number): FrameResult {
+    const frame = this.advanceFrame(frameSeconds);
+    this.publishHud();
+    return frame;
+  }
+
+  private advanceFrame(frameSeconds: number): FrameResult {
     const delta = clampFrameSeconds(frameSeconds);
 
     if (this.phase === 'resuming') {
@@ -360,6 +379,12 @@ export class GameSession {
   private publish(): void {
     const status = this.status;
     for (const listener of this.listeners) listener(status);
+  }
+
+  private publishHud(): void {
+    if (this.hudListeners.size === 0) return;
+    const hud = buildHudViewModel(this.game.view);
+    for (const listener of this.hudListeners) listener(hud);
   }
 }
 

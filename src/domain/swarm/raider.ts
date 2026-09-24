@@ -173,6 +173,7 @@ export class Raider {
       previousX: this.previousPositionX,
       previousY: this.previousPositionY,
       hp: this.hitPoints,
+      hpMax: RAIDER_HIT_POINTS,
       deaths: this.deaths,
       returned: this.returned,
       protected: this.isProtected,

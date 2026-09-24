@@ -74,3 +74,26 @@ export async function readTicks(page: Page): Promise<number> {
   const match = /(\d+) ticks/.exec(text);
   return match ? Number(match[1]) : -1;
 }
+
+/**
+ * The tick count once the readout has stopped moving, for a baseline while paused. The renderer
+ * refreshes the readout a few times a second and can fall behind on a loaded machine, so a fixed
+ * wait can still read a count from before the pause. Two equal reads a readout-refresh apart are
+ * the settled value.
+ */
+export async function settledTicks(page: Page): Promise<number> {
+  let previous = await readTicks(page);
+  await expect
+    .poll(
+      async () => {
+        await page.waitForTimeout(300);
+        const now = await readTicks(page);
+        const settled = now === previous;
+        previous = now;
+        return settled;
+      },
+      { message: 'the tick readout should settle while paused', timeout: 10_000 },
+    )
+    .toBe(true);
+  return previous;
+}

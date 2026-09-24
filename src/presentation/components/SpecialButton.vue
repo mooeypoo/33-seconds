@@ -11,11 +11,11 @@ const pressSpecial = inject(SPECIAL_PRESS_KEY);
 if (!pressSpecial) throw new Error('SpecialButton needs SPECIAL_PRESS_KEY from main.ts');
 
 const label = computed(() => {
-  const stats = hudStore.state.stats;
-  if (!stats) return '—';
-  if (stats.speechActive) return `${stats.speechRemainingSeconds.toFixed(1)}s`;
-  if (stats.speechReady) return 'ready';
-  return `${String(stats.speechJumpsUntilReady)} jumps`;
+  const hud = hudStore.state.hud;
+  if (!hud) return '—';
+  if (hud.speechActive) return `${hud.speechRemainingSeconds.toFixed(1)}s`;
+  if (hud.speechReady) return 'ready';
+  return `${String(hud.speechJumpsUntilReady)} jumps`;
 });
 </script>
 

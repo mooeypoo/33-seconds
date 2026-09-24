@@ -38,6 +38,8 @@ export class Download {
   readonly x: number;
   readonly y: number;
   private remainingSeconds: number;
+  /** The whole wait, including *Spoilers* delays, so the bar fills at the pace of this download. */
+  private totalSeconds: number;
 
   constructor(
     identityId: number,
@@ -51,6 +53,7 @@ export class Download {
     this.x = x;
     this.y = y;
     this.remainingSeconds = durationSeconds;
+    this.totalSeconds = durationSeconds;
   }
 
   advance(tickSeconds: number): void {
@@ -69,9 +72,16 @@ export class Download {
   /** *Spoilers*: a hit pushes the queue back. Jump still finishes transit (PRD 6). */
   delay(seconds: number): void {
     this.remainingSeconds += seconds;
+    this.totalSeconds += seconds;
   }
 
   get remaining(): number {
     return Math.max(0, this.remainingSeconds);
+  }
+
+  /** 0 at the kill, 1 when ready. A delay moves it back, so the rewind is visible. */
+  get progress(): number {
+    if (this.totalSeconds <= 0) return 1;
+    return Math.min(1, Math.max(0, 1 - this.remaining / this.totalSeconds));
   }
 }

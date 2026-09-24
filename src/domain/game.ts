@@ -1,6 +1,6 @@
 import { damageBand, type DamageBand } from './cycle/damageBand';
 import { JumpCycle } from './cycle/jumpCycle';
-import { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';
+import { Viper, VIPER_HALF_HEIGHT_UNITS, VIPER_HULL_HIT_POINTS } from './combat/viper';
 import {
   MAX_CYLON_SHOTS,
   MAX_PLAYER_SHOTS,
@@ -144,6 +144,12 @@ export class Game {
   private readonly speech = new Speech();
   private readonly loadout: Loadout;
   private recoveryBand: DamageBand = 'clean';
+  /**
+   * The last view built. Presenters, the HUD, and the session read it several times a frame, so it
+   * is built once per state change instead of once per read (ADR-0001 D2, ADR-0002 0.5). Every
+   * public method that changes state clears it.
+   */
+  private cachedView: GameView | null = null;
 
   constructor(options: GameOptions = {}) {
     const seed = options.seed ?? DEFAULT_RUN_SEED;
@@ -170,6 +176,7 @@ export class Game {
 
   /** Advances the simulation by exactly one tick. The only way to change domain state. */
   tick(intent: InputIntent): readonly DomainEvent[] {
+    this.cachedView = null;
     const events: DomainEvent[] = [];
 
     if (this.ticks === 0) {
@@ -250,6 +257,7 @@ export class Game {
    * decision (PRD 5.1).
    */
   continueFromJump(): readonly DomainEvent[] {
+    this.cachedView = null;
     const change = this.cycle.continueFromJump();
     if (!change) return [];
     this.loadout.clearOffer();
@@ -270,6 +278,7 @@ export class Game {
    * (PRD 5.1). Ignored unless recovering and that card is on the table.
    */
   pickUpgrade(cardId: string): readonly DomainEvent[] {
+    this.cachedView = null;
     if (!this.cycle.isRecovering) return [];
     if (!this.loadout.pick(cardId)) return [];
     return [{ type: 'UpgradePicked', cardId }, ...this.continueFromJump()];
@@ -277,13 +286,19 @@ export class Game {
 
   /** One free reroll per Recovering (PRD 10.1). */
   rerollOffer(): readonly DomainEvent[] {
+    this.cachedView = null;
     if (!this.cycle.isRecovering) return [];
     if (!this.loadout.reroll(this.scenario)) return [];
     return [{ type: 'UpgradeRerolled' }];
   }
 
-  /** A read-only snapshot for presenters. Cheap: it reads live state, it does not copy aggregates. */
+  /** A read-only snapshot for presenters, built at most once per state change. */
   get view(): GameView {
+    this.cachedView ??= this.buildView();
+    return this.cachedView;
+  }
+
+  private buildView(): GameView {
     const viper = this.viper;
     return {
       tickCount: this.ticks,
@@ -296,7 +311,10 @@ export class Game {
         velocityX: viper.velocityXUnitsPerSecond,
         velocityY: viper.velocityYUnitsPerSecond,
         hp: viper.hp,
+        hpMax: VIPER_HULL_HIT_POINTS,
         ejected: viper.isEjected,
+        ejectProgress: viper.ejectProgress,
+        maxSpeed: this.loadout.viperMaxSpeed,
         scale: this.loadout.viperScale * this.playfield.fighterScale,
         cylonEye: this.loadout.cylonEye,
       },
@@ -314,6 +332,7 @@ export class Game {
         // (PRD 10.2). Without the card the bar stays on the corpse.
         y: this.loadout.ghostsAreShootable ? this.raiderSpawnY : download.y,
         remainingSeconds: download.remaining,
+        progress: download.progress,
         shootable: this.loadout.ghostsAreShootable,
       })),
       fleet: this.fleet.view,
@@ -641,20 +660,7 @@ export class Game {
 
         hitRaider = true;
         if (raider.takeHit()) {
-          events.push({ type: 'RaiderDestroyed', id: raider.id, x: raider.x, y: raider.y });
-          if (!this.resurrectionShip?.isDestroyed) {
-            this.downloads.push(
-              new Download(
-                raider.identityId,
-                raider.deaths + 1,
-                raider.x,
-                raider.y,
-                this.loadout.downloadSeconds,
-              ),
-            );
-          }
-          this.raiders.splice(index, 1);
-          this.kills += 1;
+          this.destroyRaider(raider, events);
           index -= 1;
         }
         if (!shot.tryPierce()) {
@@ -682,6 +688,22 @@ export class Game {
         events.push({ type: 'ResurrectionShipDestroyed', x: ship.x, y: ship.y });
       }
     }
+  }
+
+  /**
+   * The one way a Raider dies, whatever killed it: the fact goes out, the soul queues a download
+   * while the resurrection ship lives (PRD 6), and the body leaves the swarm.
+   */
+  private destroyRaider(raider: Raider, events: DomainEvent[]): void {
+    events.push({ type: 'RaiderDestroyed', id: raider.id, x: raider.x, y: raider.y });
+    if (!this.resurrectionShip?.isDestroyed) {
+      this.downloads.push(
+        new Download(raider.identityId, raider.deaths + 1, raider.x, raider.y, this.loadout.downloadSeconds),
+      );
+    }
+    const index = this.raiders.indexOf(raider);
+    if (index >= 0) this.raiders.splice(index, 1);
+    this.kills += 1;
   }
 
   /**
@@ -791,23 +813,7 @@ export class Game {
 
       if (!hitRaider && !hitShip) continue;
       missile.kill();
-      if (hitRaider?.takeHit(MISSILE_RAIDER_DAMAGE)) {
-        events.push({ type: 'RaiderDestroyed', id: hitRaider.id, x: hitRaider.x, y: hitRaider.y });
-        if (!this.resurrectionShip?.isDestroyed) {
-          this.downloads.push(
-            new Download(
-              hitRaider.identityId,
-              hitRaider.deaths + 1,
-              hitRaider.x,
-              hitRaider.y,
-              this.loadout.downloadSeconds,
-            ),
-          );
-        }
-        const index = this.raiders.indexOf(hitRaider);
-        if (index >= 0) this.raiders.splice(index, 1);
-        this.kills += 1;
-      }
+      if (hitRaider?.takeHit(MISSILE_RAIDER_DAMAGE)) this.destroyRaider(hitRaider, events);
       if (hitShip && ship?.takeHit(this.loadout.shipDamage(MISSILE_SHIP_DAMAGE, ship.baysOpen))) {
         events.push({ type: 'ResurrectionShipDestroyed', x: ship.x, y: ship.y });
       }
@@ -923,23 +929,7 @@ export class Game {
       events.push({ type: 'SixIntercepted', x: target.x, y: target.y });
       return;
     }
-    if (target.raider.takeHit(SIX_DAMAGE)) {
-      events.push({ type: 'RaiderDestroyed', id: target.raider.id, x: target.raider.x, y: target.raider.y });
-      if (!this.resurrectionShip?.isDestroyed) {
-        this.downloads.push(
-          new Download(
-            target.raider.identityId,
-            target.raider.deaths + 1,
-            target.raider.x,
-            target.raider.y,
-            this.loadout.downloadSeconds,
-          ),
-        );
-      }
-      const index = this.raiders.indexOf(target.raider);
-      if (index >= 0) this.raiders.splice(index, 1);
-      this.kills += 1;
-    }
+    if (target.raider.takeHit(SIX_DAMAGE)) this.destroyRaider(target.raider, events);
   }
 
   private pickSixTarget():

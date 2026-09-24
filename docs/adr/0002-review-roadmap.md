@@ -116,14 +116,18 @@ One PR for this documentation, then at least one PR per phase. Phase 0 may be tw
 
 ### Phase 0: Architecture groundwork (no visible change)
 
-- [ ] **0.1** Ghost bar reads progress from the view. Failing test first: with *Your Call Is
+- [x] **0.1** (2026-09-24) Ghost bar reads progress from the view. Failing test first: with *Your Call Is
   Important to Us*, a fresh ghost shows 0 progress and fills evenly over 8 s.
-- [ ] **0.2** `destroyRaider(raider, events)` replaces the three copies in `game.ts`.
-- [ ] **0.3** `HudViewModel` in the application layer (D2). Vue reads it. `FrameStats` becomes
-  render and debug only. The end-to-end tests keep working.
-- [ ] **0.4** Presenters stop reading rule constants (D3): download seconds, hull max, anything
-  else the audit finds.
-- [ ] **0.5** `Game.view` is built once per tick and reused, including the missile lock.
+- [x] **0.2** (2026-09-24) `destroyRaider(raider, events)` replaces the three copies in `game.ts`.
+- [x] **0.3** (2026-09-24) `HudViewModel` in the application layer (D2). Vue reads it. `FrameStats` becomes
+  render and debug only. The end-to-end tests keep working. The session publishes it every frame;
+  the store copies it field by field so only changed values re-render. The debug readout's game
+  facts come from `debugFacts(view)`, so the renderer adds only fps and scale.
+- [x] **0.4** (2026-09-24) Presenters stop reading rule constants (D3): download seconds, hull max, anything
+  else the audit finds. Found and moved to views: Viper, Raider, and Raptor full hull; eject
+  progress (the chute no longer counts ticks against a constant); top speed after cards (bank
+  frames); Galactica by flag, not index. Drawing sizes stay imported, as D3 allows.
+- [x] **0.5** (2026-09-24) `Game.view` is built once per tick and reused, including the missile lock.
 - [ ] **0.6** Split `Game` into domain services (D4). Behavior-preserving: the existing tests
   are the proof.
 - [ ] **0.7** `CommsDirector` takes banter, cues, scenes, and the Six remark out of `GameSession`.

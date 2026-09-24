@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
-import { expectTicksToGrow, hudButton, readTicks, startRun } from './helpers';
+import { expectTicksToGrow, hudButton, readTicks, settledTicks, startRun } from './helpers';
 
 const titleCopy = JSON.parse(
   readFileSync(new URL('../src/content/title.json', import.meta.url), 'utf8'),
@@ -41,8 +41,7 @@ test.describe('pause', () => {
 
     // The readout refreshes a few times a second, so let it settle on the frozen tick count before
     // using it as a baseline.
-    await page.waitForTimeout(400);
-    const ticksWhenPaused = await readTicks(page);
+    const ticksWhenPaused = await settledTicks(page);
 
     // Nothing advances while paused.
     await page.waitForTimeout(700);
@@ -77,8 +76,7 @@ test.describe('pause', () => {
     await expect(sheet).toContainText('Protect the fleet');
     await expect(sheet).toContainText('Fan art inspired by Battlestar Galactica.');
 
-    await page.waitForTimeout(400);
-    const ticksWhenPaused = await readTicks(page);
+    const ticksWhenPaused = await settledTicks(page);
     await page.waitForTimeout(700);
     expect(await readTicks(page)).toBe(ticksWhenPaused);
 

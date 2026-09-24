@@ -147,6 +147,28 @@ describe('starter card effects', () => {
     expect(remaining).toBeLessThanOrEqual(RESURRECTION_DOWNLOAD_SECONDS + CALL_WAITING_SECONDS_PER_STACK);
   });
 
+  it('Your Call Is Important to Us shows the longer wait as a slower bar, not a late one', () => {
+    const game = createGame({
+      seed: 1,
+      raidersFire: false,
+      startingCards: ['your-call-is-important-to-us'],
+    });
+    const before = game.view.kills;
+    for (let i = 0; i < ticksFor(12); i++) {
+      const target = game.view.raiders[0];
+      holdUnder(game, target?.x ?? game.view.viper.x);
+      if (game.view.kills > before) break;
+    }
+    const ghost = game.view.ghosts[0];
+    expect(ghost).toBeDefined();
+    expect(ghost?.progress).toBeCloseTo(0, 1);
+
+    const totalSeconds = RESURRECTION_DOWNLOAD_SECONDS + CALL_WAITING_SECONDS_PER_STACK;
+    eventsOf(game, ticksFor(totalSeconds / 2));
+    const halfway = game.view.ghosts.find((candidate) => candidate.identityId === ghost?.identityId);
+    expect(halfway?.progress).toBeCloseTo(0.5, 1);
+  });
+
   it('Personal Vendetta locks the resurrection ship even when a Raider is closer', () => {
     const game = createGame({
       seed: 1,
@@ -244,6 +266,7 @@ describe('starter card effects', () => {
 
     let delayed = false;
     for (let i = 0; i < ticksFor(1); i++) {
+      const progressBefore = game.view.ghosts[0]?.progress ?? 0;
       const events = game.tick({
         ...IDLE_INTENT,
         moveX: Math.max(-1, Math.min(1, ((ghost?.x ?? 0) - game.view.viper.x) / 20)),
@@ -251,6 +274,8 @@ describe('starter card effects', () => {
       const bump = events.find((event) => event.type === 'GhostDelayed');
       if (bump) {
         delayed = true;
+        // The bar rewinds: a delay is visible, not only a longer wait.
+        expect(game.view.ghosts[0]?.progress ?? 1).toBeLessThan(progressBefore);
         expect(bump.remainingSeconds).toBeGreaterThan(remainingAtKill);
         expect(game.view.ghosts[0]?.remainingSeconds ?? 0).toBeGreaterThan(
           remainingAtKill + SPOILERS_DELAY_SECONDS_PER_STACK - 0.5,

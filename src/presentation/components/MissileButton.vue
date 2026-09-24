@@ -11,9 +11,9 @@ const pressMissile = inject(MISSILE_PRESS_KEY);
 if (!pressMissile) throw new Error('MissileButton needs MISSILE_PRESS_KEY from main.ts');
 
 const ammo = computed(() => {
-  const stats = hudStore.state.stats;
-  if (!stats) return '—';
-  return `${String(stats.missiles)}/${String(stats.missilesMax)}`;
+  const hud = hudStore.state.hud;
+  if (!hud) return '—';
+  return `${String(hud.missiles)}/${String(hud.missilesMax)}`;
 });
 </script>
 
