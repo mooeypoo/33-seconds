@@ -261,7 +261,7 @@ MVP ships The Speech only. The loadout pick screen arrives with the second speci
 Built 2026-09-24 (ADR-0002 3.3), with the owner's rules: its **own queue**, and it **never downloads**. Only Raiders resurrect.
 
 - From the tier's `heavyFromCycle`, up to `heavyPerCycle` arrive each cycle, the first 8 s in and then every 8 s, never more than `heavyMax` alive. None arrive once the resurrection ship is gone. They do not count against the Raider cap or floor.
-- Bigger (hitbox 12 wu), slower (35 wu/s against 55), 8 hull. A missile does 3 to it rather than a kill.
+- Bigger (hitbox 12 wu), slower (30 wu/s against the Raider's 46), 8 hull. A missile does 3 to it rather than a kill.
 - It carries its **own attack token**: it may fire whenever it is above the Viper, whatever the Raiders' tokens. It does not dive the fleet.
 - It leaves at the jump like any live body, and does not come back as the last wave.
 - Its arrival calls the big-Raider comms lines. Until `raider_heavy` is drawn, it is the Raider picture at 1.7× with eight hull pips: size and pips are the tell, not a colour.
@@ -678,3 +678,4 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-24 | Raiders dive straight, and a per-cycle share weaves a shallow sine (18 wu, 2.6 s) inside the lane. | Owner: "straight dive, and occasional shallow sine". |
 | 2026-09-24 | The heavy Raider: its own queue, never downloads, 8 hull, slower, a missile does 3, its own attack token, at most `heavyMax` alive from `heavyFromCycle`. | MVP scope had one heavy; owner: "own queue, one or two on screen, from about cycle 2." |
 | 2026-09-24 | First swarm tuning, same on both tiers: cap 3 → 6, floor 3 → 5, attack tokens 1 → 3, strafe tokens 1 → 2, weavers 10% → 35%, jitter ±1.5 s, two heavies per cycle from cycle 2 (at most two alive). Simulator: about 4.5 Raiders on screen (was 0.6); Viper Pilot now loses an idle pilot's run; Civilian Run still never loses. | A starting point for the playtest, not a final balance. Numbers in `src/balance/tiers.json`. |
+| 2026-09-24 | Raiders fly at 46 wu/s (was 55), heavies at 30 (was 35). Their shots keep their speed. | First playtest of the full swarm: challenging, but the Cylons felt a bit too fast. The simulator shows no change in outcomes, so this is feel, not balance. |

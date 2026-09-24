@@ -9,8 +9,11 @@ const RAIDER_FIRST_SHOT_DELAY_SECONDS = 0.45;
 /** Start HP. Three hits is long enough to read as a ship, short enough that a pass feels decisive. */
 export const RAIDER_HIT_POINTS = 3;
 
-/** Slow enough that the Viper can intercept a column, fast enough that it does not hover. */
-export const RAIDER_SPEED_UNITS_PER_SECOND = 55;
+/**
+ * Slow enough that the Viper can intercept a column, fast enough that it does not hover. Was 55;
+ * the first playtest with a full swarm found them a bit too fast (2026-09-24).
+ */
+export const RAIDER_SPEED_UNITS_PER_SECOND = 46;
 
 export const RAIDER_HALF_WIDTH_UNITS = 7;
 export const RAIDER_HALF_HEIGHT_UNITS = 6;
@@ -41,7 +44,7 @@ export type FlightPattern = 'dive' | 'sine';
 export type RaiderKind = 'raider' | 'heavy';
 
 export const HEAVY_HIT_POINTS = 8;
-export const HEAVY_SPEED_UNITS_PER_SECOND = 35;
+export const HEAVY_SPEED_UNITS_PER_SECOND = 30;
 export const HEAVY_RADIUS_UNITS = 12;
 export const HEAVY_HALF_HEIGHT_UNITS = 9;
 

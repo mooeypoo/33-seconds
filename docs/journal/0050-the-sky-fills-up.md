@@ -47,6 +47,12 @@ bot that never dodges is not a player. That one waits for a playtest.
 **One of the owner's numbers could never happen.** Heavies leave at the jump, so "at most two alive"
 with one per cycle means one. Two per cycle, eight seconds apart, makes the two reachable.
 
+## After the first playtest
+
+The owner found it challenging but not conclusive, and the Cylons a bit too fast. Raiders now fly at
+46 wu/s instead of 55, heavies at 30 instead of 35. The simulator barely moved (hunter wins 82% on Viper
+Pilot, was 80%), which is what we wanted: more time to react, not an easier run.
+
 ## What is still open
 
 A playtest of the numbers. The resurrection ship's HP and shield timing now decide run length, and
