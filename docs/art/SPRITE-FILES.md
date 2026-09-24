@@ -1,10 +1,105 @@
 # Sprite files
 
-The first picture pass. Draw each frame at 4× the size the game shows, so the picture has room in it. The game nearest-neighbors that file down to the small size. On a phone it is still that small, because the whole playfield is one 270×480 picture. A generated hero is a **square** image at the 4× size, on a **solid magenta (`#FF00FF`) background** so it keys out cleanly, then snapped to the palette in [ART-DIRECTION.md](ART-DIRECTION.md). Matching variants are painted from that hero; a first try at generating the variants is in [GENERATION-NOTES.md](GENERATION-NOTES.md). Drop each file at the path in the table. The rest of the asset table (fleet, resurrection ship, icons) waits. The title wordmark is CSS until `title_logo` below is drawn.
+Every picture the game needs: its size, where the file goes, and whether it exists. **This is the
+one checklist.** A ticked box means the file is in `assets/` today. Why the sizes are what they are
+is in [NATIVE-SCALE-REDRAW.md](NATIVE-SCALE-REDRAW.md); the palette and file rules are in
+[ART-DIRECTION.md](ART-DIRECTION.md).
 
-Items are the ships, shots, and the explosion. Characters are the comms portraits: costume and silhouette, never a real person's face. Hot red belongs to the Raider and to `bullet_aimed` only.
+**Two kinds of size.**
+- **Playfield sprites** (ships, shots, effects) are drawn at **1:1**: the file size is the size in the
+  270 × 480 world, and the game scales the whole world up by whole numbers. The pictures in the game
+  today were drawn at 4× and shrunk; their native redraws go to `assets/native/` so nothing breaks
+  until ADR-0002 Phase 4 switches over. Whether desktop fighters stay 1.25× larger is also decided in
+  Phase 4; the Viper and Raider sizes below assume they do not.
+- **Page pictures** (portraits, card art, icons, the title) are shown in the HUD and menus at a
+  whole-number CSS scale, noted per item.
 
-## Items
+Items are the ships, shots, and effects. Characters are the comms portraits: costume and silhouette,
+never a real person's face. Hot red belongs to Cylons only: the Raider, the heavy Raider, the
+resurrection ship, and `bullet_aimed`.
+
+## Checklist
+
+### In the game now (drawn at 4×, shrunk in the game)
+
+- [x] `assets/ships/viper_neutral.png`, `viper_bank_left.png`, `viper_bank_right.png`, `viper_flicker.png` — 64 × 64, shown 16 × 16
+- [x] `assets/ships/raider_eye_center.png`, `raider_eye_left.png`, `raider_eye_right.png` — 48 × 48, shown 12 × 12
+- [x] `assets/projectiles/bullet_player.png`, `bullet_aimed.png` — 12 × 20, shown 3 × 5
+- [x] `assets/projectiles/bullet_stray.png` — 12 × 28, shown 3 × 7
+- [x] `assets/effects/explosion_small_1.png` … `_6.png` — 64 × 64, shown 16 × 16
+
+These stay in use until their native redraws below replace them.
+
+### Portraits (page pictures, 64 × 64, shown at 64 CSS px; 128 = 2× in the desktop COMMS console)
+
+- [x] Closed, open, and blink for all nine: Adama, Starbuck, Gaeta, Dualla, Tigh, Baltar, Roslin, Tyrol, Six (`assets/portraits/<name>_closed.png`, `_open.png`, `_blink.png`)
+- [ ] Signature pose for all nine: `assets/portraits/<name>_signature.png`, 64 × 64 (descriptions under Characters). Until then the game shows the closed file.
+
+### Native redraw, group 1: replaces what is on screen (draw first) → `assets/native/`
+
+- [ ] `assets/native/ships/viper_neutral.png`, `viper_bank_left.png`, `viper_bank_right.png`, `viper_flicker.png` — **24 × 24**
+- [ ] `assets/native/ships/raider_eye_center.png`, `raider_eye_left.png`, `raider_eye_right.png` — **16 × 16** (the eye moves 1 pixel)
+- [ ] `assets/native/projectiles/bullet_player.png`, `bullet_aimed.png` — **3 × 5**
+- [ ] `assets/native/projectiles/bullet_stray.png` — **3 × 7**
+- [ ] `assets/native/projectiles/bullet_player_big.png` — **5 × 8** (new: the *Overcompensating Cannon* round)
+- [ ] `assets/native/effects/explosion_small_1.png` … `_6.png` — **16 × 16**
+
+### Native redraw, group 2: new ships (placeholder shapes today) → `assets/native/ships/`
+
+- [ ] `raider_heavy_eye_center.png`, `_left.png`, `_right.png` — **24 × 24**, heavier arrowhead with visible bays
+- [ ] `resurrection_ship_sealed.png`, `resurrection_ship_open.png`, `resurrection_ship_wreck.png` — **48 × 32** (the shield bubble is drawn in code)
+- [ ] `civilian_a.png`, `civilian_b.png`, `civilian_c.png` — **16 × 8**, three silly silhouettes
+- [ ] `civilian_a_damaged.png`, `civilian_b_damaged.png`, `civilian_c_damaged.png` — **16 × 8**, visibly dented
+- [ ] `galactica_fleet.png`, `galactica_fleet_damaged.png` — **24 × 10**
+- [ ] `raptor.png` — **16 × 8**, olive, never red
+- [ ] `imaginary_six.png` — **12 × 16**, outline figure (glow in code)
+- [ ] `pilot_eject.png` — **12 × 16**, seat and chute; never used for a download
+
+### Native redraw, group 3: effects, markers, background → `assets/native/`
+
+- [ ] `projectiles/missile_1.png`, `missile_2.png` — **4 × 8**, flame flicker at 2 Hz or slower
+- [ ] `effects/flak_burst_1.png` … `_3.png` — **8 × 8**, warm olive and orange
+- [ ] `effects/explosion_large_1.png` … `_8.png` — **32 × 32**, heavy Raider and the factory
+- [ ] `effects/spark_1.png`, `spark_2.png` — **4 × 4**, hit feedback
+- [ ] `markers/ghost_blip.png` — **8 × 8** (the fill bar is drawn in code)
+- [ ] `markers/returned_x1.png`, `_x2.png`, `_x3.png` — **6 × 6**, tally scratches
+- [ ] `background/galactica_silhouette.png` — **160 × 48**, dark, two or three space colours
+
+### Card art (page pictures, for the upgrade pick in ADR-0002 Phase 2) → `assets/cards/`
+
+A wide banner across the top of each card. **112 × 36**, shown at 3× (336 × 108) on desktop and
+laptop and at 2× (224 × 72) on a phone. One file per card, named by its card id. Same palette and
+file rules as sprites; a small scene or emblem that says the joke at a glance, never text.
+
+- [ ] `assets/cards/accidentally-wide.png`
+- [ ] `assets/cards/anyone-could-be-a-cylon.png`
+- [ ] `assets/cards/bootleg-hooch.png`
+- [ ] `assets/cards/continuity-of-government.png`
+- [ ] `assets/cards/flak-enthusiast.png`
+- [ ] `assets/cards/hangar-door-slam.png`
+- [ ] `assets/cards/imaginary-six.png`
+- [ ] `assets/cards/overcompensating-cannon.png`
+- [ ] `assets/cards/personal-vendetta.png`
+- [ ] `assets/cards/raptor-escort.png`
+- [ ] `assets/cards/spoilers.png`
+- [ ] `assets/cards/your-call-is-important-to-us.png`
+
+A card without its file shows a plain labelled slot, so these can land one at a time.
+
+### HUD icons (page pictures) → `assets/icons/`
+
+**8 × 8**, shown at 2× or 3×. One colour plus transparency, so the HUD can tint them.
+
+- [ ] `missile.png`, `special.png`, `hourglass.png`, `hold_music.png`, `eye.png`, `fleet.png`, `ftl.png`
+
+### Title (page picture) → `assets/ui/`
+
+- [ ] `assets/ui/title_logo.png` — **160 × 48**, shown at 3× (480 × 144) on desktop and 2× (320 × 96) on a phone. Until it exists the title uses VT323 text. Description under Title below.
+
+## Current pictures (drawn at 4×)
+
+Descriptions of the files in the game today. Their native redraws above keep the same designs.
+
 
 | Folder | File | Drawn at | Shown as | What it shows |
 |---|---|---|---|---|
@@ -116,8 +211,8 @@ Every portrait is a bust facing forward, drawn at 64 × 64 and shown at 64 CSS p
 
 ## Title
 
-Not a playfield sprite. The face uses a CSS wordmark and the existing Viper picture until this file exists. Show it with nearest-neighbor (`image-rendering: pixelated`) at about 200 × 60.
+Not a playfield sprite. The face uses VT323 text and the existing Viper picture until this file exists. Drawn at 1:1 and shown with nearest-neighbor (`image-rendering: pixelated`) at a whole-number scale. A generated 800 × 240 hero from the prompt in GENERATION-NOTES.md is fine as a reference; repaint it at 160 × 48 by hand.
 
 | Folder | File | Drawn at | Shown as | What it shows |
 |---|---|---|---|---|
-| `assets/ui/` | `title_logo.png` | 800 × 240 | about 200 × 60 | The words "33 SECONDS" in chunky block letters, Dradis green. A small angular starfighter may sit to the left of the words. Wide rectangle, magenta background. Prompt in [GENERATION-NOTES.md](GENERATION-NOTES.md). |
+| `assets/ui/` | `title_logo.png` | 160 × 48 | 3× on desktop, 2× on a phone | The words "33 SECONDS" in chunky block letters, Dradis green. A small angular starfighter may sit to the left of the words. Wide rectangle, magenta background. Prompt in [GENERATION-NOTES.md](GENERATION-NOTES.md). |
