@@ -15,14 +15,15 @@ export const RAIDER_HIT_POINTS = 3;
  */
 export const RAIDER_SPEED_UNITS_PER_SECOND = 46;
 
-export const RAIDER_HALF_WIDTH_UNITS = 7;
-export const RAIDER_HALF_HEIGHT_UNITS = 6;
+/** Half the Raider's 24-unit picture, a little inside it (docs/art/ART-SCALE.md). */
+export const RAIDER_HALF_WIDTH_UNITS = 12;
+export const RAIDER_HALF_HEIGHT_UNITS = 10;
 
 /**
- * Collision radius. Near the drawn box (half-width 7), a little generous so a grazing pass counts.
- * Two plays called 6 tight; this fairness pass widens it with the Viper hull, not alone (PRD 8.4).
+ * Collision radius: a little inside the 24-unit picture, so a shot past the wingtip misses.
+ * 12 (the whole picture) let a parked Viper kill 2.5x as many Raiders in the simulator (PRD 8.4).
  */
-export const RAIDER_RADIUS_UNITS = 8;
+export const RAIDER_RADIUS_UNITS = 10;
 
 export const RAIDER_SPAWN_Y_UNITS = RAIDER_HALF_HEIGHT_UNITS + 8;
 
@@ -45,8 +46,8 @@ export type RaiderKind = 'raider' | 'heavy';
 
 export const HEAVY_HIT_POINTS = 8;
 export const HEAVY_SPEED_UNITS_PER_SECOND = 30;
-export const HEAVY_RADIUS_UNITS = 12;
-export const HEAVY_HALF_HEIGHT_UNITS = 9;
+export const HEAVY_RADIUS_UNITS = 15;
+export const HEAVY_HALF_HEIGHT_UNITS = 16;
 
 export function raiderSpawnMinX(fighterScale = 1): number {
   return RAIDER_HALF_WIDTH_UNITS * fighterScale;

@@ -172,10 +172,15 @@ describe('a shot hitting a Raider', () => {
     expect(movingCircleHits(0, 20, 0, -20, 2, 40, 0, 6)).toBe(false);
   });
 
-  it('counts a graze that the old 6-unit box treated as a miss', () => {
-    const offsetX = 7;
-    expect(
-      movingCircleHits(offsetX, 20, offsetX, -20, VIPER_SHOT_RADIUS_UNITS, 0, 0, RAIDER_RADIUS_UNITS),
-    ).toBe(true);
+  // The Raider is drawn 24 units across (docs/art/ART-SCALE.md): wingtips 12 units from its middle.
+  const shotPast = (offsetX: number): boolean =>
+    movingCircleHits(offsetX, 20, offsetX, -20, VIPER_SHOT_RADIUS_UNITS, 0, 0, RAIDER_RADIUS_UNITS);
+
+  it('counts a shot through the wing', () => {
+    expect(shotPast(9)).toBe(true);
+  });
+
+  it('lets a shot past the wingtip miss', () => {
+    expect(shotPast(13)).toBe(false);
   });
 });

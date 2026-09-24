@@ -228,8 +228,9 @@ Decided 2026-09-24, pulled forward: **two art pixels per world unit, one fighter
 The desktop's 1.25 fighter boost goes away. The owner's Viper, Raider, and small explosion already
 fit; what is left to draw is the checklist in `docs/art/SPRITE-FILES.md`.
 
-- [ ] **4.0** Render at two pixels per world unit, the new ship sizes with the existing art, one
-  fighter size, retuned hitboxes, and a simulator check. PR 4a.
+- [x] **4.0** (2026-09-24) Render at two pixels per world unit (a Phaser camera zoom of 2 over a
+  canvas twice the world; the domain is unchanged), the new ship sizes with the existing art, one
+  fighter size, retuned hitboxes (Viper 8, Raider 10, heavy 15), and a simulator check. PR 4a.
 - [ ] **4.1** The owner's remaining sprites (shots, heavy, resurrection ship, fleet, effects) as they
   land (decision 3).
 - [ ] **4.2** Starfield, Galactica silhouette, fleet sprites, Dradis sweep.

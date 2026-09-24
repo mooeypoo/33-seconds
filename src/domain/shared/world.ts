@@ -14,10 +14,11 @@ export const WORLD_WIDTH_UNITS = PHONE_WORLD_WIDTH_UNITS;
 export const WORLD_HEIGHT_UNITS = 480;
 
 /**
- * Desktop Viper and Raiders, pictures and hitboxes together. A quarter step.
- * The fleet, the shots, and a phone stay at 1.
+ * Desktop Viper and Raiders, pictures and hitboxes together. 1 since 2026-09-24: one fighter size on
+ * every screen (docs/art/ART-SCALE.md). The desktop keeps its wider lane. Kept as a seam in case a
+ * screen ever needs its own size.
  */
-export const DESKTOP_FIGHTER_SCALE = 1.25;
+export const DESKTOP_FIGHTER_SCALE = 1;
 
 export interface Playfield {
   readonly width: number;

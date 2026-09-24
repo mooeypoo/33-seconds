@@ -16,6 +16,7 @@ import { RaiderPresenter } from './contexts/swarm/RaiderPresenter';
 import { ResurrectionShipPresenter } from './contexts/swarm/ResurrectionShipPresenter';
 import type { ReducedEffectsSource } from './shared/comfort';
 import { PALETTE } from './shared/palette';
+import { PIXELS_PER_WORLD_UNIT } from './shared/renderScale';
 import { loadSpriteImages } from './sprites';
 
 /** How often the debug readout updates. Often enough to be useful, rarely enough to stay readable. */
@@ -75,14 +76,16 @@ export class GameScene extends Phaser.Scene {
       if (!this.textures.exists(sprite.key)) this.textures.addImage(sprite.key, sprite.image);
     }
 
-    this.cameras.main.setBackgroundColor(PALETTE.space);
+    // Draw at two art pixels per world unit: the camera zooms from the top-left, so world (0, 0) stays
+    // the canvas corner and every presenter keeps using world units (docs/art/ART-SCALE.md).
+    this.cameras.main.setBackgroundColor(PALETTE.space).setOrigin(0, 0).setZoom(PIXELS_PER_WORLD_UNIT);
     // A thin frame, so the edges of the play area are visible while there is nothing else on screen.
-    const width = this.scale.width;
+    const width = this.scale.width / PIXELS_PER_WORLD_UNIT;
     const frame = this.add
       .rectangle(width / 2, WORLD_HEIGHT_UNITS / 2, width - 2, WORLD_HEIGHT_UNITS - 2)
       .setStrokeStyle(1, PALETTE.viperCockpit, 0.25);
     this.scale.on('resize', () => {
-      const next = this.scale.width;
+      const next = this.scale.width / PIXELS_PER_WORLD_UNIT;
       frame.setPosition(next / 2, WORLD_HEIGHT_UNITS / 2);
       frame.setSize(next - 2, WORLD_HEIGHT_UNITS - 2);
     });

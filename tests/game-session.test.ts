@@ -480,6 +480,8 @@ describe('losing', () => {
     session = new GameSession(input, {
       seed: 1,
       raidersFire: false,
+      // A held gun can still hit a Raider in its column; this is about strafes landing.
+      viperFires: false,
       fleetStartingIntegrity: 8,
     });
   });

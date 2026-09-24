@@ -6,7 +6,7 @@ import type { ReducedEffectsSource } from '../../shared/comfort';
 import { EXPLOSION_ANIM, EXPLOSION_FRAME_RATE, EXPLOSION_FRAMES, SHIP_SHOWN_UNITS } from '../../sprites';
 
 /** A heavy Raider's burst, matching the size it is drawn at until `explosion_large` exists. */
-const HEAVY_BURST_SCALE = 1.7;
+const HEAVY_BURST_SCALE = 1.5;
 
 /** Reduced effects holds the widest cell instead of stepping through the burst. */
 const STILL_MS = 280;

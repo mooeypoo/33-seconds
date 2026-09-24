@@ -20,10 +20,10 @@ const EYE_SWEEP_MS = 900;
 const DESTROY_FADE_MS = 140;
 
 /**
- * A heavy Raider drawn from the same picture at this size until `raider_heavy` exists
+ * A heavy Raider drawn from the same picture at 36 units until `raider_heavy` (72 x 72) exists
  * (docs/art/SPRITE-FILES.md). Its size and its eight hull pips are the tell, not a colour.
  */
-const HEAVY_SHOWN_SCALE = 1.7;
+const HEAVY_SHOWN_SCALE = 1.5;
 
 /** Quiet download tell (PRD 6). Wide enough to read as a wait, small enough not to be a HUD. */
 const DOWNLOAD_BAR_WIDTH = 20;

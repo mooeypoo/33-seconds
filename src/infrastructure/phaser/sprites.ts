@@ -15,11 +15,11 @@ import viperBankRight from '../../../assets/ships/viper_bank_right.png';
 import viperFlicker from '../../../assets/ships/viper_flicker.png';
 import viperNeutral from '../../../assets/ships/viper_neutral.png';
 
-/** On-screen size. The Viper files are 64×64 and the scene nearest-neighbors them down. */
-export const SHIP_SHOWN_UNITS = 16;
+/** The Viper in world units: its 64 x 64 file at two art pixels per unit (docs/art/ART-SCALE.md). */
+export const SHIP_SHOWN_UNITS = 32;
 
-/** On-screen size. The Raider files are 48×48. */
-export const RAIDER_SHOWN_UNITS = 12;
+/** The Raider in world units: its 48 x 48 file at two art pixels per unit. */
+export const RAIDER_SHOWN_UNITS = 24;
 
 export const VIPER_NEUTRAL = 'viper-neutral';
 export const VIPER_BANK_LEFT = 'viper-bank-left';

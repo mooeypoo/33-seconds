@@ -12,9 +12,12 @@ export const VIPER_MAX_SPEED_UNITS_PER_SECOND = 92;
  */
 export const VIPER_ACCELERATION_UNITS_PER_SECOND_SQUARED = 520;
 
-/** Half the Viper's collision box, in world units. Used to keep it fully inside the play area. */
-export const VIPER_HALF_WIDTH_UNITS = 6;
-export const VIPER_HALF_HEIGHT_UNITS = 7;
+/**
+ * Half the Viper's body, in world units: keeps it inside the play area and puts the gun at its nose.
+ * The picture is 32 units across (docs/art/ART-SCALE.md); the body is a little inside it.
+ */
+export const VIPER_HALF_WIDTH_UNITS = 12;
+export const VIPER_HALF_HEIGHT_UNITS = 14;
 
 /** Where the Viper starts on the phone world: centred horizontally, low enough to sit in front of the fleet. */
 export const VIPER_SPAWN_X_UNITS = WORLD_WIDTH_UNITS / 2;
@@ -23,8 +26,11 @@ export const VIPER_SPAWN_Y_UNITS = WORLD_HEIGHT_UNITS * 0.78;
 /** Five hits outlasts one Raider's 3 HP (PRD 8.1). Reset at each jump. */
 export const VIPER_HULL_HIT_POINTS = 5;
 
-/** Collision radius. Close to the drawn hull, a little generous so a grazing Cylon round counts. */
-export const VIPER_RADIUS_UNITS = 6;
+/**
+ * Collision radius: a quarter of the 32-unit picture, so a round that only clips a wing misses.
+ * Smaller than the picture on purpose, the forgiving norm in shooters (ART-SCALE, 2026-09-24).
+ */
+export const VIPER_RADIUS_UNITS = 8;
 
 /** Downtime after a destroy. Costs time, never the run (PRD 8.1). */
 export const VIPER_EJECT_SECONDS = 3;
