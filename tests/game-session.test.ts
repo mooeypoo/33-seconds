@@ -344,8 +344,8 @@ describe('pause', () => {
     expect(session.view.cycle.phase).toBe('recovering');
     expect(session.status.choosingUpgrade).toBe(true);
 
-    const beats = RECOVERING_SCENES.flatMap((scene) => scene.beats.map((beat) => beat.text));
-    expect(beats).toContain(session.status.comms?.text);
+    const openers = RECOVERING_SCENES.map((scene) => scene.beats[0]?.text);
+    expect(openers).toContain(session.status.comms?.text);
 
     session.pickUpgrade('not-a-card');
     session.advance(ONE_FRAME_AT_60HZ);
@@ -588,24 +588,31 @@ describe('run seeds', () => {
 });
 
 describe('the comms log', () => {
-  it('keeps the lines shown this run, newest last, never more than twenty, and starts empty next run', () => {
+  it('holds only the lines since the last jump, newest last, and starts empty next run', () => {
     session.start();
-    let longest = 0;
+    const openers = RECOVERING_SCENES.map((scene) => scene.beats[0]?.text);
     let newestMatchesStrip = true;
+    let recoveringLogs = 0;
     // Several cycles, picking a card at each Recovering, so plenty of lines play.
-    for (let cycle = 0; cycle < 6; cycle++) {
+    for (let cycle = 0; cycle < 4; cycle++) {
       for (let frame = 0; frame < TICKS_PER_SECOND * 36; frame++) {
         session.advance(ONE_FRAME_AT_60HZ);
         const status = session.status;
-        longest = Math.max(longest, status.commsLog.length);
         if (status.comms && status.commsLog.at(-1)?.text !== status.comms.text) newestMatchesStrip = false;
+        if (session.view.cycle.phase === 'jumping') expect(status.comms).toBeNull();
         if (status.choosingUpgrade) {
+          // Nothing from the fight is left: the pick screen's log is the one Recovering line.
+          expect(status.commsLog.length).toBeLessThanOrEqual(1);
+          if (status.commsLog.length === 1) {
+            expect(openers).toContain(status.commsLog[0]?.text);
+            recoveringLogs += 1;
+          }
           const card = session.view.upgradeOffer?.cardIds[0];
           if (card) session.pickUpgrade(card);
         }
       }
     }
-    expect(longest).toBe(20);
+    expect(recoveringLogs).toBeGreaterThan(0);
     expect(newestMatchesStrip).toBe(true);
 
     session.pause('player');

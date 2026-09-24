@@ -24,7 +24,7 @@ export class CommsDirector {
   private readonly cues = new BanterCues();
   private sixRemarkOwed = false;
   private sixWasPresent = false;
-  /** Lines already shown this run, oldest first (PRD 12.2). */
+  /** Lines shown since the last jump, oldest first (PRD 12.2). */
   private readonly history: CommsLine[] = [];
 
   constructor(runSeed: number) {
@@ -32,12 +32,12 @@ export class CommsDirector {
     this.banter = new Banter(this.random, BANTER_LINES);
   }
 
-  /** The one line on the strip, or null. A Recovering scene takes the strip while it plays. */
+  /** The one line on the strip, or null. The Recovering line takes the strip while it plays. */
   get line(): CommsLine | null {
     return this.scene.active ? this.scene.line : this.banter.line;
   }
 
-  /** The last lines shown, oldest first, at most `COMMS_LOG_LINES`. Follows the game clock. */
+  /** This cycle's lines, oldest first, at most `COMMS_LOG_LINES`. Empties at each jump (PRD 12.2). */
   get log(): readonly CommsLine[] {
     return this.history;
   }
@@ -80,22 +80,32 @@ export class CommsDirector {
       offeredCardIds: view.upgradeOffer?.cardIds ?? [],
     };
 
+    // The jump is a clean break: nothing from the fight carries into the pick screen or its log.
+    const jumped = events.some((event) => event.type === 'CyclePhaseChanged' && event.phase === 'jumping');
+    if (jumped) {
+      this.banter.silence();
+      this.history.length = 0;
+    }
     const enteredRecovering = events.some((event) => event.type === 'CyclePhaseChanged' && event.phase === 'recovering');
     if (enteredRecovering) this.scene.start(view.recoveryBand, this.random);
 
-    this.banter.observe(events, context);
-    if (!this.scene.active) this.playCues(events, view, context, deltaSeconds);
+    // Between cycles the Recovering line is the only one (PRD 12.3): no fight cues, no card or reroll lines.
+    const betweenCycles = view.cycle.phase === 'jumping' || view.cycle.phase === 'recovering';
+    if (!betweenCycles) {
+      this.banter.observe(events, context);
+      this.playCues(events, view, context, deltaSeconds);
+    }
     this.banter.advance(deltaSeconds);
-    const justLeftTheScene = this.scene.active && this.scene.advance(deltaSeconds);
+    this.scene.advance(deltaSeconds);
     // The arriving line is in next frame's events. Let it speak before anyone asks about Six.
-    if (!this.scene.active && !justLeftTheScene) this.maybeMentionSix(view, context);
+    if (!betweenCycles) this.maybeMentionSix(view, context);
     const line = this.line;
     const changed = commsKey(line) !== before;
     if (changed && line !== null) {
       this.history.push(line);
       if (this.history.length > COMMS_LOG_LINES) this.history.shift();
     }
-    return enteredRecovering || changed;
+    return enteredRecovering || jumped || changed;
   }
 
   /**

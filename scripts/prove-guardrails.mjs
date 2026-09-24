@@ -386,6 +386,20 @@ const SABOTAGE = [
       mustFail: 'npm run test',
     },
     {
+      what: 'the comms log keeps the last cycle after the jump',
+      file: 'src/application/banter/CommsDirector.ts',
+      find: '      this.history.length = 0;',
+      replace: '      // sabotage: the log survives the jump',
+      mustFail: 'npm run test',
+    },
+    {
+      what: 'fight lines keep talking between cycles',
+      file: 'src/application/banter/CommsDirector.ts',
+      find: "    const betweenCycles = view.cycle.phase === 'jumping' || view.cycle.phase === 'recovering';",
+      replace: '    const betweenCycles = false;',
+      mustFail: 'npm run test',
+    },
+    {
       what: 'Abandon run leaves the paused run in place',
       file: 'src/application/GameSession.ts',
       find: '  abandonRun(): void {\n    if (this.phase !== \'paused\') return;',
