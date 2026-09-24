@@ -1,13 +1,24 @@
 <script setup lang="ts">
 import { computed, inject, ref } from 'vue';
 import flair from '../../content/upgrades.flair.json';
+import type { CommsLine } from '../../application/banter/Banter';
+import { offerCards } from '../../application/upgradeOffer';
 import { SESSION_KEY } from '../injection';
-import { portraitSrc } from '../portraits';
+import { hudStore } from '../stores/hudStore';
+import CommsOverlay from './CommsOverlay.vue';
+import type { UpgradeCardFace } from '../upgradeCardFace';
+import UpgradeCard from './UpgradeCard.vue';
 
 /**
- * Recovering pick (PRD 5.1, 10). A row shows the name and the joke. Opening it shows the effect
- * and the two advisors. Apply starts the 3-2-1, then the next cycle. No timer on the choice.
+ * Recovering pick as cards (PRD 5.1, 10; ADR-0002 2.3). No timer on the choice. A card is selected
+ * by its face; Apply starts the 3-2-1, then the next cycle. One free Refresh the list.
+ *
+ * `wide` is the CIC shell: a full-screen requisition board with three cards side by side, every
+ * detail showing, and the Recovering scene in the footer. Otherwise the cards stack in the lane and
+ * open one at a time, so a phone reads the joke first.
  */
+const props = defineProps<{ wide: boolean; comms: CommsLine | null }>();
+
 const session = inject(SESSION_KEY);
 if (!session) throw new Error('RecoveringOverlay needs SESSION_KEY from main.ts');
 const play = session;
@@ -21,33 +32,27 @@ interface CardFlair {
 }
 
 const FLAIR = flair as CardFlair[];
-const baltarSrc = portraitSrc('Baltar', 'closed');
-const roslinSrc = portraitSrc('Roslin', 'closed');
 
-function readOffer() {
-  return play.view.upgradeOffer;
+/** Owner-drawn banners, picked up by file name as they land (docs/art/SPRITE-FILES.md). */
+const ART = import.meta.glob<string>('../../../assets/cards/*.png', { eager: true, import: 'default' });
+function artFor(id: string): string | null {
+  return ART[`../../../assets/cards/${id}.png`] ?? null;
 }
 
-const offer = ref(readOffer());
+const offer = ref(play.view.upgradeOffer);
+const hand = ref(offerCards(play.view));
 const selectedId = ref<string | null>(null);
 
-const cards = computed(() => {
-  const ids = offer.value?.cardIds ?? [];
-  return ids.map((id) => FLAIR.find((entry) => entry.id === id) ?? fallback(id));
-});
-
+const cards = computed<UpgradeCardFace[]>(() =>
+  hand.value.map((card) => {
+    const text = FLAIR.find((entry) => entry.id === card.id) ?? { id: card.id, title: card.id, joke: '', plain: '' };
+    return { ...text, rarity: card.rarity, owned: card.owned, maxStacks: card.maxStacks, art: artFor(card.id) };
+  }),
+);
 const selected = computed(() => cards.value.find((card) => card.id === selectedId.value) ?? null);
 
-function fallback(id: string): CardFlair {
-  return { id, title: id, joke: 'PLACEHOLDER', plain: 'PLACEHOLDER' };
-}
-
-/** The stack this pick would become, once the card is already owned. */
-function nextStack(id: string): string | null {
-  const owned = play.view.loadout.find((card) => card.id === id);
-  if (!owned || owned.stacks < 1) return null;
-  return `${String(owned.stacks + 1)}/${String(owned.maxStacks)}`;
-}
+const hud = computed(() => hudStore.state.hud);
+const cycleIndex = computed(() => hud.value?.cycleIndex ?? 1);
 
 function select(id: string): void {
   selectedId.value = id;
@@ -62,73 +67,64 @@ function apply(): void {
 function reroll(): void {
   selectedId.value = null;
   play.rerollOffer();
-  offer.value = readOffer();
+  offer.value = play.view.upgradeOffer;
+  hand.value = offerCards(play.view);
 }
 </script>
 
 <template>
-  <div class="overlay" data-ui role="dialog" aria-modal="true" aria-labelledby="recovering-title">
+  <div class="overlay" :class="{ wide }" data-ui role="dialog" aria-modal="true" aria-labelledby="recovering-title">
     <div class="sheet">
-      <h2 id="recovering-title">Jump complete</h2>
-      <p class="note">Pick one. No timer.</p>
+      <header class="top">
+        <div class="heading">
+          <span class="stencil">Jump complete · Cycle {{ cycleIndex }} → {{ cycleIndex + 1 }}</span>
+          <h2 id="recovering-title">Requisition. <span class="note">Pick one. No timer.</span></h2>
+        </div>
+        <p v-if="wide && hud" class="summary">
+          <span>Fleet {{ Math.round((hud.fleetIntegrity / hud.fleetIntegrityMax) * 100) }}%</span>
+          <span>Hull {{ hud.hull }}/{{ hud.hullMax }} · Missiles {{ hud.missiles }}/{{ hud.missilesMax }}</span>
+        </p>
+      </header>
 
-      <div class="list">
-        <div v-for="card in cards" :key="card.id" class="row">
+      <div class="hand">
+        <UpgradeCard
+          v-for="card in cards"
+          :key="card.id"
+          :card="card"
+          :selected="card.id === selectedId"
+          :expanded="wide || card.id === selectedId"
+          :wide="wide"
+          @select="select"
+        />
+      </div>
+
+      <footer class="bottom">
+        <div v-if="wide && props.comms" class="scene">
+          <CommsOverlay docked :comms="props.comms" />
+        </div>
+        <div class="buttons">
+          <button
+            v-if="offer?.rerollAvailable"
+            data-ui
+            type="button"
+            class="refresh"
+            data-testid="reroll-upgrades"
+            @click="reroll"
+          >
+            Refresh the list
+          </button>
           <button
             data-ui
             type="button"
-            class="title"
-            :aria-expanded="card.id === selectedId"
-            :aria-pressed="card.id === selectedId"
-            :aria-controls="`detail-${card.id}`"
-            :data-testid="`upgrade-${card.id}`"
-            @click="select(card.id)"
+            class="apply"
+            data-testid="apply-upgrade"
+            :disabled="selected === null"
+            @click="apply"
           >
-            <span class="heading">
-              <span class="name">{{ card.title }}</span>
-              <span v-if="nextStack(card.id)" class="stack">{{ nextStack(card.id) }}</span>
-              <span v-if="card.id === selectedId" class="state">Selected</span>
-              <span class="chevron" aria-hidden="true">{{ card.id === selectedId ? '▾' : '▸' }}</span>
-            </span>
-            <span class="joke">{{ card.joke }}</span>
+            {{ selected ? `Apply ${selected.title}` : 'Apply' }}
           </button>
-
-          <div v-if="card.id === selectedId" :id="`detail-${card.id}`" class="detail">
-            <p class="plain">{{ card.plain }}</p>
-            <div v-if="card.advice?.baltar" class="advisor" data-testid="advisor-baltar">
-              <img v-if="baltarSrc" class="portrait" :src="baltarSrc" alt="" width="64" height="64" />
-              <span v-else class="portrait letter" aria-hidden="true">B</span>
-              <p><span class="who">Baltar.</span> {{ card.advice.baltar }}</p>
-            </div>
-            <div v-if="card.advice?.roslin" class="advisor" data-testid="advisor-roslin">
-              <img v-if="roslinSrc" class="portrait" :src="roslinSrc" alt="" width="64" height="64" />
-              <span v-else class="portrait letter" aria-hidden="true">R</span>
-              <p><span class="who">Roslin.</span> {{ card.advice.roslin }}</p>
-            </div>
-          </div>
         </div>
-      </div>
-
-      <button
-        v-if="offer?.rerollAvailable"
-        data-ui
-        type="button"
-        class="refresh"
-        data-testid="reroll-upgrades"
-        @click="reroll"
-      >
-        Refresh the list
-      </button>
-      <button
-        data-ui
-        type="button"
-        class="apply"
-        data-testid="apply-upgrade"
-        :disabled="selected === null"
-        @click="apply"
-      >
-        {{ selected ? `Apply ${selected.title}` : 'Apply' }}
-      </button>
+      </footer>
     </div>
   </div>
 </template>
@@ -140,151 +136,145 @@ function reroll(): void {
   z-index: 4;
   pointer-events: auto;
   display: flex;
-  align-items: center;
+  align-items: safe center;
   justify-content: center;
-  padding: 16px;
-  /* Opaque enough that the playfield clock does not read through the titles. */
+  overflow: auto;
+  padding: var(--space-4);
+  /* Opaque enough that the playfield does not read through the cards. */
   background: rgb(var(--rgb-deep) / 96%);
   color: var(--color-text);
-  font-family: var(--font-display);
-  font-size-adjust: var(--display-size-adjust);
+}
+
+/* The CIC shell: a board over the whole screen, not just the lane, and fully opaque over the consoles. */
+.overlay.wide {
+  position: fixed;
+  z-index: 5;
+  padding: 24px 32px;
+  align-items: stretch;
+  background: var(--color-deep);
 }
 
 .sheet {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  width: min(22rem, 100%);
-  max-height: 100%;
-  min-height: 0;
+  gap: var(--space-3);
+  width: min(24rem, 100%);
 }
 
-h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  text-align: center;
+.wide .sheet {
+  width: min(1376px, 100%);
+  gap: var(--space-4);
 }
 
-.note {
-  margin: 0;
-  font-size: 14px;
-  text-align: center;
-  color: var(--color-text-muted);
-}
-
-.list {
-  overflow: auto;
-  min-height: 0;
+.top {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.title {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 4px;
-  width: 100%;
-  min-height: 44px;
-  padding: 8px 12px;
-  text-align: left;
-  font: inherit;
-  font-size: 15px;
-  color: var(--color-text);
-  background: transparent;
-  border: 1px solid var(--color-dradis-line);
-  border-radius: 8px;
-  cursor: pointer;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-4);
+  flex-wrap: wrap;
 }
 
 .heading {
   display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.stencil {
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-dradis-soft);
+}
+
+h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
+  font-weight: 400;
+  font-size: 26px;
+  color: var(--color-text-strong);
+}
+
+.wide h2 {
+  font-size: 40px;
+}
+
+.note {
+  color: var(--color-text-muted);
+}
+
+.summary {
+  margin: 0;
+  display: flex;
+  gap: var(--space-4);
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
+  font-size: 20px;
+}
+
+.hand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding-top: var(--space-2);
+}
+
+.wide .hand {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  /* Cards are as tall as their words; the row does not stretch them to the footer. */
+  align-items: start;
+}
+
+.bottom {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.wide .bottom {
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
+  margin-top: auto;
 }
 
-.title[aria-pressed='true'] {
-  border-color: var(--color-dradis-soft);
+/* In the lane, Apply stays in reach while the cards scroll under it. */
+.overlay:not(.wide) .bottom {
+  position: sticky;
+  bottom: calc(-1 * var(--space-4));
+  padding: var(--space-3) 0 var(--space-4);
+  /* Solid, so the card scrolling under it never reads through Refresh. */
+  background: var(--color-deep);
 }
 
-.name {
+.scene {
   flex: 1;
   min-width: 0;
 }
 
-.stack,
-.state {
-  flex: none;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.chevron {
-  flex: none;
-  width: 1em;
-  text-align: center;
-}
-
-.detail {
+.buttons {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 0 4px 4px 12px;
+  gap: var(--space-2);
 }
 
-.plain,
-.joke,
-.advisor p {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.joke {
-  font-family: var(--font-body);
-  font-style: italic;
-  color: var(--color-text-muted);
-}
-
-.advisor {
-  display: flex;
-  gap: 8px;
-  align-items: flex-start;
-}
-
-.portrait {
+.wide .buttons {
+  flex-direction: row;
   flex: none;
-  width: 64px;
-  height: 64px;
-  image-rendering: pixelated;
-}
-
-.letter {
-  display: grid;
-  place-items: center;
-  background: var(--color-panel);
-  font-size: 20px;
-}
-
-.who {
-  font-weight: 700;
 }
 
 .refresh,
 .apply {
-  flex: none;
-  min-height: 44px;
-  font: inherit;
-  border-radius: 8px;
+  min-height: 48px;
+  padding: 0 var(--space-4);
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
+  font-size: 18px;
+  border-radius: var(--radius);
   cursor: pointer;
 }
 
@@ -292,12 +282,9 @@ h2 {
   color: var(--color-text);
   background: transparent;
   border: 1px solid var(--color-dradis-line);
-  font-size: 15px;
 }
 
 .apply {
-  min-height: 48px;
-  font-size: 18px;
   color: var(--color-dradis-night);
   background: var(--color-dradis-soft);
   border: 0;
@@ -310,10 +297,9 @@ h2 {
   cursor: default;
 }
 
-.title:focus-visible,
 .refresh:focus-visible,
 .apply:focus-visible {
   outline: 2px solid var(--color-text);
-  outline-offset: 3px;
+  outline-offset: 2px;
 }
 </style>

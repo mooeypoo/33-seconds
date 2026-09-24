@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createGame } from '../src/domain/game';
+import { offerCards } from '../src/application/upgradeOffer';
 import { VIPER_FIRE_INTERVAL_SECONDS } from '../src/domain/combat/projectile';
 import { VIPER_HULL_HIT_POINTS, VIPER_RADIUS_UNITS } from '../src/domain/combat/viper';
 import { RESURRECTION_SHIP_LOCK_ID } from '../src/domain/combat/missile';
@@ -396,5 +397,20 @@ describe('starter card effects', () => {
     expect(slam.view.resurrectionShip?.hp ?? 60).toBeLessThan(plain.view.resurrectionShip?.hp ?? 60);
     expect(new Loadout(['hangar-door-slam']).shipDamage(1, true)).toBeCloseTo(1 + HANGAR_SLAM_DAMAGE_PER_STACK);
     expect(new Loadout(['hangar-door-slam']).shipDamage(1, false)).toBe(1);
+  });
+});
+
+describe('the cards on the table', () => {
+  it('say each card\'s rarity, how many you own, and its cap', () => {
+    // Own most of the table, so whatever is dealt, some cards are owned and some are new.
+    const owned = ['flak-enthusiast', 'spoilers', 'bootleg-hooch', 'accidentally-wide', 'raptor-escort', 'hangar-door-slam'] as const;
+    const game = createGame({ seed: 1, raidersFire: false, startingCards: [...owned] });
+    toRecovering(game);
+    const cards = offerCards(game.view);
+    expect(cards).toHaveLength(3);
+    for (const card of cards) {
+      expect(card.owned).toBe((owned as readonly string[]).includes(card.id) ? 1 : 0);
+      expect(card.maxStacks).toBe(card.rarity === 'common' ? 3 : card.rarity === 'uncommon' ? 2 : 1);
+    }
   });
 });

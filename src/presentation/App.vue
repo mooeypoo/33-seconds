@@ -140,21 +140,22 @@ onUnmounted(() => {
       </div>
       <div class="play">
         <div ref="canvasHost" class="canvas-host" aria-hidden="true" />
-        <RecoveringOverlay v-if="status.choosingUpgrade" />
+        <RecoveringOverlay v-if="status.choosingUpgrade" :wide="cic" :comms="status.comms" />
         <DragHint v-if="inCombat" />
         <TitleOverlay v-if="cic && status.phase === 'title'" in-lane @start="beginRun" />
       </div>
       <footer v-if="inRun && !cic" class="bottom-band">
-        <SpecialButton v-if="isTouch && showFleet" :disabled="!inCombat" />
+        <!-- During the pick the buttons step aside, so the Recovering scene gets the whole strip. -->
+        <SpecialButton v-if="isTouch && showFleet && !status.choosingUpgrade" :disabled="!inCombat" />
         <div class="comms-slot">
           <CommsOverlay v-if="status.comms" docked :comms="status.comms" />
           <SpeechBanner v-if="speaking" docked />
         </div>
-        <MissileButton v-if="isTouch && showFleet" :disabled="!inCombat" />
+        <MissileButton v-if="isTouch && showFleet && !status.choosingUpgrade" :disabled="!inCombat" />
       </footer>
     </div>
 
-    <CommsConsole v-if="cic" class="side" :standby="!showFleet" :comms="status.comms" :log="status.commsLog" :speaking="speaking">
+    <CommsConsole v-if="cic" class="side" :standby="!showFleet" :comms="status.choosingUpgrade ? null : status.comms" :log="status.commsLog" :speaking="speaking">
       <template #controls>
         <HudBar
           v-if="inRun"
