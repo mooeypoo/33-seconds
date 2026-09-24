@@ -126,9 +126,10 @@ const stats = hudStore.state;
 }
 
 .debug {
+  /* Bottom-left: in the CIC shell the top right holds real controls (Pause, About). */
   position: fixed;
-  top: 12px;
-  right: 12px;
+  bottom: 12px;
+  left: 12px;
   z-index: 6;
   width: 220px;
   margin: 0;

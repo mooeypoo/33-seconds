@@ -133,6 +133,11 @@ export class Banter {
   }
 
   /** Game seconds. A paused session simply stops calling this. */
+  /** Drops the line on the strip, if any. Cooldowns are kept, so it does not come straight back. */
+  silence(): void {
+    this.shown = null;
+  }
+
   advance(seconds: number): void {
     if (!Number.isFinite(seconds) || seconds <= 0 || this.shown === null) {
       if (Number.isFinite(seconds) && seconds > 0) this.elapsedSeconds += seconds;

@@ -155,6 +155,25 @@ Cards show the joke in italics and the exact effect in plain text.
 - **Advice must be honest.** It may exaggerate personality, but never mislead about what the card does.
 - The check requires every upgrade id in the game data to have flair, and every flair id to have an upgrade.
 
+## 6a. Fleet names
+
+The FLEET console names the ten hulls on the fleet line (PRD 7.4). Galactica is fixed; the other
+nine are drawn at random each run from a pool, so writing more names than slots is the point.
+
+```json
+{
+  "galactica": "Galactica",
+  "civilianNames": ["The Slightly Leaky Freighter", "..."]
+}
+```
+
+- `civilianNames`: at least 9, unique. About 25 or more keeps repeats between runs rare.
+- Each name up to **28 characters**, so it fits one row of the console. Plain text, no markup or emoji.
+- Original names only: **no ship names from the show.** Spoiler-safe, and the joke is the ship, never
+  a person.
+- The placeholders in `src/content/fleet.json` are in square brackets so they are easy to spot.
+  `check:content` checks the count, uniqueness, and length; it does not block on placeholders.
+
 ## 7. Coverage targets for the MVP
 
 Roughly 150 to 200 lines. Write in batches of about 20.

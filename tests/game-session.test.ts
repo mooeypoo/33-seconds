@@ -584,3 +584,32 @@ describe('run seeds', () => {
     expect(asked).toBe(0);
   });
 });
+
+describe('the comms log', () => {
+  it('keeps the lines shown this run, newest last, never more than twenty, and starts empty next run', () => {
+    session.start();
+    let longest = 0;
+    let newestMatchesStrip = true;
+    // Several cycles, picking a card at each Recovering, so plenty of lines play.
+    for (let cycle = 0; cycle < 6; cycle++) {
+      for (let frame = 0; frame < TICKS_PER_SECOND * 36; frame++) {
+        session.advance(ONE_FRAME_AT_60HZ);
+        const status = session.status;
+        longest = Math.max(longest, status.commsLog.length);
+        if (status.comms && status.commsLog.at(-1)?.text !== status.comms.text) newestMatchesStrip = false;
+        if (status.choosingUpgrade) {
+          const card = session.view.upgradeOffer?.cardIds[0];
+          if (card) session.pickUpgrade(card);
+        }
+      }
+    }
+    expect(longest).toBe(20);
+    expect(newestMatchesStrip).toBe(true);
+
+    session.pause('player');
+    session.abandonRun();
+    expect(session.status.commsLog).toEqual([]);
+    session.start();
+    expect(session.status.commsLog).toEqual([]);
+  });
+});

@@ -14,6 +14,9 @@ import { ScenePlayer } from './recoveringScene';
  * It has its own random stream, derived from the run seed, so picking a joke never changes the
  * fight (ADR-0001 D3).
  */
+/** How many past lines the log keeps (PRD 12.2). */
+export const COMMS_LOG_LINES = 20;
+
 export class CommsDirector {
   private banter: Banter;
   private readonly scene = new ScenePlayer();
@@ -21,6 +24,8 @@ export class CommsDirector {
   private readonly cues = new BanterCues();
   private sixRemarkOwed = false;
   private sixWasPresent = false;
+  /** Lines already shown this run, oldest first (PRD 12.2). */
+  private readonly history: CommsLine[] = [];
 
   constructor(runSeed: number) {
     this.random = createRandomStream(banterSeed(runSeed));
@@ -32,6 +37,11 @@ export class CommsDirector {
     return this.scene.active ? this.scene.line : this.banter.line;
   }
 
+  /** The last lines shown, oldest first, at most `COMMS_LOG_LINES`. Follows the game clock. */
+  get log(): readonly CommsLine[] {
+    return this.history;
+  }
+
   /** A new run: fresh pools, no scene, no owed remarks. */
   reset(runSeed: number): void {
     this.random = createRandomStream(banterSeed(runSeed));
@@ -40,11 +50,17 @@ export class CommsDirector {
     this.sixRemarkOwed = false;
     this.sixWasPresent = false;
     this.cues.reset();
+    this.history.length = 0;
   }
 
-  /** Apply and Continue end the Recovering scene if it is still speaking (PRD 5.1). */
-  stopScene(): void {
+  /**
+   * Apply and Continue end Recovering (PRD 5.1): the scene stops if it is still speaking, and any
+   * line waiting under it goes too. That line was about the hand just closed (advice on a card),
+   * so letting it surface in the next cycle would talk about cards that are no longer there.
+   */
+  endRecovering(): void {
     this.scene.stop();
+    this.banter.silence();
   }
 
   /**
@@ -73,7 +89,13 @@ export class CommsDirector {
     const justLeftTheScene = this.scene.active && this.scene.advance(deltaSeconds);
     // The arriving line is in next frame's events. Let it speak before anyone asks about Six.
     if (!this.scene.active && !justLeftTheScene) this.maybeMentionSix(view, context);
-    return enteredRecovering || commsKey(this.line) !== before;
+    const line = this.line;
+    const changed = commsKey(line) !== before;
+    if (changed && line !== null) {
+      this.history.push(line);
+      if (this.history.length > COMMS_LOG_LINES) this.history.shift();
+    }
+    return enteredRecovering || changed;
   }
 
   /**

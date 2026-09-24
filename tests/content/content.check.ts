@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import scenesRaw from '../../src/content/scenes/recovering.json';
 import flairRaw from '../../src/content/upgrades.flair.json';
+import fleetRaw from '../../src/content/fleet.json';
 import { BANTER_TEXT_MAX_CHARACTERS, isSpeaker, parseBanterSource } from '../../src/application/banter/lines';
 import { parseScenes } from '../../src/application/banter/recoveringScene';
 import { STARTER_CARDS, isCardId } from '../../src/domain/progression/catalog';
@@ -187,6 +188,37 @@ describe('upgrade flair', () => {
         .filter((value): value is string => typeof value === 'string' && (MARKUP.test(value) || EMOJI.test(value)))
         .map(() => `flair ${id}: text must be plain, with no markup or emoji`);
       return [...missing, ...markup];
+    });
+    expect(problems).toEqual([]);
+  });
+});
+
+describe('fleet names', () => {
+  const MAX_NAME_CHARACTERS = 28;
+  const SLOTS = 9;
+  const names: unknown[] = Array.isArray(fleetRaw.civilianNames) ? fleetRaw.civilianNames : [];
+
+  it('has at least one name per civilian slot, each unique', () => {
+    const trimmed = names.filter((name): name is string => typeof name === 'string').map((name) => name.trim());
+    const problems: string[] = [];
+    if (trimmed.length < SLOTS) problems.push(`only ${String(trimmed.length)} names; a run needs ${String(SLOTS)}`);
+    const seen = new Set<string>();
+    for (const name of trimmed) {
+      if (seen.has(name)) problems.push(`"${name}" is listed twice`);
+      seen.add(name);
+    }
+    expect(problems).toEqual([]);
+  });
+
+  it('keeps each name short enough for one console row, and plain', () => {
+    const problems = names.flatMap((name) => {
+      if (typeof name !== 'string' || name.trim().length === 0) return [`${JSON.stringify(name)}: not a name`];
+      const found: string[] = [];
+      if (name.trim().length > MAX_NAME_CHARACTERS) {
+        found.push(`"${name}": ${String(name.trim().length)} characters, the limit is ${String(MAX_NAME_CHARACTERS)}`);
+      }
+      if (MARKUP.test(name) || EMOJI.test(name)) found.push(`"${name}": text must be plain`);
+      return found;
     });
     expect(problems).toEqual([]);
   });

@@ -6,7 +6,7 @@ import { hudStore } from '../stores/hudStore';
 import { settingsStore } from '../stores/settingsStore';
 import { portraitPose, portraitSrc } from '../portraits';
 
-const props = defineProps<{ comms: CommsLine; embedded?: boolean; docked?: boolean }>();
+const props = defineProps<{ comms: CommsLine; embedded?: boolean; docked?: boolean; large?: boolean }>();
 
 /** Captured once. The in-game toggle still updates through the settings store (PRD 15). */
 const osReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -29,7 +29,7 @@ const partnerInitial = computed(() => props.comms.partnerName?.slice(0, 1) ?? ''
 
 <template>
   <!-- Not data-ui: a touch here still steers (PRD 12.2). -->
-  <p class="comms" :class="{ embedded, docked }" data-testid="comms" role="status" aria-live="polite">
+  <p class="comms" :class="{ embedded, docked, large }" data-testid="comms" role="status" aria-live="polite">
     <img
       v-if="partnerSrc"
       class="portrait partner"
@@ -121,5 +121,28 @@ const partnerInitial = computed(() => props.comms.partnerName?.slice(0, 1) ?? ''
 
 .text {
   overflow-wrap: anywhere;
+}
+
+/* The desktop COMMS console: the same 64 px file at exactly 2x (PRD 12.6). */
+.large {
+  position: static;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  font-size: 18px;
+  background: var(--color-space);
+  border: 1px solid var(--color-dradis-line);
+  border-radius: var(--radius);
+}
+
+.large .portrait {
+  width: 128px;
+  height: 128px;
+  border: 1px solid var(--color-brass);
+}
+
+.large .partner {
+  width: 64px;
+  height: 64px;
+  border: 0;
 }
 </style>
