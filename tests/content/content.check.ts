@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import scenesRaw from '../../src/content/scenes/recovering.json';
 import flairRaw from '../../src/content/upgrades.flair.json';
 import fleetRaw from '../../src/content/fleet.json';
+import tiersRaw from '../../src/balance/tiers.json';
+import { parseTierProfile, TierProfileError } from '../../src/balance/profileSchema';
+import { isTierId } from '../../src/domain/balance/profile';
 import { BANTER_TEXT_MAX_CHARACTERS, isSpeaker, parseBanterSource } from '../../src/application/banter/lines';
 import { parseScenes } from '../../src/application/banter/recoveringScene';
 import { STARTER_CARDS, isCardId } from '../../src/domain/progression/catalog';
@@ -220,6 +223,25 @@ describe('fleet names', () => {
       if (MARKUP.test(name) || EMOJI.test(name)) found.push(`"${name}": text must be plain`);
       return found;
     });
+    expect(problems).toEqual([]);
+  });
+});
+
+describe('tier profiles', () => {
+  it('has only known tiers, each with valid numbers', () => {
+    const problems: string[] = [];
+    for (const [id, raw] of Object.entries(tiersRaw)) {
+      if (!isTierId(id)) {
+        problems.push(`tiers.json: unknown tier "${id}"`);
+        continue;
+      }
+      try {
+        parseTierProfile(id, raw);
+      } catch (error) {
+        if (error instanceof TierProfileError) problems.push(...error.problems);
+        else throw error;
+      }
+    }
     expect(problems).toEqual([]);
   });
 });

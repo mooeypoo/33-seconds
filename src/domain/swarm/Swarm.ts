@@ -10,7 +10,7 @@ import {
   raiderSpawnMaxX,
   raiderSpawnMinX,
 } from './raider';
-import { ATTACK_TOKENS, DIRECTOR_CAP, Download, GHOST_RADIUS_UNITS, STRAFE_TOKENS } from './resurrection';
+import { Download, GHOST_RADIUS_UNITS } from './resurrection';
 
 /**
  * The live Raiders, the download queue, and the Director that keeps them at the cap (PRD 6, 9).
@@ -76,8 +76,8 @@ export class Swarm {
     this.killCount += 1;
   }
 
-  /** The nearest Raiders above the Viper may fire (PRD 9). Nobody fires when `allowed` is false. */
-  assignAttackTokens(viperX: number, viperY: number, allowed: boolean): void {
+  /** The nearest `tokens` Raiders above the Viper may fire (PRD 9). Nobody fires when `allowed` is false. */
+  assignAttackTokens(viperX: number, viperY: number, allowed: boolean, tokens: number): void {
     for (const raider of this.bodies) raider.setArmed(false);
     if (!allowed) return;
     const ranked = this.bodies
@@ -87,18 +87,18 @@ export class Swarm {
         const rightDistance = Math.hypot(right.x - viperX, right.y - viperY);
         return leftDistance - rightDistance || left.id - right.id;
       });
-    for (const raider of ranked.slice(0, ATTACK_TOKENS)) raider.setArmed(true);
+    for (const raider of ranked.slice(0, tokens)) raider.setArmed(true);
   }
 
-  /** The Raiders farthest from the Viper dive the fleet (PRD 7.1). */
-  assignStrafeTokens(viperX: number, viperY: number): void {
+  /** The `tokens` Raiders farthest from the Viper dive the fleet (PRD 7.1). */
+  assignStrafeTokens(viperX: number, viperY: number, tokens: number): void {
     for (const raider of this.bodies) raider.setStrafing(false);
     const ranked = [...this.bodies].sort((left, right) => {
       const leftDistance = Math.hypot(left.x - viperX, left.y - viperY);
       const rightDistance = Math.hypot(right.x - viperX, right.y - viperY);
       return rightDistance - leftDistance || left.id - right.id;
     });
-    for (const raider of ranked.slice(0, STRAFE_TOKENS)) raider.setStrafing(true);
+    for (const raider of ranked.slice(0, tokens)) raider.setStrafing(true);
   }
 
   /**
@@ -163,28 +163,29 @@ export class Swarm {
    * Keeps live Raiders at the Director cap. Ready downloads come back first; each pending
    * download reserves one slot so a refill cannot add pressure (PRD 6).
    */
-  fill(events: DomainEvent[], shipGone: boolean): void {
-    while (this.bodies.length < DIRECTOR_CAP) {
+  fill(events: DomainEvent[], shipGone: boolean, cap: number): void {
+    while (this.bodies.length < cap) {
       const readyIndex = this.queue.findIndex((download) => download.isReady);
       if (readyIndex >= 0) {
         const ready = this.queue[readyIndex];
         if (!ready) return;
         this.queue.splice(readyIndex, 1);
-        this.spawn(events, { identityId: ready.identityId, deaths: ready.deaths, x: ready.x });
+        this.spawn(events, cap, { identityId: ready.identityId, deaths: ready.deaths, x: ready.x });
         continue;
       }
 
       if (shipGone) return;
-      if (this.bodies.length + this.queue.length >= DIRECTOR_CAP) return;
-      this.spawn(events);
+      if (this.bodies.length + this.queue.length >= cap) return;
+      this.spawn(events, cap);
     }
   }
 
   private spawn(
     events: DomainEvent[],
+    cap: number,
     returning?: { readonly identityId: number; readonly deaths: number; readonly x: number },
   ): void {
-    if (this.bodies.length >= DIRECTOR_CAP) return;
+    if (this.bodies.length >= cap) return;
     const minX = raiderSpawnMinX(this.playfield.fighterScale);
     const maxX = raiderSpawnMaxX(this.playfield.width, this.playfield.fighterScale);
     const column = returning?.x ?? this.pickFreshColumn(minX, maxX);

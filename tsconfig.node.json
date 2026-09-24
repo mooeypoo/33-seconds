@@ -23,6 +23,7 @@
     "vite.config.ts",
     "vitest.config.ts",
     "vitest.content.config.ts",
+    "vitest.sim.config.ts",
     "playwright.config.ts",
     "e2e/**/*.ts",
     "scripts/**/*.mjs"

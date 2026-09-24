@@ -16,8 +16,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "check:arch": "depcruise src --config .dependency-cruiser.cjs",
+    "check:arch": "depcruise src tools --config .dependency-cruiser.cjs",
     "check:content": "vitest run --config vitest.content.config.ts",
+    "sim": "vitest run --config vitest.sim.config.ts --reporter=verbose",
     "check:guardrails": "node scripts/prove-guardrails.mjs"
   },
   "dependencies": {

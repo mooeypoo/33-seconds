@@ -1,0 +1,16 @@
+{
+  "civilian-ship": {
+    "fleetCycleDamageCap": 35,
+    "fleetRepairOfMissing": 0.6,
+    "directorCap": [2],
+    "attackTokens": [1],
+    "strafeTokens": [1]
+  },
+  "viper-pilot": {
+    "fleetCycleDamageCap": 45,
+    "fleetRepairOfMissing": 0.4,
+    "directorCap": [2],
+    "attackTokens": [1],
+    "strafeTokens": [1]
+  }
+}

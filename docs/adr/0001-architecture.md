@@ -307,7 +307,7 @@ export interface CycleProfile {
 - No feature flags inside the domain. Staged features (Vengeful, traits) are selected by `returnedBehavior`, which is one field rather than a flag per feature.
 - Upgrades are **data-driven modifiers** (effects hooked to a `StatBlock` or to `onHit`, `onKill`, `onCycleStart`), not a class per card. Flair text is presentation data.
 
-**Live now (2026-09-22):** `CycleProfile` has two fields (`fleetCycleDamageCap`, `fleetRepairOfMissing`) in TypeScript at `src/balance/tiers.ts`. Director cap, hull, tokens, and the rest stay named constants until a tier actually differs.
+**Live now (2026-09-24, ADR-0002 Phase 3):** the tiers are data in `src/balance/tiers.json`, one object per difficulty, checked by `parseTierProfile` on load and by `check:content` in CI, which names every bad value. `CycleProfile` has five fields: `fleetCycleDamageCap`, `fleetRepairOfMissing`, and three **ramps** (`directorCap`, `attackTokens`, `strafeTokens`), lists by cycle whose last value repeats. A ramp counts as one knob. Tests that pass no profile get `DEFAULT_CYCLE_PROFILE`, built from the domain constants. Adding a difficulty is a JSON object plus its id in `TierId` and a title-screen button.
 
 **Soon:** one JSON object per difficulty (typed, validated on load), still under the 12-field knob budget, so adding a third tier or retuning hits is data. Look into this before inviting players back onto a harder profile. Invariants (the 33) stay domain constants.
 
@@ -424,7 +424,7 @@ export interface CycleProfile {
 3. [x] Scaffold the repo (Vite 8.3.0, Vue 3.5.43, TypeScript 6.0.3 strict, Vitest 5.0.1, Playwright 1.63.0, Phaser 4.2.1, Node 22.19.0), all pinned exactly with a committed lockfile. (2026-09-20)
 4. [x] Add `dependency-cruiser` and the domain lint bans to CI, and prove they fail on a violation (`npm run check:guardrails`). (2026-09-20)
 5. [ ] `netlify.toml` has the D11 headers, and `vite preview` mirrors them so the end-to-end tests boot under the real CSP. Still to do: check an actual deploy preview.
-6. [ ] Build the balance simulation harness in M2, when the first tunable numbers exist (this supersedes the earlier "alongside the first domain code", which contradicted D13). The seam it needs exists from the first slice: the domain is constructed headlessly and driven only by `tick(intent)`, and the harness will use the same scenario helpers the engine tests use. It lives in `tools/sim/` and may import only `domain` and `balance`, enforced by the boundary check.
+6. [x] (2026-09-24) Build the balance simulation harness in M2, when the first tunable numbers exist (this supersedes the earlier "alongside the first domain code", which contradicted D13). The seam it needs exists from the first slice: the domain is constructed headlessly and driven only by `tick(intent)`, and the harness will use the same scenario helpers the engine tests use. It lives in `tools/sim/` and may import only `domain` and `balance`, enforced by the boundary check.
 7. [ ] Write a leaderboard ADR (the next free number; 0002 is the review roadmap) before building any server code.
 8. [ ] Choose a reference phone and record the performance budget against it.
 

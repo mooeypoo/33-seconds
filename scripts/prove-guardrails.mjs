@@ -331,16 +331,16 @@ const SABOTAGE = [
     },
     {
       what: 'Viper Pilot still repairs like Civilian Run',
-      file: 'src/balance/tiers.ts',
-      find: '    fleetRepairOfMissing: 0.4,',
-      replace: '    fleetRepairOfMissing: 0.6,',
+      file: 'src/balance/tiers.json',
+      find: '"fleetRepairOfMissing": 0.4,',
+      replace: '"fleetRepairOfMissing": 0.6,',
       mustFail: 'npm run test',
     },
     {
       what: 'Viper Pilot keeps the Civilian Run damage cap',
-      file: 'src/balance/tiers.ts',
-      find: '    fleetCycleDamageCap: 45,',
-      replace: '    fleetCycleDamageCap: 35,',
+      file: 'src/balance/tiers.json',
+      find: '"fleetCycleDamageCap": 45,',
+      replace: '"fleetCycleDamageCap": 35,',
       mustFail: 'npm run test',
     },
     {
@@ -425,6 +425,20 @@ const SABOTAGE = [
     file: 'src/content/fleet.json',
     find: '"civilianNames": [',
     replace: '"civilianNames": [\n    "A name far too long for one row of the fleet console",',
+    mustFail: 'npm run check:content',
+  },
+  {
+    what: 'the balance harness reaches into the session',
+    file: 'tools/sim/runSim.ts',
+    find: "import { createGame } from '../../src/domain/game';",
+    replace: "import { createGame } from '../../src/domain/game';\nimport '../../src/application/GameSession';",
+    mustFail: 'npm run check:arch',
+  },
+  {
+    what: 'a tier repairs more of the fleet than it lost',
+    file: 'src/balance/tiers.json',
+    find: '"fleetRepairOfMissing": 0.4,',
+    replace: '"fleetRepairOfMissing": 1.4,',
     mustFail: 'npm run check:content',
   },
   {

@@ -36,6 +36,14 @@ module.exports = {
       to: { path: '^src/(infrastructure|presentation)' },
     },
     {
+      name: 'sim-reads-only-the-rules',
+      comment:
+        'The balance harness plays the game headless (ADR-0001 D13): it may use the domain and the tier data, never the session, the overlay, or an adapter.',
+      severity: 'error',
+      from: { path: '^tools/sim' },
+      to: { path: '^src/(application|infrastructure|presentation)' },
+    },
+    {
       name: 'presentation-does-not-reach-infrastructure',
       comment: 'Presentation talks to the application layer, not to adapters.',
       severity: 'error',

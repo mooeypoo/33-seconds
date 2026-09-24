@@ -1,23 +1,24 @@
-import { FLEET_CYCLE_DAMAGE_CAP, FLEET_REPAIR_OF_MISSING } from '../domain/fleet/integrity';
-import type { CycleProfile, TierId } from '../domain/balance/profile';
+import tiers from './tiers.json';
+import { isTierId, type CycleProfile, type TierId } from '../domain/balance/profile';
+import { parseTierProfile } from './profileSchema';
 
 /**
- * The only place play-tier numbers live (ADR-0001 D9). Civilian Run reuses the domain
- * constants so a one-line retune of those constants stays the easier fleet.
+ * The only place play-tier numbers live (ADR-0001 D9, ADR-0002 Phase 3): `tiers.json`, one object
+ * per difficulty, checked on load. Retuning is an edit to that file.
  */
-export const TIER_PROFILES: Record<TierId, CycleProfile> = {
-  'civilian-ship': {
-    id: 'civilian-ship',
-    fleetCycleDamageCap: FLEET_CYCLE_DAMAGE_CAP,
-    fleetRepairOfMissing: FLEET_REPAIR_OF_MISSING,
-  },
-  'viper-pilot': {
-    id: 'viper-pilot',
-    // PRD 7.3: cap 45, repair 40%. Ignoring the fleet loses on cycle 5.
-    fleetCycleDamageCap: 45,
-    fleetRepairOfMissing: 0.4,
-  },
-};
+function loadTiers(raw: Record<string, unknown>): Record<TierId, CycleProfile> {
+  const loaded: Partial<Record<TierId, CycleProfile>> = {};
+  for (const [id, entry] of Object.entries(raw)) {
+    if (!isTierId(id)) throw new Error(`tiers.json: unknown tier "${id}"`);
+    loaded[id] = parseTierProfile(id, entry);
+  }
+  const civilian = loaded['civilian-ship'];
+  const pilot = loaded['viper-pilot'];
+  if (!civilian || !pilot) throw new Error('tiers.json must define civilian-ship and viper-pilot');
+  return { 'civilian-ship': civilian, 'viper-pilot': pilot };
+}
+
+export const TIER_PROFILES: Record<TierId, CycleProfile> = loadTiers(tiers);
 
 /** Play default (PRD 11). */
 export const DEFAULT_PLAY_TIER: TierId = 'viper-pilot';
