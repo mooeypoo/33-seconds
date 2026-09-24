@@ -169,7 +169,7 @@ Detail in the [UI and UX review](../review/2026-09-24-ui-ux.md), section "Phase 
 - [x] **1.7** (2026-09-24) The reduced-effects toggle applies without a reload. Presenters take a
   `ReducedEffectsSource` and ask it each time an effect plays.
 
-### Phase 2: CIC layout
+### Phase 2: CIC layout — done 2026-09-24
 
 - [x] **2.1** (2026-09-24) Mock-up for the owner to react to, before any code. A private design canvas,
   https://claude.ai/artifact/LPd1nbt8VeMCCeMkuwS9ks (desktop, laptop, phone, title, card pick).
@@ -189,7 +189,11 @@ Detail in the [UI and UX review](../review/2026-09-24-ui-ux.md), section "Phase 
   pause-menu comms log (PRD 12.2) came into this PR, because the laptop collapse points at it. Found
   on the way: a card-advice line waiting under the Recovering scene surfaced in the next cycle;
   `CommsDirector.endRecovering` now silences it.
-- [ ] **2.3** Upgrade picks become cards (rarity, stacks, icon). PR 2b. Card art slots per SPRITE-FILES.
+- [x] **2.3** (2026-09-24) Upgrade picks become cards (rarity, stacks, icon). PR 2b. Card art slots per SPRITE-FILES.
+  `UpgradeCard` over `offerCards(view)` (rarity, owned, cap). Wide: a full-screen board, every detail
+  showing, cards as tall as their words. Phone: stacked, one open at a time, Refresh and Apply
+  sticky, and the action buttons step aside so the scene has the strip. Art is picked up from
+  `assets/cards/<id>.png` as files land.
 
 Ask first: the brainstorm items in the UI and UX review.
 

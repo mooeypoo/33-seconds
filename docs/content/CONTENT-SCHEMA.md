@@ -171,6 +171,8 @@ nine are drawn at random each run from a pool, so writing more names than slots 
 - Each name up to **28 characters**, so it fits one row of the console. Plain text, no markup or emoji.
 - Original names only: **no ship names from the show.** Spoiler-safe, and the joke is the ship, never
   a person.
+- **Owner ruling, 2026-09-24:** a name that only lands fully after later episodes (a nod, not a
+  reveal) is fine. It must not tell a new viewer what happens; not getting the joke yet is okay.
 - The placeholders in `src/content/fleet.json` are in square brackets so they are easy to spot.
   `check:content` checks the count, uniqueness, and length; it does not block on placeholders.
 

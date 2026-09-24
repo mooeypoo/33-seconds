@@ -81,25 +81,29 @@ test.describe('steering works wherever the finger lands', () => {
     await expect(page.getByText('Drag anywhere to fly')).toBeHidden();
   });
 
-  test('a title opens, and Apply is what leaves Recovering', async ({ page }) => {
+  test('a card is picked by its face, and Apply is what leaves Recovering', async ({ page, isMobile }) => {
     test.setTimeout(90_000);
+    // A wide window lays the three cards side by side with every detail showing. A phone stacks
+    // them and opens one at a time, so the joke is read first (PRD 5.1, ADR-0002 2.3).
+    const advisorsShown = isMobile ? 0 : 3;
     await startRun(page);
     await expect(page.getByText('Pick one. No timer.')).toBeVisible({ timeout: 70_000 });
-    await expect(page.getByTestId('advisor-baltar')).toHaveCount(0);
+    await expect(page.getByTestId('advisor-baltar')).toHaveCount(advisorsShown);
     await expect(page.getByTestId('apply-upgrade')).toBeDisabled();
     await expect(page.getByTestId('comms')).toContainText(/Tyrol|Adama|Tigh|Gaeta|Dualla/);
 
     await page.locator('[data-testid^="upgrade-"]').first().click();
     await expect(page.getByText('Selected', { exact: true })).toBeVisible();
-    await expect(page.getByTestId('advisor-baltar')).toBeVisible();
-    await expect(page.getByTestId('advisor-roslin')).toBeVisible();
+    await expect(page.getByTestId('advisor-baltar').first()).toBeVisible();
+    await expect(page.getByTestId('advisor-roslin').first()).toBeVisible();
     await expect(page.getByText('Jump complete')).toBeVisible();
 
     await page.locator('[data-testid^="upgrade-"]').first().click();
-    await expect(page.getByTestId('advisor-baltar')).toBeVisible();
+    await expect(page.getByTestId('advisor-baltar').first()).toBeVisible();
 
     await page.getByTestId('reroll-upgrades').click();
-    await expect(page.getByTestId('advisor-baltar')).toHaveCount(0);
+    await expect(page.getByText('Selected', { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId('advisor-baltar')).toHaveCount(advisorsShown);
     await expect(page.getByTestId('reroll-upgrades')).toHaveCount(0);
 
     await page.locator('[data-testid^="upgrade-"]').first().click();
