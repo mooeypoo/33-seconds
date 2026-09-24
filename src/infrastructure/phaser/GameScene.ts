@@ -4,6 +4,7 @@ import type { GameSession } from '../../application/GameSession';
 import { WORLD_HEIGHT_UNITS } from '../../domain/shared/world';
 import type { Presenter } from './Presenter';
 import { ExplosionPresenter } from './contexts/combat/ExplosionPresenter';
+import { ImpactPresenter } from './contexts/combat/ImpactPresenter';
 import { MissilePresenter } from './contexts/combat/MissilePresenter';
 import { ProjectilePresenter } from './contexts/combat/ProjectilePresenter';
 import { ImaginarySixPresenter } from './contexts/combat/ImaginarySixPresenter';
@@ -95,6 +96,7 @@ export class GameScene extends Phaser.Scene {
       new MissilePresenter(this),
       new RaiderPresenter(this, this.reducedEffects),
       new ExplosionPresenter(this, this.reducedEffects),
+      new ImpactPresenter(this, this.reducedEffects),
       new ResurrectionShipPresenter(this),
       new StickPresenter(this, this.stick, this.reducedEffects),
     ];

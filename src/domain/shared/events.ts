@@ -36,6 +36,35 @@ export interface RaiderDestroyed {
   readonly heavy: boolean;
 }
 
+/**
+ * A hit that did not kill (ADR-0002 3.4). Presentation and audio react; rules do not. The point is
+ * where the round struck, so an effect lands where the player was looking.
+ */
+export interface RaiderHit {
+  readonly type: 'RaiderHit';
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+  readonly hp: number;
+  readonly heavy: boolean;
+}
+
+export interface ViperHit {
+  readonly type: 'ViperHit';
+  readonly x: number;
+  readonly y: number;
+  readonly hp: number;
+}
+
+/** A round on the resurrection ship that did not destroy it. `shielded`: the bubble took it, no damage. */
+export interface ResurrectionShipHit {
+  readonly type: 'ResurrectionShipHit';
+  readonly x: number;
+  readonly y: number;
+  readonly hp: number;
+  readonly shielded: boolean;
+}
+
 export interface CyclePhaseChanged {
   readonly type: 'CyclePhaseChanged';
   readonly phase: 'arriving' | 'building' | 'spooling' | 'jumping' | 'recovering';
@@ -177,6 +206,9 @@ export type DomainEvent =
   | ShotFired
   | RaiderSpawned
   | RaiderDestroyed
+  | RaiderHit
+  | ViperHit
+  | ResurrectionShipHit
   | CyclePhaseChanged
   | ShotsCleared
   | ViperEjected

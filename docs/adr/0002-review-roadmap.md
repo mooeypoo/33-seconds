@@ -211,7 +211,11 @@ Ask first: the brainstorm items in the UI and UX review.
 - [x] **3.3** (2026-09-24) Heavy Raider with a field cap (decision 5). Same PR. Its own queue, never
   downloads, 8 hull, a missile does 3, its own attack token; two per cycle from cycle 2, at most two
   alive. Placeholder is the Raider picture at 1.7× until `raider_heavy` is drawn.
-- [ ] **3.4** Comfort-safe hit feedback: hit-stop, knockback, sparks.
+- [x] **3.4** (2026-09-24) Comfort-safe hit feedback: hit-stop, knockback, sparks. New domain facts for
+  hits that do not kill (`RaiderHit`, `ViperHit`, `ResurrectionShipHit` with `shielded`), which audio
+  will reuse. `ImpactPresenter` (sparks, shield ripple), a 2-pixel cosmetic knock on the Raider, and a
+  larger burst for a heavy. **No global hit-stop:** with auto-fire and four to six targets, kills come
+  about once a second, and a freeze each time would stutter the game. Reduced effects: a still spark.
 - [ ] **3.5** Audio: `AudioPort`, the cue catalog (ADR-0001 D4), ZzFX effects, mute back in
   the HUD (PRD 14.1).
 

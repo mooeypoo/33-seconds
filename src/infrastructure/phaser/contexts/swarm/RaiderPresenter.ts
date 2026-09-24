@@ -42,7 +42,13 @@ interface HullMark {
   body: Phaser.GameObjects.Sprite;
   pips: Phaser.GameObjects.Rectangle[];
   fade: Phaser.Tweens.Tween | null;
+  /** A small push back up the lane when a round lands, springing to 0 (ADR-0002 3.4). Cosmetic. */
+  knock: { value: number };
 }
+
+/** How far a hit pushes a Raider's picture, and how long it takes to settle. Not a shake (PRD 15). */
+const KNOCK_UNITS = 2;
+const KNOCK_MS = 120;
 
 /**
  * Draws the Raiders from the 48×48 frames, shown at 12 world units. A still eye means this one
@@ -92,6 +98,11 @@ export class RaiderPresenter implements Presenter {
 
     if (event.type === 'GhostDelayed') {
       this.pulseGhost(event.identityId);
+      return;
+    }
+
+    if (event.type === 'RaiderHit') {
+      this.knockBack(event.id);
     }
   }
 
@@ -110,7 +121,7 @@ export class RaiderPresenter implements Presenter {
       if (!mark || mark.fade) continue;
 
       mark.hull.x = Phaser.Math.Linear(raider.previousX, raider.x, alpha);
-      mark.hull.y = Phaser.Math.Linear(raider.previousY, raider.y, alpha);
+      mark.hull.y = Phaser.Math.Linear(raider.previousY, raider.y, alpha) + mark.knock.value;
       mark.hull.setAlpha(raider.protected ? 0.55 : 1);
       const shown = RAIDER_SHOWN_UNITS * view.fighterScale * (raider.kind === 'heavy' ? HEAVY_SHOWN_SCALE : 1);
       this.ensurePips(mark, raider.hpMax, shown);
@@ -217,6 +228,15 @@ export class RaiderPresenter implements Presenter {
     });
   }
 
+  /** Only the picture moves; the Raider's position in the rules does not. Skipped with reduced effects. */
+  private knockBack(id: number): void {
+    const mark = this.hulls.get(id);
+    if (!mark || this.reduced()) return;
+    this.scene.tweens.killTweensOf(mark.knock);
+    mark.knock.value = -KNOCK_UNITS;
+    this.scene.tweens.add({ targets: mark.knock, value: 0, duration: KNOCK_MS });
+  }
+
   private setDownloadPips(pips: readonly Phaser.GameObjects.Rectangle[], progress: number): void {
     const lit = Math.round(progress * DOWNLOAD_TICKS);
     for (const [index, pip] of pips.entries()) {
@@ -248,6 +268,7 @@ export class RaiderPresenter implements Presenter {
       body,
       pips: [],
       fade: null,
+      knock: { value: 0 },
     };
   }
 
