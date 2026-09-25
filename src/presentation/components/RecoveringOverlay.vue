@@ -100,8 +100,9 @@ function reroll(): void {
       </div>
 
       <footer class="bottom">
-        <div v-if="wide && props.comms" class="scene">
-          <CommsOverlay docked :comms="props.comms" />
+        <!-- Always there on a wide screen, empty or not, so the buttons stay on the right. -->
+        <div v-if="wide" class="scene">
+          <CommsOverlay v-if="props.comms" docked :comms="props.comms" />
         </div>
         <div class="buttons">
           <button
