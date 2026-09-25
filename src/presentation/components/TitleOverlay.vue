@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { nextTick, useTemplateRef, ref } from 'vue';
+import { computed, nextTick, useTemplateRef, ref } from 'vue';
 import titleCopy from '../../content/title.json';
 import viperNeutral from '../../../assets/ships/viper_neutral.png';
 import type { TierId } from '../../domain/balance/profile';
 import { titleQuote } from '../titleQuote';
 import MuteControl from './MuteControl.vue';
+import { settingsStore } from '../stores/settingsStore';
 /**
  * In the CIC shell the face sits in the lane only, between the standby consoles, which carry the
  * quote and the disclaimer (ADR-0002 Phase 2). Otherwise it is the whole screen, as on a phone.
  */
 defineProps<{ inLane?: boolean }>();
-const emit = defineEmits<{ start: [tier: TierId] }>();
+const emit = defineEmits<{ start: [tier: TierId]; training: [] }>();
+
+/** New players see the Training Run first; after one, it stays on offer but steps aside (PRD 5.5). */
+const trainingDone = computed(() => settingsStore.state.snapshot.trainingCompleted);
 
 type Sheet = 'manual' | 'credits';
 type ManualTab = 'controls' | 'fight';
@@ -90,6 +94,11 @@ function onSheetKeydown(event: KeyboardEvent): void {
 
       <!-- The playfield is empty until a run starts, so Launch sits on it. -->
       <div class="well">
+        <div v-if="!trainingDone" class="training-box fresh" data-testid="training-box">
+          <p class="kicker">{{ titleCopy.training.kicker }}</p>
+          <button class="training" type="button" @click="emit('training')">{{ titleCopy.training.button }}</button>
+          <p class="tier-note">{{ titleCopy.training.note }}</p>
+        </div>
         <div class="launch-box">
           <button class="launch" type="button" @click="emit('start', 'viper-pilot')">Launch — Viper Pilot</button>
           <p class="tier-note">{{ titleCopy.tiers.viperPilot }}</p>
@@ -102,6 +111,11 @@ function onSheetKeydown(event: KeyboardEvent): void {
             <p class="kicker">{{ titleCopy.tiers.civilianKicker }}</p>
             <button class="civilian" type="button" @click="emit('start', 'civilian-ship')">Civilian Run</button>
             <p class="tier-note">{{ titleCopy.tiers.civilian }}</p>
+          </div>
+
+          <div v-if="trainingDone" class="training-box" data-testid="training-box">
+            <button class="training quiet" type="button" @click="emit('training')">{{ titleCopy.training.button }}</button>
+            <p class="tier-note">{{ titleCopy.training.noteDone }}</p>
           </div>
 
           <!-- The choice comes before any sound can play (PRD 14.1). -->
@@ -268,14 +282,55 @@ function onSheetKeydown(event: KeyboardEvent): void {
 
 .well {
   display: flex;
+  flex-direction: column;
+  gap: 12px;
   align-items: center;
   justify-content: center;
   min-height: 132px;
 }
 
-.well .launch-box {
+.well .launch-box,
+.well .training-box {
   width: min(280px, 100%);
+  box-sizing: border-box;
   background: rgb(var(--rgb-space) / 92%);
+}
+
+.training-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--color-gunmetal);
+}
+
+/* First visit: the sim is the suggested first step, so it gets the thicker frame and a filled button. */
+.training-box.fresh {
+  border: 2px solid var(--color-amber);
+}
+
+.training {
+  font: inherit;
+  cursor: pointer;
+  min-height: 44px;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 18px;
+  color: var(--color-dradis-night);
+  background: var(--color-amber);
+  border: 0;
+}
+
+.training.quiet {
+  font-size: 16px;
+  color: var(--color-dradis-pale);
+  background: transparent;
+  border: 1px solid var(--color-dradis-deep);
+}
+
+.training:focus-visible {
+  outline: 2px solid var(--color-dradis-pale);
+  outline-offset: 3px;
 }
 
 .wordmark {

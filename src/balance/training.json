@@ -1,0 +1,6 @@
+{
+  "tier": "civilian-ship",
+  "resurrectionShipArrivesCycle": 2,
+  "resurrectionShipVulnerableCycle": 3,
+  "resurrectionShipHitPoints": 24
+}

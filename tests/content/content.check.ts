@@ -6,6 +6,20 @@ import fleetRaw from '../../src/content/fleet.json';
 import tiersRaw from '../../src/balance/tiers.json';
 import scoringRaw from '../../src/balance/scoring.json';
 import endingsRaw from '../../src/content/endings.json';
+import trainingRaw from '../../src/content/training.json';
+import trainingPresetRaw from '../../src/balance/training.json';
+import { parseTrainingPreset } from '../../src/balance/training';
+import {
+  isPlainText,
+  LESSON_BEAT_MAX_CHARACTERS,
+  LESSON_FOCUS,
+  LESSON_HEADING_MAX_CHARACTERS,
+  LESSON_MAX_BEATS,
+  LESSON_RECAP_MAX_CHARACTERS,
+  LESSON_TRIGGERS,
+  canHaveDeadline,
+  parseTrainingScript,
+} from '../../src/application/training/trainingScript';
 import { parseScoreWeights } from '../../src/balance/scoring';
 import {
   ENDING_HEADLINE_MAX_CHARACTERS,
@@ -302,6 +316,86 @@ describe('end-screen lines', () => {
       problems.push(...textProblems(`endings.json mostKilled.reactions[${String(index)}]`, reaction, REACTION_MAX_CHARACTERS));
     });
     expect(problems).toEqual([]);
+  });
+});
+
+describe('Training Run', () => {
+  const script = parseTrainingScript(trainingRaw);
+
+  function beatProblems(where: string, value: unknown): string[] {
+    const problems: string[] = [];
+    const beats: unknown[] = Array.isArray(value) ? value : [];
+    if (beats.length === 0 || beats.length > LESSON_MAX_BEATS) problems.push(`${where}: needs 1 to ${String(LESSON_MAX_BEATS)} lines`);
+    beats.forEach((rawBeat, beatIndex) => {
+      const beat = record(rawBeat);
+      if (!isSpeaker(beat.speaker)) problems.push(`${where} ${String(beatIndex)}: unknown speaker ${JSON.stringify(beat.speaker)}`);
+      if (!isPlainText(beat.text, LESSON_BEAT_MAX_CHARACTERS, true)) {
+        problems.push(`${where} ${String(beatIndex)}: plain text up to ${String(LESSON_BEAT_MAX_CHARACTERS)} characters, placeholders {before}, {after}, {cap} only`);
+      }
+    });
+    return problems;
+  }
+
+  /** Why a lesson would be dropped, or breaks a writing limit, in a writer's words. Empty when fine. */
+  function lessonProblems(raw: unknown, index: number): string[] {
+    const lesson = record(raw);
+    const where = `training.json lessons[${String(index)}] ${typeof lesson.id === 'string' ? lesson.id : '(no id)'}`;
+    const problems: string[] = [];
+    if (!(LESSON_TRIGGERS as readonly unknown[]).includes(lesson.trigger)) {
+      problems.push(`${where}: trigger must be one of ${LESSON_TRIGGERS.join(', ')}`);
+    }
+    if (lesson.focus !== undefined && !(LESSON_FOCUS as readonly unknown[]).includes(lesson.focus)) {
+      problems.push(`${where}: focus must be one of ${LESSON_FOCUS.join(', ')}`);
+    }
+    if (!isPlainText(lesson.heading, LESSON_HEADING_MAX_CHARACTERS, false)) {
+      problems.push(`${where}: heading must be plain text up to ${String(LESSON_HEADING_MAX_CHARACTERS)} characters`);
+    }
+    if (lesson.recap !== undefined && !isPlainText(lesson.recap, LESSON_RECAP_MAX_CHARACTERS, false)) {
+      problems.push(`${where}: recap must be plain text up to ${String(LESSON_RECAP_MAX_CHARACTERS)} characters`);
+    }
+    problems.push(...beatProblems(`${where} beats`, lesson.beats));
+    if ((lesson.by === undefined) !== (lesson.fallback === undefined)) {
+      problems.push(`${where}: "by" and "fallback" go together; a deadline needs lines for when the moment never came`);
+    } else if (lesson.by !== undefined) {
+      if (!canHaveDeadline(lesson.trigger)) {
+        problems.push(`${where}: a ${String(lesson.trigger)} lesson cannot have a deadline`);
+      }
+      const by = record(lesson.by);
+      const cycleOk = typeof by.cycle === 'number' && Number.isInteger(by.cycle) && by.cycle >= 1;
+      const secondsOk = typeof by.seconds === 'number' && by.seconds >= 0 && by.seconds < 33;
+      if (!cycleOk || !secondsOk || Object.keys(by).length !== 2) {
+        problems.push(`${where}: "by" needs a whole "cycle" from 1 and "seconds" from 0 to under 33, nothing else`);
+      }
+      problems.push(...beatProblems(`${where} fallback`, lesson.fallback));
+    }
+    return problems;
+  }
+
+  it('loads every lesson a writer wrote, each id once', () => {
+    const rawLessons: unknown[] = Array.isArray(trainingRaw.lessons) ? trainingRaw.lessons : [];
+    const loaded = new Set(script.lessons.map((lesson) => lesson.id));
+    // Every lesson is held to the writing limits, including one the game still plays: a long line
+    // plays, but it is named here.
+    const problems = rawLessons.flatMap((raw, index) => {
+      const reasons = lessonProblems(raw, index);
+      const id = record(raw).id;
+      if (typeof id === 'string' && loaded.has(id)) return reasons;
+      return reasons.length > 0 ? reasons : [`training.json lessons[${String(index)}]: dropped (check the id, the when, and repeats)`];
+    });
+    expect(problems).toEqual([]);
+    expect(script.lessons.length).toBe(rawLessons.length);
+  });
+
+  it('opens with at least one lesson, and has a debrief with a grade', () => {
+    expect(script.lessons.some((lesson) => lesson.trigger === 'TrainingStarted')).toBe(true);
+    expect(script.debrief.beats.length).toBeGreaterThan(0);
+    expect(script.debrief.recapIntro.length).toBeGreaterThan(0);
+    expect(script.debrief.grades.length).toBe(trainingRaw.debrief.grades.length);
+    expect(script.debrief.grades.length).toBeGreaterThan(0);
+  });
+
+  it('has a valid preset in balance/training.json', () => {
+    expect(() => parseTrainingPreset(trainingPresetRaw)).not.toThrow();
   });
 });
 

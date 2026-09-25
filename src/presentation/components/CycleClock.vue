@@ -25,7 +25,7 @@ const counting = computed(() => state.hud?.cyclePhase !== 'jumping' && state.hud
 </script>
 
 <template>
-  <div class="clock" :class="{ spooling }" data-testid="cycle-clock" role="timer" aria-label="Jump countdown">
+  <div class="clock" :class="{ spooling }" data-testid="cycle-clock" data-lesson-target="clock" role="timer" aria-label="Jump countdown">
     <p class="top">
       <span class="label">{{ label }}</span>
       <span v-if="counting" class="seconds" data-testid="seconds-remaining">{{ remaining }}</span>

@@ -26,6 +26,11 @@ export interface PlayerSettingsSnapshot {
    * the default, so no version bump.
    */
   readonly volume: number;
+  /**
+   * The player finished a Training Run once (PRD 5.5). The title stops pushing it, and still offers
+   * it. Added after v1 shipped: an older envelope without it reads as not done, so no version bump.
+   */
+  readonly trainingCompleted: boolean;
 }
 
 /** Loud enough to hear over a phone speaker, with room to turn it up. */
@@ -38,6 +43,7 @@ export const DEFAULT_PLAYER_SETTINGS: PlayerSettingsSnapshot = {
   dragHintSeen: false,
   readableFont: false,
   volume: DEFAULT_VOLUME,
+  trainingCompleted: false,
 };
 
 /** Anything that is not a finite number in 0..1 is not a volume we trust. */
@@ -59,6 +65,7 @@ export function parsePlayerSettings(raw: unknown): PlayerSettingsSnapshot {
     dragHintSeen: record.dragHintSeen === true,
     readableFont: record.readableFont === true,
     volume: parseVolume(record.volume),
+    trainingCompleted: record.trainingCompleted === true,
   };
 }
 
@@ -120,6 +127,10 @@ export class PlayerSettings {
 
   markDragHintSeen(): void {
     this.patch({ dragHintSeen: true });
+  }
+
+  markTrainingCompleted(): void {
+    this.patch({ trainingCompleted: true });
   }
 
   private patch(partial: Partial<Omit<PlayerSettingsSnapshot, 'version'>>): void {

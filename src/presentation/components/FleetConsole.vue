@@ -43,7 +43,7 @@ const dingedCount = computed(() => ships.value.length - readyCount.value);
     </template>
 
     <template v-else>
-      <section class="panel" data-testid="fleet-readout">
+      <section class="panel" data-testid="fleet-readout" data-lesson-target="fleet">
         <p class="line">
           <span class="label">Fleet health</span>
           <span class="value" data-testid="fleet">{{ percent }}%</span>
@@ -73,7 +73,7 @@ const dingedCount = computed(() => ships.value.length - readyCount.value);
         </p>
       </section>
 
-      <section class="panel objective">
+      <section class="panel objective" data-lesson-target="objective">
         <span class="label">Objective</span>
         <ObjectiveLine />
       </section>

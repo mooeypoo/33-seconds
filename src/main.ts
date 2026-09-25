@@ -43,7 +43,9 @@ const buttons = new ButtonLatchInput();
 const keyboard = new KeyboardInput({
   onPauseRequested: (): void => {
     // Esc and P toggle: pause a run, or start the countdown out of a pause (PRD 13.1, 13.3).
-    if (session.status.phase === 'paused') session.requestResume();
+    // On a Training Run lesson they are Got it, including one over the pick sheet (PRD 5.5).
+    if (session.status.lesson) session.dismissLesson();
+    else if (session.status.phase === 'paused') session.requestResume();
     else session.pause('player');
   },
 });

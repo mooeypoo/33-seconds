@@ -16,6 +16,12 @@
   ],
   "sound": "This game has sound. The tab stays quiet until you Launch.",
   "controls": "Drag or WASD to move. Space or the button fires a missile. Esc pauses.",
+  "training": {
+    "kicker": "New pilot? Start here",
+    "button": "Training Run",
+    "note": "A short sim with Tyrol. The clock stops for every lesson.",
+    "noteDone": "The sim is always open. Run it again any time."
+  },
   "tiers": {
     "viperPilot": "The fleet is in your hands.",
     "civilian": "Easier fleet. Same fight.",

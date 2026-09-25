@@ -19,7 +19,7 @@ const filledPips = computed(() => Math.round(integrity.value / 10));
 </script>
 
 <template>
-  <div class="fleet" data-testid="fleet-readout">
+  <div class="fleet" data-testid="fleet-readout" data-lesson-target="fleet">
     <p class="line">
       <span class="label">Fleet health</span>
       <span class="value" data-testid="fleet">{{ percent }}%</span>

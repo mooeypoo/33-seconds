@@ -264,6 +264,8 @@ DOM structure and pointer policy:
 - Resume with a 3-2-1 countdown that clears input state, and **reset the loop timestamp** on resume so the first frame does not see a giant delta.
 - Audio: `audioContext.suspend()` and `resume()` with the session.
 
+**Training Run lessons are a pause, too (2026-09-25, PRD 5.5).** A `LessonDirector` in `application/training` watches domain events and the read-only view, and decides when a lesson from `content/training.json` is due. The session shows it by pausing with the reason `lesson`: nothing ticks until Got it. Esc, P, and `requestResume` on a lesson dismiss it; the next due lesson follows at once with the clock still held, and when none is left the usual 3-2-1 runs. A lesson over the Recovering sheet does not pause, because that sheet is never paused (PRD 13.3); it only blocks the pick until it is read. The session checks for a due lesson after every tick, so a slow frame that runs several ticks still stops on the tick the lesson came due. The Training Run's numbers are ordinary `GameOptions` from `src/balance/training.json`. **The domain has no idea training exists.**
+
 ### D8. Content as data; Banter as its own context
 
 **Decision:** Lines, scenes, upgrade flair text, and portrait mappings live in `content/` as JSON, with TypeScript types and a **build-time validation script** (schema, length limits, unknown speakers, duplicate IDs, placeholders that do not exist). The Banter service in `application/banter` subscribes to domain events, applies priority, cooldowns, no-repeat memory, and shuffle-bag cameo rotation, and pushes a `CommsMessage` to the presentation store.
