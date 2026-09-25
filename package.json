@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "description": "33 Seconds -- a pixel-art survivors-style browser shooter. Unofficial fan project.",
+  "homepage": "https://33seconds.netlify.app/",
   "engines": {
     "node": ">=22.19.0"
   },
@@ -19,7 +20,8 @@
     "check:arch": "depcruise src tools --config .dependency-cruiser.cjs",
     "check:content": "vitest run --config vitest.content.config.ts",
     "sim": "vitest run --config vitest.sim.config.ts --reporter=verbose",
-    "check:guardrails": "node scripts/prove-guardrails.mjs"
+    "check:guardrails": "node scripts/prove-guardrails.mjs",
+    "render:share": "node scripts/render-share-images.mjs"
   },
   "dependencies": {
     "phaser": "4.2.1",

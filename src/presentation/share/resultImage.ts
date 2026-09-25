@@ -157,10 +157,20 @@ export async function renderResultImage(result: RunResult, gameVersion: string, 
   context.textAlign = 'right';
   context.fillText(`Unofficial fan game · v${gameVersion} · ${site}`, WIDTH - MARGIN, HEIGHT - MARGIN + 8);
 
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) resolve(blob);
-      else reject(new Error('the canvas gave no PNG'));
-    }, 'image/png');
-  });
+  return pngBlob(canvas);
+}
+
+/**
+ * Not `canvas.toBlob`: Chromium encodes that in idle time, and with the Phaser loop still drawing
+ * behind the end screen the callback can wait for seconds, leaving the button on "Drawing…".
+ * `toDataURL` encodes at once. The bytes are decoded here because `fetch(dataUrl)` breaks the CSP.
+ */
+function pngBlob(canvas: HTMLCanvasElement): Blob {
+  const dataUrl = canvas.toDataURL('image/png');
+  const base64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+  if (!dataUrl.startsWith('data:image/png') || !base64) throw new Error('the canvas gave no PNG');
+  const text = atob(base64);
+  const bytes = new Uint8Array(text.length);
+  for (let i = 0; i < text.length; i++) bytes[i] = text.charCodeAt(i);
+  return new Blob([bytes], { type: 'image/png' });
 }

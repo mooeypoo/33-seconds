@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { readFileSync } from 'node:fs';
 
@@ -6,7 +6,20 @@ import { readFileSync } from 'node:fs';
  * The game version a shared result shows (PRD 17). Bump it in package.json when a change moves
  * scores: scoring.json, tiers.json, or a rule that changes how a run plays.
  */
-const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
+const { version, homepage } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
+  version: string;
+  homepage: string;
+};
+
+/**
+ * Link previews need absolute URLs (crawlers do not resolve relative ones), so index.html writes
+ * `__SITE_URL__` and this fills it from `homepage` in package.json. Change the domain there.
+ */
+const siteUrl = homepage.replace(/\/?$/, '/');
+const siteUrlPlugin: Plugin = {
+  name: 'site-url',
+  transformIndexHtml: (html) => html.replaceAll('__SITE_URL__', siteUrl),
+};
 
 /**
  * The production headers live in `netlify.toml`, which is the source of truth. This copy exists so
@@ -21,7 +34,7 @@ const SECURITY_HEADERS = {
 };
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), siteUrlPlugin],
   define: { __GAME_VERSION__: JSON.stringify(version) },
   preview: { headers: SECURITY_HEADERS },
   build: {

@@ -4,8 +4,32 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b0e14" />
     <meta name="description" content="33 Seconds -- an unofficial pixel-art fan game. Defend the fleet." />
     <title>33 Seconds</title>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!--
+      Link previews. __SITE_URL__ comes from `homepage` in package.json (see vite.config.ts), because
+      crawlers need absolute URLs. The card and icons are rendered by `npm run render:share`.
+    -->
+    <link rel="canonical" href="__SITE_URL__" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="33 Seconds" />
+    <meta property="og:title" content="33 Seconds" />
+    <meta
+      property="og:description"
+      content="Every thirty-three seconds, the fleet jumps. Fly a Viper and keep them alive. A free, unofficial pixel-art fan game inspired by Battlestar Galactica."
+    />
+    <meta property="og:url" content="__SITE_URL__" />
+    <meta property="og:image" content="__SITE_URL__og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="A pixel-art Viper on a green radar scope, beside the title 33 Seconds." />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <!-- Every pointer listener lives on this element, never on the canvas (ADR-0001 D6). -->
