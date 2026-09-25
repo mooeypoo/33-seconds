@@ -4,6 +4,16 @@ import soundsRaw from '../../src/content/sounds.json';
 import flairRaw from '../../src/content/upgrades.flair.json';
 import fleetRaw from '../../src/content/fleet.json';
 import tiersRaw from '../../src/balance/tiers.json';
+import scoringRaw from '../../src/balance/scoring.json';
+import endingsRaw from '../../src/content/endings.json';
+import { parseScoreWeights } from '../../src/balance/scoring';
+import {
+  ENDING_HEADLINE_MAX_CHARACTERS,
+  ENDING_ID_PATTERN,
+  ENDING_PLACEHOLDERS,
+  ENDING_TEXT_MAX_CHARACTERS,
+  REACTION_MAX_CHARACTERS,
+} from '../../src/application/endings';
 import { parseTierProfile, TierProfileError } from '../../src/balance/profileSchema';
 import { isTierId } from '../../src/domain/balance/profile';
 import { BANTER_TEXT_MAX_CHARACTERS, isSpeaker, parseBanterSource } from '../../src/application/banter/lines';
@@ -245,6 +255,52 @@ describe('tier profiles', () => {
         else throw error;
       }
     }
+    expect(problems).toEqual([]);
+  });
+});
+
+describe('score weights', () => {
+  it('has every weight, each a number in range, and nothing unknown', () => {
+    expect(() => parseScoreWeights(scoringRaw)).not.toThrow();
+  });
+});
+
+describe('end-screen lines', () => {
+  const known = new Set<string>(ENDING_PLACEHOLDERS);
+
+  function textProblems(where: string, text: unknown, max: number): string[] {
+    if (typeof text !== 'string' || text.length === 0) return [`${where} must be text`];
+    const problems: string[] = [];
+    if (text.length > max) problems.push(`${where} is ${String(text.length)} characters; the limit is ${String(max)}`);
+    if (MARKUP.test(text) || EMOJI.test(text)) problems.push(`${where} has markup or emoji`);
+    for (const [, name] of text.matchAll(/\{(\w+)\}/g)) {
+      if (!known.has(name ?? '')) problems.push(`${where} uses {${String(name)}}, which nothing fills`);
+    }
+    return problems;
+  }
+
+  it('has lines for both outcomes, with unique stable ids, short plain text, and known placeholders', () => {
+    const problems: string[] = [];
+    const ids = new Set<string>();
+    for (const outcome of ['won', 'lost'] as const) {
+      const lines: unknown[] = Array.isArray(endingsRaw[outcome]) ? endingsRaw[outcome] : [];
+      if (lines.length === 0) problems.push(`endings.json: no ${outcome} lines`);
+      lines.forEach((raw, index) => {
+        const line = record(raw);
+        const where = `endings.json ${outcome}[${String(index)}]`;
+        if (typeof line.id !== 'string' || !ENDING_ID_PATTERN.test(line.id)) problems.push(`${where}: id must match ${String(ENDING_ID_PATTERN)}`);
+        else if (ids.has(line.id)) problems.push(`${where}: id "${line.id}" is used twice`);
+        else ids.add(line.id);
+        problems.push(...textProblems(`${where}.headline`, line.headline, ENDING_HEADLINE_MAX_CHARACTERS));
+        problems.push(...textProblems(`${where}.text`, line.text, ENDING_TEXT_MAX_CHARACTERS));
+      });
+    }
+    problems.push(...textProblems('endings.json mostKilled.text', endingsRaw.mostKilled.text, ENDING_TEXT_MAX_CHARACTERS));
+    const reactions: unknown[] = Array.isArray(endingsRaw.mostKilled.reactions) ? endingsRaw.mostKilled.reactions : [];
+    if (reactions.length === 0) problems.push('endings.json mostKilled.reactions: needs at least one');
+    reactions.forEach((reaction, index) => {
+      problems.push(...textProblems(`endings.json mostKilled.reactions[${String(index)}]`, reaction, REACTION_MAX_CHARACTERS));
+    });
     expect(problems).toEqual([]);
   });
 });

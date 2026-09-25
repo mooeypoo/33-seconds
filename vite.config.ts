@@ -1,5 +1,12 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
+import { readFileSync } from 'node:fs';
+
+/**
+ * The game version a shared result shows (PRD 17). Bump it in package.json when a change moves
+ * scores: scoring.json, tiers.json, or a rule that changes how a run plays.
+ */
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string };
 
 /**
  * The production headers live in `netlify.toml`, which is the source of truth. This copy exists so
@@ -15,6 +22,7 @@ const SECURITY_HEADERS = {
 
 export default defineConfig({
   plugins: [vue()],
+  define: { __GAME_VERSION__: JSON.stringify(version) },
   preview: { headers: SECURITY_HEADERS },
   build: {
     target: 'es2022',

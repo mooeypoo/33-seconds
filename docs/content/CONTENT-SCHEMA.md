@@ -177,6 +177,35 @@ nine are drawn at random each run from a pool, so writing more names than slots 
 - The placeholders in `src/content/fleet.json` are in square brackets so they are easy to spot.
   `check:content` checks the count, uniqueness, and length; it does not block on placeholders.
 
+## 6b. End-screen lines
+
+`src/content/endings.json` holds the end screen's headline and the line under it (PRD 5.4). One is
+drawn per run for the outcome.
+
+```json
+{
+  "won":  [{ "id": "won-01",  "note": "PLACEHOLDER", "headline": "...", "text": "..." }],
+  "lost": [{ "id": "lost-01", "note": "PLACEHOLDER", "headline": "...", "text": "..." }],
+  "mostKilled": {
+    "text": "Most-killed Raider: #{identity}, {count} times.",
+    "reactions": ["Still not over it.", "..."]
+  }
+}
+```
+
+- `won` is excited, `lost` is a funny kind of sad. At least one of each.
+- **Keep ids stable.** A share link names its line by id. A link whose id is gone shows the first
+  line of its outcome instead, so renaming is safe but changes old links.
+- Headline up to **40 characters**, text up to **140**. Plain text, no markup or emoji.
+- `mostKilled.text` is the fixed part of the joke stat. One of `reactions` is drawn per run and
+  follows it after a space. At least one reaction, each up to **80 characters**. A share link names
+  its reaction by **position**, so reordering or cutting the list changes the joke an older link
+  shows (a position past the end shows the first one). Add new ones at the end.
+- Placeholders: `{score}` and `{cycles}` in any line; `{identity}` and `{count}` in `mostKilled` and
+  its reactions.
+  `check:content` names any other placeholder, a duplicate id, or an overlong line.
+- Delete `note` when a line is the owner's own.
+
 ## 7. Coverage targets for the MVP
 
 Roughly 150 to 200 lines. Write in batches of about 20.

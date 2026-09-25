@@ -1,0 +1,10 @@
+{
+  "raiderKill": 10,
+  "heavyKill": 40,
+  "resurrectionShipDamage": 2,
+  "resurrectionShipDestroyed": 500,
+  "eject": 20,
+  "fleetDamagePercent": 2,
+  "winBonus": 250,
+  "fleetLeftPercent": 10
+}

@@ -1,5 +1,7 @@
 import type { CycleProfile } from '../../src/domain/balance/profile';
 import { createGame } from '../../src/domain/game';
+import { SCORE_WEIGHTS } from '../../src/balance/scoring';
+import { RunTally, scoreRun } from '../../src/domain/scoring/score';
 import { PHONE_PLAYFIELD, type Playfield } from '../../src/domain/shared/world';
 import type { Bot } from './bots';
 
@@ -17,6 +19,8 @@ export interface RunResult {
   readonly raidersOnScreen: number;
   readonly kills: number;
   readonly ejects: number;
+  /** The end-screen score (PRD 5.4). A timeout scores as a loss would. */
+  readonly score: number;
 }
 
 export interface RunOptions {
@@ -37,6 +41,7 @@ export function simulateRun(options: RunOptions): RunResult {
   let raiderTicks = 0;
   let ejects = 0;
   let tick = 0;
+  const tally = new RunTally();
 
   for (;;) {
     const view = game.view;
@@ -50,6 +55,7 @@ export function simulateRun(options: RunOptions): RunResult {
     }
 
     const events = game.tick(options.bot(view, tick));
+    tally.note(events);
     tick += 1;
     const after = game.view;
     if (after.cycle.phase !== 'jumping' && after.cycle.phase !== 'recovering') {
@@ -74,6 +80,7 @@ export function simulateRun(options: RunOptions): RunResult {
       raidersOnScreen: combatTicks > 0 ? raiderTicks / combatTicks : 0,
       kills: view.kills,
       ejects,
+      score: scoreRun(tally.facts(view, outcome === 'won'), SCORE_WEIGHTS),
     };
   }
 }
@@ -90,6 +97,9 @@ export interface Summary {
   readonly raidersOnScreen: number;
   readonly medianKills: number;
   readonly ejectsPerRun: number;
+  /** Median score of the won runs, or null with none. */
+  readonly medianScoreWon: number | null;
+  readonly medianScoreLost: number | null;
 }
 
 function median(values: readonly number[]): number {
@@ -97,6 +107,10 @@ function median(values: readonly number[]): number {
   const middle = Math.floor(sorted.length / 2);
   if (sorted.length === 0) return 0;
   return sorted.length % 2 === 1 ? (sorted[middle] ?? 0) : ((sorted[middle - 1] ?? 0) + (sorted[middle] ?? 0)) / 2;
+}
+
+function medianOrNull(values: readonly number[]): number | null {
+  return values.length === 0 ? null : median(values);
 }
 
 /** Roughly how long a Recovering pick takes a person, for the run-length estimate (PRD 5.1: 8-12 s). */
@@ -117,5 +131,7 @@ export function summarize(results: readonly RunResult[]): Summary {
     raidersOnScreen: results.reduce((sum, run) => sum + run.raidersOnScreen, 0) / count,
     medianKills: median(results.map((run) => run.kills)),
     ejectsPerRun: results.reduce((sum, run) => sum + run.ejects, 0) / count,
+    medianScoreWon: medianOrNull(results.filter((run) => run.outcome === 'won').map((run) => run.score)),
+    medianScoreLost: medianOrNull(results.filter((run) => run.outcome !== 'won').map((run) => run.score)),
   };
 }

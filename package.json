@@ -1,6 +1,6 @@
 {
   "name": "thirty-three-seconds",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
   "description": "33 Seconds -- a pixel-art survivors-style browser shooter. Unofficial fan project.",
@@ -9,7 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/check-dev-tools-stripped.mjs",
     "preview": "vite preview",
     "typecheck": "vue-tsc --build --force",
     "lint": "eslint .",
