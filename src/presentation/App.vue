@@ -1,6 +1,20 @@
 <script setup lang="ts">
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch, watchEffect } from 'vue';
+import {
+  computed,
+  defineAsyncComponent,
+  inject,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  ref,
+  useTemplateRef,
+  watch,
+  watchEffect,
+  type Component,
+} from 'vue';
 import type { SessionStatus } from '../application/GameSession';
+import type { RunResult } from '../application/runResult';
+import { decodeSharedRun, type SharedRun } from '../application/shareCode';
 import { playfieldForWindow } from '../application/playfield';
 import type { TierId } from '../domain/balance/profile';
 import { CANVAS_HOST_KEY, RESIZE_PLAYFIELD_KEY, SESSION_KEY } from './injection';
@@ -17,8 +31,7 @@ import LatestUpgrade from './components/LatestUpgrade.vue';
 import PauseOverlay from './components/PauseOverlay.vue';
 import RecoveringOverlay from './components/RecoveringOverlay.vue';
 import TitleOverlay from './components/TitleOverlay.vue';
-import WinOverlay from './components/WinOverlay.vue';
-import LoseOverlay from './components/LoseOverlay.vue';
+import RunSummary from './components/RunSummary.vue';
 import MissileButton from './components/MissileButton.vue';
 import SpecialButton from './components/SpecialButton.vue';
 import SpeechBanner from './components/SpeechBanner.vue';
@@ -28,6 +41,17 @@ import { hudStore } from './stores/hudStore';
 import { titleQuote } from './titleQuote';
 import titleCopy from '../content/title.json';
 import { settingsStore } from './stores/settingsStore';
+import { GAME_VERSION } from './gameVersion';
+
+/**
+ * The Simulate win / lose buttons (DevEndPreview). In `npm run dev` and the Playwright build only:
+ * in a production build this is a constant false, so the component and its chunk are left out.
+ */
+const DEV_TOOLS = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEBUG === 'true';
+// ESLint cannot read .vue types through a dynamic import; vue-tsc checks the real one.
+const DevEndPreview: Component | null = DEV_TOOLS
+  ? defineAsyncComponent(() => import('./components/DevEndPreview.vue') as Promise<{ default: Component }>)
+  : null;
 
 const session = inject(SESSION_KEY);
 const mountCanvas = inject(CANVAS_HOST_KEY);
@@ -55,6 +79,40 @@ const quote = titleQuote();
 const speaking = computed(() => status.value.phase === 'running' && hudStore.state.hud?.speechActive === true);
 /** About is a pause with the how-to sheet, not the pause menu. */
 const aboutOpen = ref(false);
+/** A run someone shared, opened from the link's hash (PRD 17). Shown over the title. */
+const shared = ref<SharedRun | null>(decodeSharedRun(window.location.hash));
+/** A made-up run from the dev buttons. Never set in a production build. */
+const devPreview = ref<RunResult | null>(null);
+
+/** What the end screen shows, if anything: this run, a dev preview, or a shared run. */
+const endScreen = computed<{ result: RunResult; gameVersion: string; shared: boolean } | null>(() => {
+  const phase = status.value.phase;
+  if ((phase === 'won' || phase === 'lost') && status.value.result) {
+    return { result: status.value.result, gameVersion: GAME_VERSION, shared: false };
+  }
+  if (phase !== 'title') return null;
+  if (devPreview.value) return { result: devPreview.value, gameVersion: GAME_VERSION, shared: false };
+  if (shared.value) return { ...shared.value, shared: true };
+  return null;
+});
+
+function leaveEndScreen(): void {
+  if (status.value.phase === 'won' || status.value.phase === 'lost') {
+    session?.returnToTitle();
+    return;
+  }
+  if (devPreview.value) {
+    devPreview.value = null;
+    return;
+  }
+  // Leaving a shared run drops its hash, so a reload shows the title and not the run again.
+  shared.value = null;
+  window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+}
+
+function onHashChange(): void {
+  shared.value = decodeSharedRun(window.location.hash);
+}
 let unsubscribe: (() => void) | null = null;
 
 function beginRun(tier: TierId): void {
@@ -99,10 +157,12 @@ onMounted(() => {
     status.value = next;
   });
   if (canvasHost.value) mountCanvas(canvasHost.value);
+  window.addEventListener('hashchange', onHashChange);
 });
 
 onUnmounted(() => {
   unsubscribe?.();
+  window.removeEventListener('hashchange', onHashChange);
 });
 </script>
 
@@ -142,7 +202,7 @@ onUnmounted(() => {
         <div ref="canvasHost" class="canvas-host" aria-hidden="true" />
         <RecoveringOverlay v-if="status.choosingUpgrade" :wide="cic" :comms="status.comms" />
         <DragHint v-if="inCombat" />
-        <TitleOverlay v-if="cic && status.phase === 'title'" in-lane @start="beginRun" />
+        <TitleOverlay v-if="cic && status.phase === 'title' && !endScreen" in-lane @start="beginRun" />
       </div>
       <footer v-if="inRun && !cic" class="bottom-band">
         <!-- During the pick the buttons step aside, so the Recovering scene gets the whole strip. -->
@@ -173,11 +233,16 @@ onUnmounted(() => {
     </CommsConsole>
   </div>
 
-  <TitleOverlay v-if="!cic && status.phase === 'title'" @start="beginRun" />
+  <RunSummary
+    v-if="endScreen"
+    :key="endScreen.result.headlineId + endScreen.result.score"
+    :result="endScreen.result"
+    :game-version="endScreen.gameVersion"
+    :shared="endScreen.shared"
+    @continue="leaveEndScreen"
+  />
 
-  <WinOverlay v-else-if="status.phase === 'won'" @continue="session.returnToTitle()" />
-
-  <LoseOverlay v-else-if="status.phase === 'lost'" @continue="session.returnToTitle()" />
+  <TitleOverlay v-else-if="!cic && status.phase === 'title'" @start="beginRun" />
 
   <JumpFade v-else-if="status.phase === 'running' && cyclePhase === 'jumping'" />
 
@@ -189,6 +254,8 @@ onUnmounted(() => {
     @resume="session.requestResume()"
     @abandon="session.abandonRun()"
   />
+
+  <component :is="DevEndPreview" v-if="DevEndPreview && status.phase === 'title'" @preview="devPreview = $event" />
 </template>
 
 <style scoped>
