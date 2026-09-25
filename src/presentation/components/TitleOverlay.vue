@@ -92,26 +92,25 @@ function onSheetKeydown(event: KeyboardEvent): void {
         </div>
       </section>
 
-      <!-- The playfield is empty until a run starts, so Launch sits on it. -->
+      <!-- The playfield is empty until a run starts, so Launch sits on it, first and largest. -->
       <div class="well">
+        <div class="launch-box">
+          <button class="launch" type="button" @click="emit('start', 'viper-pilot')">Launch — Viper Pilot</button>
+          <p class="tier-note">{{ titleCopy.tiers.viperPilot }}</p>
+        </div>
         <div v-if="!trainingDone" class="training-box fresh" data-testid="training-box">
           <p class="kicker">{{ titleCopy.training.kicker }}</p>
           <button class="training" type="button" @click="emit('training')">{{ titleCopy.training.button }}</button>
           <p class="tier-note">{{ titleCopy.training.note }}</p>
         </div>
-        <div class="launch-box">
-          <button class="launch" type="button" @click="emit('start', 'viper-pilot')">Launch — Viper Pilot</button>
-          <p class="tier-note">{{ titleCopy.tiers.viperPilot }}</p>
-        </div>
       </div>
 
       <section class="actions" aria-label="More">
         <div class="actions-inner">
-          <div class="easy-box">
-            <p class="kicker">{{ titleCopy.tiers.civilianKicker }}</p>
-            <button class="civilian" type="button" @click="emit('start', 'civilian-ship')">Civilian Run</button>
-            <p class="tier-note">{{ titleCopy.tiers.civilian }}</p>
-          </div>
+          <!--
+            Civilian Run has no button for now (PRD 13): the tier and its copy stay, and it comes back
+            with the named difficulty levels.
+          -->
 
           <div v-if="trainingDone" class="training-box" data-testid="training-box">
             <button class="training quiet" type="button" @click="emit('training')">{{ titleCopy.training.button }}</button>
@@ -291,7 +290,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
 
 .well .launch-box,
 .well .training-box {
-  width: min(280px, 100%);
+  width: min(320px, 100%);
   box-sizing: border-box;
   background: rgb(var(--rgb-space) / 92%);
 }
@@ -304,9 +303,12 @@ function onSheetKeydown(event: KeyboardEvent): void {
   border: 1px solid var(--color-gunmetal);
 }
 
-/* First visit: the sim is the suggested first step, so it gets the thicker frame and a filled button. */
+/*
+ * First visit: the sim is suggested, so it keeps the amber frame and kicker, but under Launch and
+ * outlined, so Launch is still the first and largest thing on the face.
+ */
 .training-box.fresh {
-  border: 2px solid var(--color-amber);
+  border: 1px solid var(--color-amber);
 }
 
 .training {
@@ -315,10 +317,10 @@ function onSheetKeydown(event: KeyboardEvent): void {
   min-height: 44px;
   padding: 10px 14px;
   text-align: left;
-  font-size: 18px;
-  color: var(--color-dradis-night);
-  background: var(--color-amber);
-  border: 0;
+  font-size: 16px;
+  color: var(--color-amber);
+  background: transparent;
+  border: 1px solid var(--color-amber);
 }
 
 .training.quiet {
@@ -398,21 +400,13 @@ function onSheetKeydown(event: KeyboardEvent): void {
   gap: 22px;
 }
 
-.launch-box,
-.easy-box {
+.launch-box {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 14px;
-}
-
-.launch-box {
+  gap: 10px;
+  padding: 16px;
   border: 2px solid var(--color-dradis);
   background: rgb(var(--rgb-dradis-night) / 55%);
-}
-
-.easy-box {
-  border: 1px solid var(--color-gunmetal);
 }
 
 .kicker {
@@ -426,7 +420,6 @@ function onSheetKeydown(event: KeyboardEvent): void {
 }
 
 .launch,
-.civilian,
 .more-button,
 .back,
 .tab,
@@ -437,7 +430,6 @@ function onSheetKeydown(event: KeyboardEvent): void {
 }
 
 .launch,
-.civilian,
 .more-button,
 .back,
 .tab {
@@ -446,13 +438,13 @@ function onSheetKeydown(event: KeyboardEvent): void {
 }
 
 .launch {
-  font-size: 18px;
+  min-height: 60px;
+  font-size: 24px;
   color: var(--color-dradis-night);
   background: var(--color-dradis);
   border: 0;
 }
 
-.civilian,
 .more-button,
 .back,
 .tab {
@@ -499,7 +491,6 @@ function onSheetKeydown(event: KeyboardEvent): void {
 }
 
 .launch:focus-visible,
-.civilian:focus-visible,
 .more-button:focus-visible,
 .back:focus-visible,
 .tab:focus-visible,
