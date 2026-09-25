@@ -1,5 +1,6 @@
 import { SCORE_WEIGHTS } from '../balance/scoring';
 import { DEFAULT_PLAY_TIER, profileFor } from '../balance/tiers';
+import { TRAINING_PRESET } from '../balance/training';
 import { AudioDirector } from './audio/AudioDirector';
 import type { CommsLine } from './banter/Banter';
 import { CommsDirector } from './banter/CommsDirector';
@@ -19,6 +20,8 @@ import { createRandomStream } from '../domain/shared/random';
 import { RunTally } from '../domain/scoring/score';
 import { pickEnding, pickReaction } from './endings';
 import { buildRunResult, type RunResult } from './runResult';
+import { LessonDirector, type LessonCard } from './training/LessonDirector';
+import { speakBeats, TRAINING_SCRIPT, type SpokenBeat } from './training/trainingScript';
 
 /**
  * Where the run is. `resuming` is the 3-2-1 countdown that pause ends with (PRD 13.3): the
@@ -27,7 +30,24 @@ import { buildRunResult, type RunResult } from './runResult';
 export type SessionPhase = 'title' | 'running' | 'paused' | 'resuming' | 'won' | 'lost';
 
 /** Why the session paused. Shown to the player, because a pause that looks like a freeze is scary. */
-export type PauseReason = 'player' | 'tab-hidden' | 'window-blurred' | 'pointer-cancelled' | 'orientation-changed';
+export type PauseReason =
+  | 'player'
+  | 'tab-hidden'
+  | 'window-blurred'
+  | 'pointer-cancelled'
+  | 'orientation-changed'
+  /** A Training Run lesson is up. Dismissing it is the resume (PRD 5.5). */
+  | 'lesson';
+
+/** The end of a Training Run: Tyrol's word and grade, and what the sim never got to (PRD 5.5). */
+export interface TrainingDebrief {
+  readonly outcome: 'won' | 'lost';
+  readonly heading: string;
+  readonly beats: readonly SpokenBeat[];
+  readonly grade: string;
+  readonly recapIntro: string;
+  readonly recaps: readonly string[];
+}
 
 export interface SessionStatus {
   readonly phase: SessionPhase;
@@ -42,8 +62,14 @@ export interface SessionStatus {
   readonly fleetNames: readonly string[];
   /** The Recovering sheet is up. Focus loss does not cover it with the pause menu. */
   readonly choosingUpgrade: boolean;
-  /** The finished run, for the end screen (PRD 5.4). Set only while the phase is won or lost. */
+  /** The finished run, for the end screen (PRD 5.4). Set only while a real run is won or lost. */
   readonly result: RunResult | null;
+  /** This is a Training Run (PRD 5.5). */
+  readonly training: boolean;
+  /** The lesson on screen, or null. A pausing lesson holds the clock until it is dismissed. */
+  readonly lesson: LessonCard | null;
+  /** Set only while a Training Run is won or lost. It replaces the scored end screen. */
+  readonly debrief: TrainingDebrief | null;
 }
 
 export interface FrameResult {
@@ -101,6 +127,10 @@ export class GameSession {
   /** Watches this run's events for the score. Replaced on every Launch. */
   private tally = new RunTally();
   private result: RunResult | null = null;
+  /** Set for a Training Run only. */
+  private lessons: LessonDirector | null = null;
+  private lesson: LessonCard | null = null;
+  private debrief: TrainingDebrief | null = null;
 
   constructor(input: InputPort, options: SessionOptions = {}) {
     this.input = input;
@@ -123,6 +153,9 @@ export class GameSession {
       choosingUpgrade:
         this.phase === 'running' && this.pendingUpgradeId === null && this.game.view.cycle.phase === 'recovering',
       result: this.phase === 'won' || this.phase === 'lost' ? this.result : null,
+      training: this.lessons !== null && this.phase !== 'title',
+      lesson: this.lesson,
+      debrief: this.phase === 'won' || this.phase === 'lost' ? this.debrief : null,
     };
   }
 
@@ -149,20 +182,50 @@ export class GameSession {
 
   /** Leaves the title screen. Also the first user gesture, which is when audio may start (D12). */
   start(tier: TierId = DEFAULT_PLAY_TIER, playfield?: Playfield): void {
+    this.launch(tier, playfield, {}, false);
+  }
+
+  /**
+   * Leaves the title for a Training Run (PRD 5.5): the tier and ship numbers from `training.json`,
+   * and the opening lessons up before the first tick, so the clock is held while Tyrol talks.
+   */
+  startTraining(playfield?: Playfield): void {
+    const preset = TRAINING_PRESET;
+    this.launch(
+      preset.tier,
+      playfield,
+      {
+        resurrectionShipArrivesCycle: preset.resurrectionShipArrivesCycle,
+        resurrectionShipVulnerableCycle: preset.resurrectionShipVulnerableCycle,
+        resurrectionShipHitPoints: preset.resurrectionShipHitPoints,
+      },
+      true,
+    );
+  }
+
+  private launch(tier: TierId, playfield: Playfield | undefined, extra: GameOptions, training: boolean): void {
     if (this.phase !== 'title') return;
     const lane = playfield ?? this.options.playfield ?? PHONE_PLAYFIELD;
+    const profile = profileFor(tier);
     this.runSeed = this.options.seed ?? this.options.seedSource?.() ?? DEFAULT_RUN_SEED;
     this.fleetNames = fleetNamesForRun(this.runSeed);
-    this.game = createGame({ ...this.options, seed: this.runSeed, tierProfile: profileFor(tier), playfield: lane });
+    // A test's own ship numbers win over the preset, so a training test can end in one shot.
+    this.game = createGame({ ...extra, ...this.options, seed: this.runSeed, tierProfile: profile, playfield: lane });
     this.resetChatter();
     this.tally = new RunTally();
     this.result = null;
+    this.clearTraining();
     // Launch is the player's first deliberate gesture: the first moment sound may exist (PRD 14.1).
     this.sound.unlock();
     this.phase = 'running';
     this.reason = null;
     this.accumulatorSeconds = 0;
     this.input.clear();
+    if (training) {
+      this.lessons = new LessonDirector(TRAINING_SCRIPT, profile.fleetCycleDamageCap);
+      this.lessons.start();
+      this.showLesson(this.lessons.take(this.game.view, true));
+    }
     this.publish();
     this.publishHud();
   }
@@ -202,12 +265,37 @@ export class GameSession {
     this.publish();
   }
 
-  /** Starts the 3-2-1 countdown. The simulation stays frozen until it finishes. */
+  /** Starts the 3-2-1 countdown. The simulation stays frozen until it finishes. On a lesson, dismisses it. */
   requestResume(): void {
     if (this.phase !== 'paused') return;
+    if (this.reason === 'lesson') {
+      this.dismissLesson();
+      return;
+    }
     this.phase = 'resuming';
     this.countdownRemainingSeconds = RESUME_COUNTDOWN_SECONDS;
     this.input.clear();
+    this.publish();
+  }
+
+  /**
+   * Got it, on a lesson (PRD 5.5). The next lesson already due follows at once, with the clock still
+   * held. When none is left, a paused fight counts 3-2-1 like any other resume. Over the pick sheet
+   * nothing was paused, so the sheet simply comes back.
+   */
+  dismissLesson(): void {
+    const current = this.lesson;
+    if (!current || !this.lessons) return;
+    this.lesson = null;
+    const next = this.lessons.take(this.game.view, true);
+    if (next) {
+      this.showLesson(next);
+    } else if (current.pauses && this.phase === 'paused') {
+      this.phase = 'resuming';
+      this.reason = null;
+      this.countdownRemainingSeconds = RESUME_COUNTDOWN_SECONDS;
+      this.input.clear();
+    }
     this.publish();
   }
 
@@ -228,7 +316,7 @@ export class GameSession {
    * Ignored unless that card is on the table.
    */
   pickUpgrade(cardId: string): void {
-    if (this.phase !== 'running') return;
+    if (this.phase !== 'running' || this.lesson) return;
     if (this.game.view.cycle.phase !== 'recovering') return;
     const offered = this.game.view.upgradeOffer?.cardIds ?? [];
     if (!offered.some((id) => id === cardId)) return;
@@ -244,7 +332,7 @@ export class GameSession {
 
   /** One free reroll of the Recovering table (PRD 10.1). The sheet clears its own highlight. */
   rerollOffer(): void {
-    if (this.phase !== 'running') return;
+    if (this.phase !== 'running' || this.lesson) return;
     this.pendingEvents.push(...this.game.rerollOffer());
   }
 
@@ -253,6 +341,7 @@ export class GameSession {
     if (this.phase !== 'won' && this.phase !== 'lost') return;
     this.phase = 'title';
     this.reason = null;
+    this.clearTraining();
     this.resetChatter();
     this.input.clear();
     this.publish();
@@ -269,6 +358,7 @@ export class GameSession {
     this.countdownRemainingSeconds = 0;
     this.accumulatorSeconds = 0;
     this.pendingEvents = [];
+    this.clearTraining();
     this.resetChatter();
     this.input.clear();
     this.publish();
@@ -308,6 +398,7 @@ export class GameSession {
         // Start the loop from zero, so resuming never hands the domain a backlog of ticks.
         this.accumulatorSeconds = 0;
         this.input.clear();
+        this.lessons?.noteResumed();
       }
       this.publish();
       return NO_FRAME;
@@ -317,6 +408,7 @@ export class GameSession {
 
     const events: DomainEvent[] = this.pendingEvents;
     this.pendingEvents = [];
+    this.lessons?.noteEvents(events, this.game.view);
 
     this.accumulatorSeconds += delta;
 
@@ -328,15 +420,24 @@ export class GameSession {
       const tickEvents = this.game.tick(this.input.readIntent());
       events.push(...tickEvents);
       this.tally.note(tickEvents);
+      this.lessons?.noteTick(tickEvents, this.game.view);
       ticksRun += 1;
       if (tickEvents.some((event) => event.type === 'RunWon' || event.type === 'RunLost')) {
         this.phase = tickEvents.some((event) => event.type === 'RunLost') ? 'lost' : 'won';
-        this.result = this.finishRun(this.phase === 'won');
+        this.lesson = null;
+        if (this.lessons) this.debrief = this.finishTraining(this.phase === 'won', this.lessons);
+        else this.result = this.finishRun(this.phase === 'won');
         this.reason = null;
         // Frozen on the win or lose tick: leftover catch-up must not keep simulating.
         this.accumulatorSeconds = 0;
         this.publish();
         break;
+      }
+      // A lesson stops the fight on the tick it came due, so the moment it names is still on screen.
+      const card = this.lessons && !this.lesson ? this.lessons.take(this.game.view, false) : null;
+      if (card) {
+        this.showLesson(card);
+        if (card.pauses) break;
       }
     }
 
@@ -365,6 +466,44 @@ export class GameSession {
     const random = createRandomStream(endingSeed(this.runSeed));
     const headline = pickEnding(won ? 'won' : 'lost', random);
     return buildRunResult(view, this.tally.facts(view, won), SCORE_WEIGHTS, headline.id, pickReaction(random));
+  }
+
+  /** Tyrol's word, a grade from the cosmetic stream, and the lessons that never came up. */
+  private finishTraining(won: boolean, lessons: LessonDirector): TrainingDebrief {
+    const script = TRAINING_SCRIPT.debrief;
+    const random = createRandomStream(endingSeed(this.runSeed));
+    const grade = script.grades.length > 0 ? (script.grades[random.index(script.grades.length)] ?? '') : '';
+    return {
+      outcome: won ? 'won' : 'lost',
+      heading: script.heading,
+      beats: speakBeats(script.beats),
+      grade,
+      recapIntro: script.recapIntro,
+      recaps: lessons.recaps(),
+    };
+  }
+
+  /**
+   * Puts a lesson on screen. During the fight that is a pause: nothing ticks until it is dismissed.
+   * Over the pick sheet it is not, because the sheet already waits (PRD 13.3).
+   */
+  private showLesson(card: LessonCard | null): void {
+    if (!card) return;
+    this.lesson = card;
+    if (card.pauses) {
+      this.phase = 'paused';
+      this.reason = 'lesson';
+      this.countdownRemainingSeconds = 0;
+      this.accumulatorSeconds = 0;
+      this.input.clear();
+    }
+    this.publish();
+  }
+
+  private clearTraining(): void {
+    this.lessons = null;
+    this.lesson = null;
+    this.debrief = null;
   }
 
   private resetChatter(): void {

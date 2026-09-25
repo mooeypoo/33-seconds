@@ -15,6 +15,7 @@ const REASON_TEXT: Record<PauseReason, string> = {
   'window-blurred': 'Paused because the window lost focus.',
   'pointer-cancelled': 'Paused because your touch was interrupted.',
   'orientation-changed': 'Paused because the screen rotated.',
+  lesson: 'Paused for a lesson.',
 };
 
 const reasonText = computed(() => (props.status.pauseReason ? REASON_TEXT[props.status.pauseReason] : 'Paused.'));

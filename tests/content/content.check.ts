@@ -6,6 +6,19 @@ import fleetRaw from '../../src/content/fleet.json';
 import tiersRaw from '../../src/balance/tiers.json';
 import scoringRaw from '../../src/balance/scoring.json';
 import endingsRaw from '../../src/content/endings.json';
+import trainingRaw from '../../src/content/training.json';
+import trainingPresetRaw from '../../src/balance/training.json';
+import { parseTrainingPreset } from '../../src/balance/training';
+import {
+  isPlainText,
+  LESSON_BEAT_MAX_CHARACTERS,
+  LESSON_FOCUS,
+  LESSON_HEADING_MAX_CHARACTERS,
+  LESSON_MAX_BEATS,
+  LESSON_RECAP_MAX_CHARACTERS,
+  LESSON_TRIGGERS,
+  parseTrainingScript,
+} from '../../src/application/training/trainingScript';
 import { parseScoreWeights } from '../../src/balance/scoring';
 import {
   ENDING_HEADLINE_MAX_CHARACTERS,
@@ -302,6 +315,64 @@ describe('end-screen lines', () => {
       problems.push(...textProblems(`endings.json mostKilled.reactions[${String(index)}]`, reaction, REACTION_MAX_CHARACTERS));
     });
     expect(problems).toEqual([]);
+  });
+});
+
+describe('Training Run', () => {
+  const script = parseTrainingScript(trainingRaw);
+
+  /** Why a lesson would be dropped, in a writer's words. Empty when it loads. */
+  function lessonProblems(raw: unknown, index: number): string[] {
+    const lesson = record(raw);
+    const where = `training.json lessons[${String(index)}] ${typeof lesson.id === 'string' ? lesson.id : '(no id)'}`;
+    const problems: string[] = [];
+    if (!(LESSON_TRIGGERS as readonly unknown[]).includes(lesson.trigger)) {
+      problems.push(`${where}: trigger must be one of ${LESSON_TRIGGERS.join(', ')}`);
+    }
+    if (lesson.focus !== undefined && !(LESSON_FOCUS as readonly unknown[]).includes(lesson.focus)) {
+      problems.push(`${where}: focus must be one of ${LESSON_FOCUS.join(', ')}`);
+    }
+    if (!isPlainText(lesson.heading, LESSON_HEADING_MAX_CHARACTERS, false)) {
+      problems.push(`${where}: heading must be plain text up to ${String(LESSON_HEADING_MAX_CHARACTERS)} characters`);
+    }
+    if (lesson.recap !== undefined && !isPlainText(lesson.recap, LESSON_RECAP_MAX_CHARACTERS, false)) {
+      problems.push(`${where}: recap must be plain text up to ${String(LESSON_RECAP_MAX_CHARACTERS)} characters`);
+    }
+    const beats: unknown[] = Array.isArray(lesson.beats) ? lesson.beats : [];
+    if (beats.length === 0 || beats.length > LESSON_MAX_BEATS) problems.push(`${where}: needs 1 to ${String(LESSON_MAX_BEATS)} beats`);
+    beats.forEach((rawBeat, beatIndex) => {
+      const beat = record(rawBeat);
+      if (!isSpeaker(beat.speaker)) problems.push(`${where} beat ${String(beatIndex)}: unknown speaker ${JSON.stringify(beat.speaker)}`);
+      if (!isPlainText(beat.text, LESSON_BEAT_MAX_CHARACTERS, true)) {
+        problems.push(`${where} beat ${String(beatIndex)}: plain text up to ${String(LESSON_BEAT_MAX_CHARACTERS)} characters, placeholders {before}, {after}, {cap} only`);
+      }
+    });
+    return problems;
+  }
+
+  it('loads every lesson a writer wrote, each id once', () => {
+    const rawLessons: unknown[] = Array.isArray(trainingRaw.lessons) ? trainingRaw.lessons : [];
+    const loaded = new Set(script.lessons.map((lesson) => lesson.id));
+    const problems = rawLessons.flatMap((raw, index) => {
+      const id = record(raw).id;
+      if (typeof id === 'string' && loaded.has(id)) return [];
+      const reasons = lessonProblems(raw, index);
+      return reasons.length > 0 ? reasons : [`training.json lessons[${String(index)}]: dropped (check the id, the when, and repeats)`];
+    });
+    expect(problems).toEqual([]);
+    expect(script.lessons.length).toBe(rawLessons.length);
+  });
+
+  it('opens with at least one lesson, and has a debrief with a grade', () => {
+    expect(script.lessons.some((lesson) => lesson.trigger === 'TrainingStarted')).toBe(true);
+    expect(script.debrief.beats.length).toBeGreaterThan(0);
+    expect(script.debrief.recapIntro.length).toBeGreaterThan(0);
+    expect(script.debrief.grades.length).toBe(trainingRaw.debrief.grades.length);
+    expect(script.debrief.grades.length).toBeGreaterThan(0);
+  });
+
+  it('has a valid preset in balance/training.json', () => {
+    expect(() => parseTrainingPreset(trainingPresetRaw)).not.toThrow();
   });
 });
 

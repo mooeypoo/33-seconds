@@ -45,7 +45,9 @@ describe('parsePlayerSettings', () => {
       muted: 'yes',
       reducedEffects: 1,
       dragHintSeen: {},
+      trainingCompleted: 'true',
     });
+    expect(parsed.trainingCompleted).toBe(false);
     expect(parsed.muted).toBe(false);
     expect(parsed.reducedEffects).toBe(false);
     expect(parsed.dragHintSeen).toBe(false);
@@ -69,6 +71,8 @@ describe('parsePlayerSettings', () => {
       readableFont: false,
       // Saved before sound existed: the default level, not a discarded envelope.
       volume: DEFAULT_VOLUME,
+      // Saved before the Training Run existed: not done, so the title still points new players at it.
+      trainingCompleted: false,
     });
   });
 
@@ -97,7 +101,7 @@ describe('PlayerSettings', () => {
     expect(settings.snapshot.muted).toBe(true);
   });
 
-  it('round-trips mute, volume, reduced-effects, the readable font, and the drag hint through memory storage', () => {
+  it('round-trips mute, volume, reduced-effects, the readable font, the drag hint, and training through memory storage', () => {
     const storage = new MemoryStorageAdapter();
     const first = new PlayerSettings(storage);
     first.setMuted(true);
@@ -105,6 +109,7 @@ describe('PlayerSettings', () => {
     first.setReducedEffects(true);
     first.markDragHintSeen();
     first.setReadableFont(true);
+    first.markTrainingCompleted();
 
     const second = new PlayerSettings(storage);
     expect(second.snapshot).toEqual({
@@ -114,6 +119,7 @@ describe('PlayerSettings', () => {
       dragHintSeen: true,
       readableFont: true,
       volume: 0.25,
+      trainingCompleted: true,
     });
   });
 

@@ -37,4 +37,8 @@ export const settingsStore = {
     backend?.markDragHintSeen();
     Object.assign(state.snapshot, backend?.snapshot ?? state.snapshot);
   },
+  markTrainingCompleted(): void {
+    backend?.markTrainingCompleted();
+    Object.assign(state.snapshot, backend?.snapshot ?? state.snapshot);
+  },
 };
