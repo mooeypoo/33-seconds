@@ -241,7 +241,9 @@ fit; what is left to draw is the checklist in `docs/art/SPRITE-FILES.md`.
 ### Phase 5: Explain the loop, reward a replay
 
 - [ ] **5.1** Ghost-to-ship tell, returned tallies, first-run lesson cycle.
-- [ ] **5.2** Score, run summary with the joke stats, share link (decision 4, PRD 17).
+- [x] **5.2** (2026-09-24) Score, run summary with the joke stats, share link (decision 4, PRD 17).
+  Weights in `src/balance/scoring.json` (PRD 5.4); the link is the URL fragment, no server. One
+  joke stat so far (most-killed Raider); more wait for the content pass. Local best scores wait (PRD 17).
 
 ### Phase 6: Launch readiness
 
