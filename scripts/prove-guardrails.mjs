@@ -13,6 +13,12 @@
 import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 
+/**
+ * The content validators alone. Any edit to a balance file also trips the version fingerprint, so
+ * a sabotage there must prove the validator, not the reminder.
+ */
+const CONTENT_WITHOUT_FINGERPRINT = 'npx vitest run --config vitest.content.config.ts tests/content/content.check.ts';
+
 const SABOTAGE = [
   {
     what: 'domain imports Phaser',
@@ -502,7 +508,7 @@ const SABOTAGE = [
     file: 'src/balance/tiers.json',
     find: '"fleetRepairOfMissing": 0.4,',
     replace: '"fleetRepairOfMissing": 1.4,',
-    mustFail: 'npm run check:content',
+    mustFail: CONTENT_WITHOUT_FINGERPRINT,
   },
   {
     what: 'a card loses its flair',
@@ -607,6 +613,111 @@ const SABOTAGE = [
     file: 'src/content/sounds.json',
     find: '{ "id": "jump",',
     replace: '{ "id": "jupm",',
+    mustFail: 'npm run check:content',
+  },
+  {
+    what: 'the Simulate win / lose buttons ship in a production build',
+    file: 'src/presentation/App.vue',
+    find: "const DEV_TOOLS = import.meta.env.DEV || import.meta.env.VITE_SHOW_DEBUG === 'true';",
+    replace: 'const DEV_TOOLS = true;',
+    mustFail: 'npm run build',
+  },
+  {
+    what: 'a loss gets the win bonus',
+    file: 'src/domain/scoring/score.ts',
+    find: '  if (facts.won) points += weights.winBonus',
+    replace: '  points += weights.winBonus',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'the score can go negative',
+    file: 'src/domain/scoring/score.ts',
+    find: '  return Math.max(0, Math.round(points));',
+    replace: '  return Math.round(points);',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'a jump repair refunds fleet damage in the score',
+    file: 'src/domain/scoring/score.ts',
+    find: '          this.fleetDamage += event.damage;',
+    replace: '          this.fleetDamage = event.damage;',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'a returning Raider is credited as a new one',
+    file: 'src/domain/scoring/score.ts',
+    find: '          if (!event.heavy) this.identityOf.set(event.id, event.identityId);',
+    replace: '          if (!event.heavy) this.identityOf.set(event.id, event.id);',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'a new run keeps the last run\'s tally',
+    file: 'src/application/GameSession.ts',
+    find: '    this.tally = new RunTally();\n    this.result = null;',
+    replace: '    this.result = null;',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'a share link accepts more stacks than the card has',
+    file: 'src/application/shareCode.ts',
+    find: '    held.push({ id, stacks: whole(stacks, 1, maxStacksFor(cardDefinition(id).rarity)) });',
+    replace: '    held.push({ id, stacks: whole(stacks, 1, 99 + maxStacksFor(cardDefinition(id).rarity)) });',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'a share link accepts a repeated key',
+    file: 'src/application/shareCode.ts',
+    find: '    if (map.has(key)) throw new Rejected();\n',
+    replace: '',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'a share link accepts a win with the ship still flying',
+    file: 'src/application/shareCode.ts',
+    find: "    if (result.outcome === 'won' && result.resurrectionShipPercent !== 100) return null;",
+    replace: '',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'a score weight is written as a typo',
+    file: 'src/balance/scoring.json',
+    find: '"winBonus": 250',
+    replace: '"winBonus": "250"',
+    mustFail: CONTENT_WITHOUT_FINGERPRINT,
+  },
+  {
+    what: 'a tier number changes without the version reminder noticing',
+    file: 'src/balance/tiers.json',
+    find: '"fleetCycleDamageCap": 45',
+    replace: '"fleetCycleDamageCap": 44',
+    mustFail: 'npx vitest run --config vitest.content.config.ts tests/content/fingerprint.check.ts',
+  },
+  {
+    what: 'the share link is not sealed against edits',
+    file: 'src/application/linkSeal.ts',
+    find: '  if (new DataView(sealed.buffer).getUint32(0) !== checksum(body)) return null;\n',
+    replace: '',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'an edit hides in the spare bits of the last base64 character',
+    file: 'src/application/linkSeal.ts',
+    find: ' || toBase64Url(scrambled) !== text) return null;',
+    replace: ') return null;',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'the share link is plain base64, one decode from readable',
+    file: 'src/application/linkSeal.ts',
+    find: '  return bytes.map((byte) => byte ^ stream.index(256));',
+    replace: '  return bytes.map((byte) => byte ^ 0 * stream.index(256));',
+    mustFail: 'npm run test',
+  },
+  {
+    what: 'an end-screen line uses a placeholder nothing fills',
+    file: 'src/content/endings.json',
+    find: '"text": "On the bright side, the paperwork is also gone."',
+    replace: '"text": "On the bright side, {pilot}, the paperwork is also gone."',
     mustFail: 'npm run check:content',
   },
 ];
