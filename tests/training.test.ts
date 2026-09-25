@@ -250,7 +250,7 @@ describe('lessons during the fight', () => {
     const repair = repairs[0];
     if (repair) {
       expect(repair.lastCycleDamage).toBeGreaterThan(0);
-      expect(repair.text).toContain(`to ${String(repair.integrity)}%`);
+      expect(repair.text).toContain(`to ${String(Math.round(repair.integrity))}%`);
       const before = Number(/from (\d+)%/.exec(repair.text)?.[1]);
       expect(before).toBeLessThan(repair.integrity);
     } else {

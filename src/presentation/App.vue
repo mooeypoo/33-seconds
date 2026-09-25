@@ -28,9 +28,11 @@ import FleetReadout from './components/FleetReadout.vue';
 import HudBar from './components/HudBar.vue';
 import JumpFade from './components/JumpFade.vue';
 import LatestUpgrade from './components/LatestUpgrade.vue';
+import LessonCard from './components/LessonCard.vue';
 import PauseOverlay from './components/PauseOverlay.vue';
 import RecoveringOverlay from './components/RecoveringOverlay.vue';
 import TitleOverlay from './components/TitleOverlay.vue';
+import TrainingDebrief from './components/TrainingDebrief.vue';
 import RunSummary from './components/RunSummary.vue';
 import MissileButton from './components/MissileButton.vue';
 import SpecialButton from './components/SpecialButton.vue';
@@ -121,6 +123,19 @@ function beginRun(tier: TierId): void {
   resizePlayfield?.(playfield.width);
 }
 
+/** A Training Run: the same lane, with lessons (PRD 5.5). */
+function beginTraining(): void {
+  const playfield = playfieldForWindow(window.innerWidth);
+  session?.startTraining(playfield);
+  resizePlayfield?.(playfield.width);
+}
+
+/** From the debrief straight into a real run. */
+function launchAfterTraining(): void {
+  session?.returnToTitle();
+  beginRun('viper-pilot');
+}
+
 function openAbout(): void {
   if (session?.status.choosingUpgrade) return;
   aboutOpen.value = true;
@@ -146,6 +161,22 @@ watch([inRun, cic], () => {
     window.dispatchEvent(new Event('resize'));
   });
 });
+
+// A lesson outlines the HUD element it is about. One attribute on the root, so any layout's copy of
+// that element can answer to it (styles.css).
+watchEffect(() => {
+  const focus = status.value.lesson?.focus;
+  if (focus) document.documentElement.dataset.lessonFocus = focus;
+  else delete document.documentElement.dataset.lessonFocus;
+});
+
+// Finishing the sim once is enough for the title to stop pushing it. It stays on offer.
+watch(
+  () => status.value.debrief,
+  (debrief) => {
+    if (debrief) settingsStore.markTrainingCompleted();
+  },
+);
 
 // The readable font swaps the display face everywhere through one class (PRD 14, 15).
 watchEffect(() => {
@@ -190,19 +221,20 @@ onUnmounted(() => {
           />
         </div>
         <div v-if="showFleet" class="detail-row">
-          <StatusRow with-objective />
+          <StatusRow with-objective :training="status.training" />
           <LatestUpgrade />
         </div>
       </header>
       <div v-if="cic" class="lane-head">
         <span class="stencil">Dradis</span>
-        <StatusRow v-if="showFleet" />
+        <StatusRow v-if="showFleet" :training="status.training" />
       </div>
       <div class="play">
         <div ref="canvasHost" class="canvas-host" aria-hidden="true" />
         <RecoveringOverlay v-if="status.choosingUpgrade" :wide="cic" :comms="status.comms" />
         <DragHint v-if="inCombat" />
-        <TitleOverlay v-if="cic && status.phase === 'title' && !endScreen" in-lane @start="beginRun" />
+        <TitleOverlay v-if="cic && status.phase === 'title' && !endScreen" in-lane @start="beginRun" @training="beginTraining" />
+        <LessonCard v-if="status.lesson" :lesson="status.lesson" @got-it="session.dismissLesson()" @skip="session.abandonRun()" />
       </div>
       <footer v-if="inRun && !cic" class="bottom-band">
         <!-- During the pick the buttons step aside, so the Recovering scene gets the whole strip. -->
@@ -242,14 +274,21 @@ onUnmounted(() => {
     @continue="leaveEndScreen"
   />
 
-  <TitleOverlay v-else-if="!cic && status.phase === 'title'" @start="beginRun" />
+  <TrainingDebrief
+    v-else-if="status.debrief"
+    :debrief="status.debrief"
+    @launch="launchAfterTraining"
+    @title="session.returnToTitle()"
+  />
+
+  <TitleOverlay v-else-if="!cic && status.phase === 'title'" @start="beginRun" @training="beginTraining" />
 
   <JumpFade v-else-if="status.phase === 'running' && cyclePhase === 'jumping'" />
 
   <AboutSheet v-if="aboutOpen && status.phase === 'paused'" @resume="closeAbout" />
 
   <PauseOverlay
-    v-else-if="status.phase === 'paused' || status.phase === 'resuming'"
+    v-else-if="(status.phase === 'paused' && status.pauseReason !== 'lesson') || status.phase === 'resuming'"
     :status="status"
     @resume="session.requestResume()"
     @abandon="session.abandonRun()"

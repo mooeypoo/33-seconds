@@ -28,7 +28,7 @@ const detail = computed(() => {
 </script>
 
 <template>
-  <div class="ring-panel" :class="{ spooling }" data-testid="cycle-clock" role="timer" aria-label="Jump countdown">
+  <div class="ring-panel" :class="{ spooling }" data-testid="cycle-clock" data-lesson-target="clock" role="timer" aria-label="Jump countdown">
     <svg class="ring" width="96" height="96" viewBox="0 0 108 108" aria-hidden="true">
       <circle class="track" cx="54" cy="54" r="46" />
       <circle class="fill" cx="54" cy="54" r="46" :stroke-dasharray="dash" transform="rotate(-90 54 54)" />

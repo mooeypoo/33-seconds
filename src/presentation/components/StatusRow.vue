@@ -5,7 +5,7 @@ import type { ObjectiveId } from '../../application/HudViewModel';
 import { hudStore } from '../stores/hudStore';
 
 /** On a phone the objective rides at the front of this row, to give the lane its height back. */
-const props = defineProps<{ withObjective?: boolean }>();
+const props = defineProps<{ withObjective?: boolean; training?: boolean }>();
 const SHORT_OBJECTIVES: Record<ObjectiveId, string> = copy.objectivesShort;
 
 /**
@@ -24,6 +24,8 @@ const items = computed<StatusItem[]>(() => {
   const hud = hudStore.state.hud;
   if (!hud) return [];
   const list: StatusItem[] = [];
+  // Training says so in words, so nobody mistakes the sim for a real run (PRD 5.5).
+  if (props.training) list.push({ key: 'sim', text: 'Sim' });
   if (props.withObjective) list.push({ key: 'objective', text: SHORT_OBJECTIVES[hud.objective], objective: true });
 
   list.push(
@@ -56,8 +58,15 @@ const items = computed<StatusItem[]>(() => {
 </script>
 
 <template>
-  <ul class="status" data-testid="status-row" aria-label="Status">
-    <li v-for="item in items" :key="item.key" class="item" :class="{ alert: item.alert, objective: item.objective }" :data-testid="`status-${item.key}`">
+  <ul class="status" data-testid="status-row" aria-label="Status" data-lesson-target="status">
+    <li
+      v-for="item in items"
+      :key="item.key"
+      class="item"
+      :class="{ alert: item.alert, objective: item.objective }"
+      :data-testid="`status-${item.key}`"
+      :data-lesson-target="item.objective ? 'objective' : undefined"
+    >
       {{ item.text }}
     </li>
   </ul>

@@ -161,7 +161,8 @@ export class LessonDirector {
       if (name === 'cap') return String(this.fleetCycleDamageCap);
       const repair = this.lastRepair;
       if (!repair) return '?';
-      return String(name === 'before' ? repair.before : repair.after);
+      // Whole percent, as the fleet readout shows it.
+      return String(Math.round(name === 'before' ? repair.before : repair.after));
     });
   }
 }
