@@ -10,6 +10,9 @@ const opening = training.lessons.filter((lesson) => lesson.trigger === 'Training
 /** The Training Run (PRD 5.5): a lesson holds the clock until it is read, and the button stays on offer. */
 test.describe('training', () => {
   test('holds the clock through the opening lessons, then flies, and Esc reads the next lesson', async ({ page }) => {
+    // An idle pilot never catches the practice drone, so the first fight lesson waits for its 12 s
+    // deadline plus the 3-2-1, and a loaded machine runs the game slower than real time.
+    test.setTimeout(90_000);
     await page.goto('/');
     await expect(page.getByTestId('training-box')).toHaveClass(/fresh/);
     await page.getByRole('button', { name: 'Training Run' }).click();
@@ -30,7 +33,7 @@ test.describe('training', () => {
     await expectTicksToGrow(page, held);
 
     // The next lesson comes from the fight itself. Esc is Got it, not a way to the pause menu.
-    await expect(lesson).toBeVisible({ timeout: 30_000 });
+    await expect(lesson).toBeVisible({ timeout: 60_000 });
     const firstFight = await lesson.getAttribute('data-lesson-id');
     await page.keyboard.press('Escape');
     await expect(page.getByRole('button', { name: 'Resume' })).toHaveCount(0);

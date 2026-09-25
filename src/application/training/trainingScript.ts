@@ -60,16 +60,28 @@ export interface LessonDeadline {
 }
 
 /**
- * What a lesson can outline. The HUD ones are marked with `data-lesson-target` in both layouts.
- * `fleetLine` is the row of hulls in the playfield, and `subject` is the round or Raider that set
- * the lesson off (only on the triggers in `SUBJECT_TRIGGERS`); both are drawn on the canvas.
+ * What a lesson can outline. The HUD ones are marked with `data-lesson-target` in every layout;
+ * `missile` and `speech` are the touch buttons, so they only exist on a touch device. `fleetLine` is
+ * the row of hulls in the playfield, and `subject` is what set the lesson off (only on the triggers
+ * in `SUBJECT_TRIGGERS`); both are drawn on the canvas. The card keeps clear of all of them.
  */
-export const LESSON_FOCUS = ['clock', 'fleet', 'status', 'objective', 'fleetLine', 'subject'] as const;
+export const LESSON_FOCUS = ['clock', 'fleet', 'status', 'objective', 'missile', 'speech', 'fleetLine', 'subject'] as const;
 
 export type LessonFocus = (typeof LESSON_FOCUS)[number];
 
 /** Triggers that happen to one thing on screen, which the `subject` focus outlines. */
-export const SUBJECT_TRIGGERS: readonly LessonTrigger[] = ['StrayNearFleet', 'StrafeFlagged'];
+export const SUBJECT_TRIGGERS: readonly LessonTrigger[] = [
+  'RaiderDestroyed',
+  'RaiderReturned',
+  'HeavyArrived',
+  'ViperHit',
+  'ViperEjected',
+  'StrayNearFleet',
+  'StrafeFlagged',
+  'ShipArrived',
+  'ShipExposed',
+  'ShipDestroyed',
+];
 
 /** Filled when the lesson is shown. `before` and `after` are the last jump's repair. */
 export const LESSON_PLACEHOLDERS = ['before', 'after', 'cap'] as const;

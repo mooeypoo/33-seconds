@@ -1,7 +1,6 @@
 import type Phaser from 'phaser';
 import type { LessonCard } from '../../../../application/training/LessonDirector';
-import { CIVILIAN_HALF_HEIGHT_UNITS, FLEET_LINE_Y_UNITS } from '../../../../domain/fleet/integrity';
-import { RAIDER_RADIUS_UNITS } from '../../../../domain/swarm/raider';
+import { lessonFocusBoxes, subjectBox } from '../../../../application/training/lessonFocus';
 import type { GameView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
 import { PALETTE } from '../../shared/palette';
@@ -12,17 +11,16 @@ export type LessonCardSource = () => LessonCard | null;
 /** Wide enough to read at phone size, matching the HUD outline's 3 px at 2 px per world unit. */
 const STROKE_UNITS = 1.5;
 /** Room between the thing and its outline, so the outline never hides it. */
-const MARGIN_UNITS = 4;
-/** A round is 3×7 art pixels: a ring this size circles it with room to spare. */
-const SHOT_RING_UNITS = 7;
+const MARGIN_UNITS = 3;
 /** Above every sprite, so nothing covers the outline. */
 const DEPTH = 10;
 
 /**
- * The playfield half of a Training Run lesson's outlines (PRD 5.5): the fleet line, and the round or
- * Raider the lesson is about. The HUD half is CSS. Still amber lines only, drawn only while a lesson
- * is up, so there is nothing to reduce for comfort (PRD 15), and the lesson says in words what the
- * outline marks, so colour is never the only cue.
+ * The playfield half of a Training Run lesson's outlines (PRD 5.5): the fleet row, and a ring on
+ * the lesson's subject. The HUD half is CSS. Where things are comes from `lessonFocus`, which also
+ * places the card, so the ring and the gap the card leaves always agree. Still amber lines only,
+ * drawn only while a lesson is up, so there is nothing to reduce for comfort (PRD 15), and the
+ * lesson says in words what the outline marks, so colour is never the only cue.
  */
 export class LessonFocusPresenter implements Presenter {
   private readonly scene: Phaser.Scene;
@@ -46,20 +44,12 @@ export class LessonFocusPresenter implements Presenter {
     graphics.lineStyle(STROKE_UNITS, PALETTE.lessonFocus, 1);
 
     if (card.focus.includes('fleetLine')) {
-      const halfHeight = CIVILIAN_HALF_HEIGHT_UNITS + MARGIN_UNITS;
-      graphics.strokeRect(2, FLEET_LINE_Y_UNITS - halfHeight, view.worldWidth - 4, halfHeight * 2);
+      const row = lessonFocusBoxes({ focus: ['fleetLine'], subject: null }, view)[0];
+      if (row) graphics.strokeRect(2, row.y - row.halfHeight, view.worldWidth - 4, row.halfHeight * 2);
     }
 
-    const subject = card.subject;
-    if (card.focus.includes('subject') && subject) {
-      const where =
-        subject.kind === 'shot'
-          ? view.projectiles.find((shot) => shot.id === subject.id)
-          : view.raiders.find((raider) => raider.id === subject.id);
-      // Gone already (a round that landed, a Raider shot down): the words still carry the lesson.
-      if (!where) return;
-      const radius = subject.kind === 'shot' ? SHOT_RING_UNITS : RAIDER_RADIUS_UNITS * view.fighterScale + MARGIN_UNITS;
-      graphics.strokeCircle(where.x, where.y, radius);
-    }
+    // Gone already (a round that landed, a Raider shot down): the words still carry the lesson.
+    const subject = card.focus.includes('subject') && card.subject ? subjectBox(card.subject, view) : null;
+    if (subject) graphics.strokeCircle(subject.x, subject.y, Math.max(subject.halfWidth, subject.halfHeight) + MARGIN_UNITS);
   }
 }

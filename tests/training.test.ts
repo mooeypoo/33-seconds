@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { GameSession, RESUME_COUNTDOWN_SECONDS } from '../src/application/GameSession';
 import type { InputPort } from '../src/application/ports/InputPort';
-import { LESSON_GAP_SECONDS, STRAY_NEAR_FLEET_UNITS, type LessonSubject } from '../src/application/training/LessonDirector';
+import { LESSON_GAP_SECONDS, STRAY_NEAR_FLEET_UNITS } from '../src/application/training/LessonDirector';
+import { subjectBox, type LessonSubject } from '../src/application/training/lessonFocus';
 import { TRAINING_SCRIPT } from '../src/application/training/trainingScript';
 import { TRAINING_PRESET } from '../src/balance/training';
 import { FLEET_LINE_Y_UNITS } from '../src/domain/fleet/integrity';
@@ -77,8 +78,18 @@ interface Shown {
   readonly integrity: number;
   readonly lastCycleDamage: number;
   readonly subject: LessonSubject | null;
+  /** Whether the subject was on screen when the lesson came up. */
+  readonly subjectOnScreen: boolean;
+  /** For a Raider subject: whether it was a Returned one, and whether it was a heavy. */
+  readonly subjectRaider: { readonly returned: boolean; readonly heavy: boolean } | null;
   /** The drill name in the status row while the lesson was up. */
   readonly drill: string | null;
+}
+
+function raiderOf(subject: LessonSubject | null): Shown['subjectRaider'] {
+  if (subject?.kind !== 'raider') return null;
+  const raider = session.view.raiders.find((body) => body.id === subject.id);
+  return raider ? { returned: raider.returned, heavy: raider.kind === 'heavy' } : null;
 }
 
 /**
@@ -107,6 +118,8 @@ function playTraining(maxSeconds = 600): Shown[] {
         integrity: view.fleet.integrity,
         lastCycleDamage: view.fleet.lastCycleDamage,
         subject: status.lesson.subject,
+        subjectOnScreen: status.lesson.subject !== null && subjectBox(status.lesson.subject, view) !== null,
+        subjectRaider: raiderOf(status.lesson.subject),
         drill: status.drill,
       });
       if (status.lesson.pauses) {
@@ -220,7 +233,7 @@ describe('lessons during the fight', () => {
     expect(session.status.training).toBe(false);
   });
 
-  it('shows a lesson whose moment never came at its deadline, with its fallback lines and nothing outlined', () => {
+  it('shows a lesson whose moment never came at its deadline, with its fallback lines', () => {
     // Raiders that never fire cannot hit the Viper or send a stray, so those lessons only have deadlines.
     session = new GameSession(input, { seed: 1, raidersFire: false });
     session.startTraining();
@@ -238,7 +251,8 @@ describe('lessons during the fight', () => {
       expect(entry, `${lesson.id} should show`).toBeDefined();
       if (!entry || !by) continue;
       expect(entry.text).toBe(lesson.fallback?.map((beat) => beat.text).join(' '));
-      expect(entry.subject).toBeNull();
+      // Nothing happened to point at, except the Viper, which is always there.
+      expect(entry.subject).toEqual(lesson.trigger === 'StrayNearFleet' ? null : { kind: 'viper' });
       const reached = entry.cycle > by.cycle || entry.seconds >= by.seconds;
       expect(reached, `${lesson.id} came before its deadline`).toBe(true);
     }
@@ -325,6 +339,36 @@ describe('lessons during the fight', () => {
     expect(session.status.phase).toBe('won');
     expect(session.status.debrief).toBeNull();
     expect(session.status.result?.outcome).toBe('won');
+  });
+});
+
+describe('what a lesson points at', () => {
+  it('rings something that is on screen, and the right thing, for every lesson that rings its subject', () => {
+    const ringed = new Set(TRAINING_SCRIPT.lessons.filter((lesson) => lesson.focus.includes('subject')).map((lesson) => lesson.id));
+    const triggerOf = new Map(TRAINING_SCRIPT.lessons.map((lesson) => [lesson.id, lesson.trigger]));
+    const fallbackOf = new Map(TRAINING_SCRIPT.lessons.map((lesson) => [lesson.id, lesson.fallback?.map((beat) => beat.text).join(' ')]));
+    let checked = 0;
+    for (const seed of [1, 2, 3]) {
+      input = new FakeInput();
+      session = new GameSession(input, { seed });
+      session.startTraining();
+      for (const entry of playTraining()) {
+        if (!ringed.has(entry.id)) continue;
+        // Only a lesson shown at its deadline may have nothing to point at.
+        if (entry.subject === null) {
+          expect(entry.text, `${entry.id} lost its subject, seed ${String(seed)}`).toBe(fallbackOf.get(entry.id));
+          continue;
+        }
+        checked += 1;
+        expect(entry.subjectOnScreen, `${entry.id}, seed ${String(seed)}`).toBe(true);
+        const trigger = triggerOf.get(entry.id);
+        if (trigger === 'ViperHit' || trigger === 'ViperEjected') expect(entry.subject).toEqual({ kind: 'viper' });
+        if (trigger?.startsWith('Ship')) expect(entry.subject).toEqual({ kind: 'ship' });
+        if (trigger === 'RaiderReturned') expect(entry.subjectRaider).toEqual({ returned: true, heavy: false });
+        if (trigger === 'HeavyArrived') expect(entry.subjectRaider?.heavy).toBe(true);
+      }
+    }
+    expect(checked).toBeGreaterThan(ringed.size);
   });
 });
 

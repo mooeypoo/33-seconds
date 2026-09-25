@@ -109,14 +109,14 @@ const speech = computed(() => {
       </section>
 
       <section class="panel actions" aria-label="Missiles and The Speech">
-        <div class="readout">
+        <div class="readout" data-lesson-target="missile">
           <span class="label">Missiles</span>
           <span class="value-row">
             <span class="big" data-testid="missile-ammo">{{ missiles }}</span>
             <kbd class="key">Space</kbd>
           </span>
         </div>
-        <div class="readout">
+        <div class="readout" data-lesson-target="speech">
           <span class="label">The Speech</span>
           <span class="value-row">
             <span class="big" data-testid="speech-status">{{ speech }}</span>

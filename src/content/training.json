@@ -68,7 +68,7 @@
       "id": "sim-returned",
       "trigger": "RaiderReturned",
       "heading": "They come back",
-      "focus": ["status"],
+      "focus": ["subject", "status"],
       "recap": "A destroyed Raider leaves a blip with a bar. When it fills, about six seconds later, the Raider is back, marked Returned.",
       "by": { "cycle": 1, "seconds": 24 },
       "fallback": [
@@ -85,7 +85,7 @@
       "id": "sim-viper-hit",
       "trigger": "ViperHit",
       "heading": "Your hull",
-      "focus": ["status"],
+      "focus": ["subject", "status"],
       "recap": "The pips on your Viper are its hull. Five hits and you eject. The hull is patched at every jump.",
       "by": { "cycle": 1, "seconds": 22 },
       "fallback": [
@@ -149,7 +149,7 @@
       "id": "sim-ship-arrived",
       "trigger": "ShipArrived",
       "heading": "The resurrection ship",
-      "focus": ["objective"],
+      "focus": ["subject", "objective"],
       "recap": "The resurrection ship is why Raiders come back. It arrives shielded; wait for the shield to drop.",
       "beats": [
         { "speaker": "tyrol", "text": "And that is the resurrection ship. It is the reason the Raiders keep coming back." },
@@ -180,6 +180,7 @@
       "trigger": "CombatTime",
       "when": { "cycle": 2, "seconds": 5 },
       "heading": "Missiles",
+      "focus": ["missile"],
       "recap": "Missiles: Space on a keyboard, or the missile button or a second finger on a phone. Three per cycle.",
       "beats": [
         { "speaker": "tyrol", "text": "Missiles. Space on a keyboard. On a phone, the missile button or a tap with a second finger." },
@@ -192,6 +193,7 @@
       "id": "sim-heavy",
       "trigger": "HeavyArrived",
       "heading": "A heavy",
+      "focus": ["subject"],
       "recap": "A heavy Raider is bigger and slower, takes eight hits, and a missile does three to it. It never comes back.",
       "by": { "cycle": 2, "seconds": 20 },
       "fallback": [
@@ -208,6 +210,7 @@
       "trigger": "CombatTime",
       "when": { "cycle": 2, "seconds": 14 },
       "heading": "The Speech",
+      "focus": ["speech"],
       "recap": "The Speech (E, or its button): for four seconds the Raiders hold fire and you cannot be hurt. Ready again every third jump.",
       "beats": [
         { "speaker": "tyrol", "text": "'The Speech' is a rare weaponized ability. It stops all raiders short as they listen to the inspirational words. Press E, or the speech button." },
@@ -220,6 +223,7 @@
       "id": "sim-ejected",
       "trigger": "ViperEjected",
       "heading": "Ejected",
+      "focus": ["subject"],
       "recap": "If your hull runs out, you eject. A Raptor picks you up a few seconds later. It costs time, never the run.",
       "by": { "cycle": 2, "seconds": 24 },
       "fallback": [
@@ -237,7 +241,7 @@
       "id": "sim-ship-exposed",
       "trigger": "ShipExposed",
       "heading": "Shield down",
-      "focus": ["status"],
+      "focus": ["subject", "status"],
       "recap": "When the shield drops, the ship can be hurt. Missiles do the most damage. Its hull stays down across jumps.",
       "beats": [
         { "speaker": "tyrol", "text": "Shield is down. Hit it. Missiles do the most damage." },

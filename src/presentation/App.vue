@@ -14,6 +14,7 @@ import {
 } from 'vue';
 import type { SessionStatus } from '../application/GameSession';
 import type { RunResult } from '../application/runResult';
+import { lessonFocusBoxes } from '../application/training/lessonFocus';
 import { decodeSharedRun, type SharedRun } from '../application/shareCode';
 import { playfieldForWindow } from '../application/playfield';
 import type { TierId } from '../domain/balance/profile';
@@ -162,6 +163,10 @@ watch([inRun, cic], () => {
   });
 });
 
+// What the lesson on screen is about in the playfield. Read once per lesson: the world is frozen
+// while it is up.
+const lessonBoxes = computed(() => (status.value.lesson ? lessonFocusBoxes(status.value.lesson, session.view) : []));
+
 // A lesson outlines the HUD elements it is about. One word list on the root, so any layout's copy of
 // each element can answer to it (styles.css). Playfield focuses are drawn on the canvas instead.
 watchEffect(() => {
@@ -234,7 +239,14 @@ onUnmounted(() => {
         <RecoveringOverlay v-if="status.choosingUpgrade" :wide="cic" :comms="status.comms" />
         <DragHint v-if="inCombat" />
         <TitleOverlay v-if="cic && status.phase === 'title' && !endScreen" in-lane @start="beginRun" @training="beginTraining" />
-        <LessonCard v-if="status.lesson" :lesson="status.lesson" @got-it="session.dismissLesson()" @skip="session.abandonRun()" />
+        <LessonCard
+          v-if="status.lesson"
+          :lesson="status.lesson"
+          :focus-boxes="lessonBoxes"
+          :canvas-host="canvasHost"
+          @got-it="session.dismissLesson()"
+          @skip="session.abandonRun()"
+        />
       </div>
       <footer v-if="inRun && !cic" class="bottom-band">
         <!-- During the pick the buttons step aside, so the Recovering scene gets the whole strip. -->
