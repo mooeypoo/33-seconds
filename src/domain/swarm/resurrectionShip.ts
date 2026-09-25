@@ -1,3 +1,4 @@
+import { movingCircleHitAlong } from '../shared/collision';
 import { clamp, WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../shared/world';
 import type { RandomStream } from '../shared/random';
 import type { ResurrectionShipView } from '../views';
@@ -8,9 +9,39 @@ import type { ResurrectionShipView } from '../views';
  */
 export const RESURRECTION_SHIP_HIT_POINTS = 60;
 
-export const RESURRECTION_SHIP_HALF_WIDTH_UNITS = 18;
-export const RESURRECTION_SHIP_HALF_HEIGHT_UNITS = 10;
-export const RESURRECTION_SHIP_RADIUS_UNITS = 16;
+/** Half the picture's width (96 art pixels, 48 world units), so the station keeps it all on screen. */
+export const RESURRECTION_SHIP_HALF_WIDTH_UNITS = 24;
+
+/**
+ * The drawn hull is long and thin (docs/art/SPRITE-FILES.md), so it is a row of small circles, a
+ * little inside the picture, not one big circle: a round hits the hull where it is drawn, not the
+ * empty space under it, and not through its ends. Reach: 24 units either side, 5 above and below.
+ */
+export const RESURRECTION_SHIP_HULL_HALF_LENGTH_UNITS = 19;
+export const RESURRECTION_SHIP_HULL_RADIUS_UNITS = 5;
+
+/** Close enough that the dips between circles stay under a unit deep. */
+const HULL_CIRCLE_COUNT = 9;
+
+/** How far along a swept circle's path it first meets the hull, or null on a miss (see `movingCircleHitAlong`). */
+export function resurrectionShipHitAlong(
+  shipX: number,
+  shipY: number,
+  startX: number,
+  startY: number,
+  endX: number,
+  endY: number,
+  movingRadius: number,
+): number | null {
+  const spacing = (RESURRECTION_SHIP_HULL_HALF_LENGTH_UNITS * 2) / (HULL_CIRCLE_COUNT - 1);
+  let best: number | null = null;
+  for (let index = 0; index < HULL_CIRCLE_COUNT; index++) {
+    const circleX = shipX - RESURRECTION_SHIP_HULL_HALF_LENGTH_UNITS + index * spacing;
+    const along = movingCircleHitAlong(startX, startY, endX, endY, movingRadius, circleX, shipY, RESURRECTION_SHIP_HULL_RADIUS_UNITS);
+    if (along !== null && (best === null || along < best)) best = along;
+  }
+  return best;
+}
 
 /** Cycle the ship first jumps in, still shielded (PRD 5.2). Tests can start it earlier. */
 export const RESURRECTION_SHIP_ARRIVES_CYCLE = 2;

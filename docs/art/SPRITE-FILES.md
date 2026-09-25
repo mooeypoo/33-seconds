@@ -24,6 +24,14 @@ Hot red belongs to Cylons only: the Raider, the heavy Raider, the resurrection s
   `viper_flicker.png` — **64 × 64** (32 world units). Also the title's picture, at 2×.
 - [x] **Raider** — `assets/ships/raider_eye_center.png`, `raider_eye_left.png`,
   `raider_eye_right.png` — **48 × 48** (24 units).
+- [x] **Heavy Raider** — `assets/ships/raider_heavy.png`, `raider_heavy_damaged.png` — **72 × 72**
+  (36 units). One still picture each, no eye sweep (only the Raider's eye sweeps). The damaged one
+  shows from half its hull, so damage is not only a colour.
+- [x] **Resurrection ship** — `assets/ships/resurrection_ship_sealed.png`,
+  `resurrection_ship_open.png`, `resurrection_ship_wreck.png` — **96 × 64** (48 × 32 units). Sealed
+  while shielded and when the bays are shut, open while they are open, wreck once it is destroyed. The
+  shield bubble and the hull bar are drawn in code. Its hitbox follows the long hull (PRD 8.4), so a
+  redraw with a different outline may need the hitbox retuned.
 - [x] **Small explosion** — `assets/effects/explosion_small_1.png` … `_6.png` — **64 × 64** (32 units).
 
 ### Shots (done)
@@ -40,13 +48,6 @@ Redrawn at the new density and in the game.
 
 ### New ships (placeholder shapes in the game today)
 
-- [ ] **Heavy Raider** — `assets/ships/raider_heavy_eye_center.png`, `_eye_left.png`, `_eye_right.png`
-  — **72 × 72** (36 units). A heavier arrowhead with visible bays, same eye sweep as the Raider
-  (eye moves 2 pixels between frames).
-- [ ] **Resurrection ship** — `assets/ships/resurrection_ship_sealed.png`,
-  `resurrection_ship_open.png`, `resurrection_ship_wreck.png` — **96 × 64** (48 × 32 units). Sealed:
-  bays closed. Open: bays split, red well visible. Wreck: reads as a dead factory, greys, no red. The
-  shield bubble is drawn in code.
 - [ ] **Civilian ships** — `assets/ships/civilian_a.png`, `civilian_b.png`, `civilian_c.png` —
   **32 × 16** (16 × 8 units). Three silly silhouettes.
 - [ ] **Civilian ships, dented** — `assets/ships/civilian_a_damaged.png`, `_b_damaged.png`,
@@ -67,8 +68,6 @@ Redrawn at the new density and in the game.
 - [ ] **Flak burst** — `assets/effects/flak_burst_1.png` … `_3.png` — **16 × 16**. Warm olive and
   orange, never white or red.
 - [ ] **Download blip** — `assets/markers/ghost_blip.png` — **16 × 16**. The fill bar is drawn in code.
-- [ ] **Returned tally** — `assets/markers/returned_x1.png`, `_x2.png`, `_x3.png` — **12 × 12**.
-  Scratches above a Raider that came back.
 
 ### Background
 
@@ -116,13 +115,13 @@ glance, never text. A card without its file shows an empty slot, so these can la
 
 ### Drawn in code (nothing to draw)
 
-Sparks, the shield bubble and its ripple, the FTL ring, download bars, hull pips, the strafe line,
+Sparks, the Returned Raider's glow and its `x2` count, the shield bubble and its ripple, the FTL ring, download bars, hull pips, the strafe line,
 the stick indicator, and the starfield.
 
 ## Suggested order
 
 1. ~~The four shots and the missile~~ (done).
-2. **The heavy Raider and the resurrection ship**: both are in the fight now as placeholder shapes.
+2. ~~The heavy Raider and the resurrection ship~~ (done).
 3. **The fleet**: civilians, dented civilians, Galactica, the Raptor.
 4. **Card art**, one at a time, whenever you like.
 5. Everything else.
@@ -141,6 +140,11 @@ What each existing playfield picture shows. The "Shown as" column is world units
 | `assets/ships/` | `raider_eye_center.png` | 48 × 48 | 24 × 24 | A small fighter facing straight down, hull shaped like an upside-down crescent or boomerang — wingtips sweeping forward and out, curving back to a point at the center-rear. One sweeping eye, hot red and dark red only on this craft. |
 | `assets/ships/` | `raider_eye_left.png` | 48 × 48 | 24 × 24 | The same fighter, eye shifted left by 4 pixels. |
 | `assets/ships/` | `raider_eye_right.png` | 48 × 48 | 24 × 24 | The same fighter, eye shifted right by 4 pixels. |
+| `assets/ships/` | `raider_heavy.png` | 72 × 72 | 36 × 36 | A bulky gunmetal ship facing straight down, with visible bays and a steady red eye. One still picture, no eye sweep. |
+| `assets/ships/` | `resurrection_ship_sealed.png` | 96 × 64 | 48 × 32 | A long, thin, spiny gunmetal hull lying across the frame, with shut doors at its middle. The top and bottom of the frame are empty. |
+| `assets/ships/` | `resurrection_ship_open.png` | 96 × 64 | 48 × 32 | The same hull, the middle doors gone and a glowing red well in their place. |
+| `assets/ships/` | `resurrection_ship_wreck.png` | 96 × 64 | 48 × 32 | The hull broken in two at the middle, darker, with plating and debris flung above and below. No glow. |
+| `assets/ships/` | `raider_heavy_damaged.png` | 72 × 72 | 36 × 36 | The same ship, scorched and torn open: shown at half its hull or less. |
 | `assets/projectiles/` | `bullet_player.png` | 6 × 10 | 3 × 5 | A short Dradis-green shot. |
 | `assets/projectiles/` | `bullet_aimed.png` | 6 × 10 | 3 × 5 | A short red shot. |
 | `assets/projectiles/` | `bullet_stray.png` | 6 × 14 | 3 × 7 | A longer orange shot. |
@@ -155,7 +159,7 @@ What each existing playfield picture shows. The "Shown as" column is world units
 
 | `assets/effects/` | `explosion_large_1.png` … `_7.png` | 96 × 96 | 48 × 48 | The large burst: a small core, a spiky orange star at its widest (frame 3, held when effects are reduced), then a dark centre with a fading red-orange rim and grey debris. |
 
-The Raider's eye is three frames: center, left, right, shifted 4 pixels in the 48 × 48 picture. A slit frame is optional and is not part of the sweep.
+The Raider's eye is three frames: center, left, right, shifted 4 pixels in the 48 × 48 picture. Only the Raider's eye sweeps; the heavy Raider is a still picture. A slit frame is optional and is not part of the sweep.
 
 Generate only `explosion_small_3` (the widest, most jagged frame — see the hero prompt in [GENERATION-NOTES.md](GENERATION-NOTES.md)), then hand-paint the other five in Aseprite/Piskel by growing into it (frames 1–2) and breaking it apart (frames 4–6). Generating all six as one strip is exactly the kind of multi-frame request that came out inconsistent last time — see GENERATION-NOTES.md.
 

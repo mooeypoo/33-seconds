@@ -44,7 +44,7 @@
     "fight": [
       { "heading": "Guns", "text": "They fire on their own. Losing your Viper costs time, not the run." },
       { "heading": "The jump", "text": "33 seconds, then the fleet jumps. Pick 1 of 3 cards. No timer." },
-      { "heading": "The fleet", "text": "You lose if the civilians hit zero. Civilian Run is the easier fleet." },
+      { "heading": "The fleet", "text": "You lose if the civilians hit zero." },
       {
         "heading": "They come back",
         "text": "Raiders return until you destroy the resurrection ship. Then clear the last wave."

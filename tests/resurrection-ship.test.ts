@@ -258,3 +258,40 @@ describe('hangar bays', () => {
     expect(game.view.resurrectionShip?.baysOpen).toBe(open);
   });
 });
+
+/**
+ * Parks the Viper at a fixed offset from the ship's centre, tracking its drift, and returns the first
+ * hit. The twin guns sit about 3 units either side of the Viper, so the rounds land that far off it.
+ */
+function firstHitAt(game: Game, offsetX: number, seconds: number): Extract<DomainEvent, { type: 'ResurrectionShipHit' }> | null {
+  for (let i = 0; i < ticksFor(seconds); i++) {
+    const shipX = game.view.resurrectionShip?.x ?? RESURRECTION_SHIP_SPAWN_X_UNITS;
+    for (const event of tickToward(game, shipX + offsetX)) {
+      if (event.type === 'ResurrectionShipHit') return event;
+    }
+  }
+  return null;
+}
+
+describe('the resurrection ship hull', () => {
+  // The picture is a long, thin hull (docs/art/SPRITE-FILES.md), so a round must hit where it is drawn.
+  it('takes a round near the end of the hull', () => {
+    const game = shipGame(60);
+    game.tick(IDLE_INTENT);
+    expect(firstHitAt(game, -24.5, 6)).not.toBeNull();
+  });
+
+  it('takes a round on the hull, not in the empty space under it', () => {
+    const game = shipGame(60);
+    game.tick(IDLE_INTENT);
+    const hit = firstHitAt(game, 0, 6);
+    expect(hit).not.toBeNull();
+    expect((hit?.y ?? Infinity) - RESURRECTION_SHIP_SPAWN_Y_UNITS).toBeLessThanOrEqual(7);
+  });
+
+  it('lets a round past the end of the hull fly on', () => {
+    const game = shipGame(60);
+    game.tick(IDLE_INTENT);
+    expect(firstHitAt(game, -33, 6)).toBeNull();
+  });
+});

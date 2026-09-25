@@ -54,15 +54,15 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 | `bullet_stray` | 3 x 7 | 1 | P0 | Orange, longer trail |
 | `explosion_small` | 16 x 16 | 6 | P0 | A jagged, arcade-style burst with a few small debris chunks flying free — not a smooth circle or soft glow. Orange, warning yellow, and gunmetal debris only. No white flash frames, and no use of the new engine-glow white-yellow — that color stays on the Viper's own thrust. |
 | `flak_burst` | 12 x 12 | 3 | P2 | *Flak Enthusiast* puff at the stray. Warm olive/orange, never white, never Cylon red. Not a flash. A muzzle on Galactica is the second cue. |
-| `raider_heavy` | 24 x 24 | 2 | P1 | Bigger arrowhead, visible bays |
+| `raider_heavy` | 36 x 36 on screen, drawn at 72 x 72 | 2 (intact, damaged) | P1 | Bigger arrowhead, visible bays. A still picture: no eye sweep, that is the Raider's alone. The damaged picture shows from half hull, so damage is not only a colour. |
 | `missile` | 5 x 9 | 2 (flame) | P1 | |
 | `missile_pickup` | 8 x 8 | 1 | P1 | |
 | `fleet_ship_a/b/c` | 16 x 10 | 1 each | P1 | Civilian ships along the fleet edge, three silly silhouettes |
 | `fleet_pip` | 8 x 6 | 2 (ok, damaged) | P1 | HUD version of the fleet ships |
 | `galactica_silhouette` | about 200 x 60 | 1 | P1 | Dark, slow parallax in the background. Original design. |
-| `resurrection_ship` | 64 x 48 | 3 (damage states) plus a wreck | P1 | Chunky and ominous, clearly *not* a copy of anything. After it dies, the wreck must read as a dead factory, not a parked target. Hangar doors: split when open (red well visible), meet when sealed. HUD also says `bays` / `sealed`. |
+| `resurrection_ship` | 48 x 32 on screen, drawn at 96 x 64 | 3 (sealed, open, wreck) | P1 | Chunky and ominous, clearly *not* a copy of anything. After it dies, the wreck must read as a dead factory, not a parked target. Hangar doors: split when open (red well visible), meet when sealed. HUD also says `bays` / `sealed`. |
 | `ghost_blip` | 8 x 8 | 2 | P1 | Dradis-style download marker. Loop-on: filling bar plus the word. Loop-off: leftover blips go grey and stay that way. *Spoilers*: a still plus / cross on the blip so it reads as a target, and it sits at the return column until pickup. Colour is never the only cue; keep a word (`loop` / `offline` or downloading / done). |
-| `returned_marker` | 6 x 6 | 3 (x1, x2, x3 scratch) | P1 | Small overlay above Returned Raiders |
+| `returned_marker` | — | — | — | Not drawn: the game marks a Returned Raider in code, with a soft grey glow inside its picture and `x<n>` beside it. |
 | `raptor` | 14 x 12 | 2 | P2 | Escort card. Play uses an olive wedge and hull pips above the fleet line. HUD `raptor n/max` or `hangar`. Never Cylon red. |
 | `imaginary_six` | 16 x 16 | 2 | P2 | A steady outline sprite. Costume and silhouette, not likeness. Play uses a pale Dradis outline and a still glow; HUD `six`. Never flickers. Never Cylon red. |
 | `explosion_large` | 32 x 32 | 8 | P2 | Same rules as small |
@@ -167,7 +167,7 @@ Without *Flak Enthusiast*, strays that cross the line hit. With it, Galactica ea
 
 ## 13. Hangar bays (graphics pass)
 
-While the resurrection ship is exposed, the hangar doors cycle: **4 s open, 4 s sealed**. Open is a split (red well visible). Sealed is doors meeting (well hidden). HUD says `bays` or `sealed`. Shielded stays `shielded` with doors hidden under the bubble. Play uses sliding placeholder doors. Real ship frames should carry an open and a sealed bay. Colour is never the only cue (PRD 9, 15). Path, panic, and escape FTL still wait.
+While the resurrection ship is exposed, the hangar doors cycle: **4 s open, 4 s sealed**. Open is a split (red well visible). Sealed is doors meeting (well hidden). HUD says `bays` or `sealed`. Shielded stays `shielded` with doors hidden under the bubble. Play swaps the `resurrection_ship_sealed` and `_open` pictures (sealed also under the shield), and `_wreck` once it is destroyed. Colour is never the only cue (PRD 9, 15). Path, panic, and escape FTL still wait.
 
 ## 14. Raptor escort (graphics pass)
 
