@@ -19,6 +19,10 @@ function percent(value: number): string {
   return `${String(Math.round(value * 100))}%`;
 }
 
+function score(value: number | null): string {
+  return value === null ? '-' : value.toFixed(0);
+}
+
 function row(tier: string, bot: string, summary: Summary): string {
   return [
     tier.padEnd(14),
@@ -33,6 +37,8 @@ function row(tier: string, bot: string, summary: Summary): string {
     summary.raidersOnScreen.toFixed(1).padStart(8),
     summary.medianKills.toFixed(0).padStart(6),
     summary.ejectsPerRun.toFixed(1).padStart(7),
+    score(summary.medianScoreWon).padStart(10),
+    score(summary.medianScoreLost).padStart(11),
   ].join(' ');
 }
 
@@ -50,6 +56,8 @@ it(`balance report (${String(RUNS)} runs per row, up to ${String(MAX_CYCLES)} cy
     'raiders'.padStart(8),
     'kills'.padStart(6),
     'ejects'.padStart(7),
+    'score won'.padStart(10),
+    'score lost'.padStart(11),
   ].join(' ');
   const lines = [header, '-'.repeat(header.length)];
   const started = performance.now();
@@ -61,7 +69,7 @@ it(`balance report (${String(RUNS)} runs per row, up to ${String(MAX_CYCLES)} cy
       lines.push(row(tier, name, summarize(results)));
     }
   }
-  lines.push('', `minutes = combat time plus ~10 s per Recovering pick. ${((performance.now() - started) / 1000).toFixed(1)} s to simulate.`);
+  lines.push('', `minutes = combat time plus ~10 s per Recovering pick. Scores are medians; "lost" includes timeouts. ${((performance.now() - started) / 1000).toFixed(1)} s to simulate.`);
   // eslint-disable-next-line no-console -- printing the table is this report's whole job
   console.log(`\n${lines.join('\n')}\n`);
 });
