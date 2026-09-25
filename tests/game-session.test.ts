@@ -10,6 +10,7 @@ import type { InputPort } from '../src/application/ports/InputPort';
 import type { InputIntent } from '../src/domain/shared/intent';
 import { IDLE_INTENT } from '../src/domain/shared/intent';
 import { RECOVERING_SCENES } from '../src/application/banter/recoveringScene';
+import { endingLines } from '../src/application/endings';
 import { TICK_SECONDS, TICKS_PER_SECOND } from '../src/domain/shared/time';
 
 /** A stand-in for the keyboard and stick adapters, so we can watch what the session asks of them. */
@@ -467,6 +468,29 @@ describe('winning', () => {
     expect(session.view.resurrectionShip?.hp).toBe(1);
   });
 
+  it('hands the end screen a scored result on the win, drops it at the title, and starts the next tally fresh', () => {
+    session.start();
+    expect(session.status.result).toBeNull();
+    expect(playUntilWon()).toBe(true);
+
+    const result = session.status.result;
+    expect(result?.outcome).toBe('won');
+    expect(result?.tier).toBe('viper-pilot');
+    expect(result?.resurrectionShipPercent).toBe(100);
+    // Destroying the ship and winning each carry a bonus, so a win is never a zero.
+    expect(result?.score).toBeGreaterThan(0);
+    expect(endingLines('won').map((line) => line.id)).toContain(result?.headlineId);
+
+    session.returnToTitle();
+    expect(session.status.result).toBeNull();
+
+    // The same seed plays the same win, so a tally that leaked across runs would count double here.
+    session.start();
+    expect(playUntilWon()).toBe(true);
+    expect(session.status.result).toEqual(result);
+    expect(result?.raiderKills).toBeGreaterThan(0);
+  });
+
   it('ignores Continue to title until the run is actually won', () => {
     session.start();
     session.returnToTitle();
@@ -510,6 +534,26 @@ describe('losing', () => {
     session.start();
     expect(session.view.tickCount).toBe(0);
     expect(session.view.fleet.integrity).toBe(8);
+  });
+
+  it('scores the loss with the fleet at zero, the same way every time', () => {
+    function playUntilLost(): void {
+      for (let i = 0; i < TICKS_PER_SECOND * 15 && session.status.phase !== 'lost'; i++) session.advance(ONE_FRAME_AT_60HZ);
+    }
+    session.start();
+    playUntilLost();
+
+    const first = session.status.result;
+    expect(first?.outcome).toBe('lost');
+    expect(first?.fleetLeftPercent).toBe(0);
+    expect(first?.cycle).toBe(1);
+    expect(first?.resurrectionShipPercent).toBe(0);
+    expect(endingLines('lost').map((line) => line.id)).toContain(first?.headlineId);
+
+    session.returnToTitle();
+    session.start();
+    playUntilLost();
+    expect(session.status.result).toEqual(first);
   });
 });
 

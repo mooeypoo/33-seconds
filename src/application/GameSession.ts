@@ -1,3 +1,4 @@
+import { SCORE_WEIGHTS } from '../balance/scoring';
 import { DEFAULT_PLAY_TIER, profileFor } from '../balance/tiers';
 import { AudioDirector } from './audio/AudioDirector';
 import type { CommsLine } from './banter/Banter';
@@ -14,6 +15,10 @@ import { SILENT_AUDIO, type AudioPort } from './ports/AudioPort';
 import type { InputPort } from './ports/InputPort';
 import type { SeedSource } from './ports/SeedSource';
 import { buildHudViewModel, type HudViewModel } from './HudViewModel';
+import { createRandomStream } from '../domain/shared/random';
+import { RunTally } from '../domain/scoring/score';
+import { pickEnding, pickReaction } from './endings';
+import { buildRunResult, type RunResult } from './runResult';
 
 /**
  * Where the run is. `resuming` is the 3-2-1 countdown that pause ends with (PRD 13.3): the
@@ -37,6 +42,8 @@ export interface SessionStatus {
   readonly fleetNames: readonly string[];
   /** The Recovering sheet is up. Focus loss does not cover it with the pause menu. */
   readonly choosingUpgrade: boolean;
+  /** The finished run, for the end screen (PRD 5.4). Set only while the phase is won or lost. */
+  readonly result: RunResult | null;
 }
 
 export interface FrameResult {
@@ -91,6 +98,9 @@ export class GameSession {
   private readonly sound: AudioDirector;
   /** A card waiting out the 3-2-1 after Apply. The fight starts when that countdown ends. */
   private pendingUpgradeId: string | null = null;
+  /** Watches this run's events for the score. Replaced on every Launch. */
+  private tally = new RunTally();
+  private result: RunResult | null = null;
 
   constructor(input: InputPort, options: SessionOptions = {}) {
     this.input = input;
@@ -112,6 +122,7 @@ export class GameSession {
       fleetNames: this.fleetNames,
       choosingUpgrade:
         this.phase === 'running' && this.pendingUpgradeId === null && this.game.view.cycle.phase === 'recovering',
+      result: this.phase === 'won' || this.phase === 'lost' ? this.result : null,
     };
   }
 
@@ -144,6 +155,8 @@ export class GameSession {
     this.fleetNames = fleetNamesForRun(this.runSeed);
     this.game = createGame({ ...this.options, seed: this.runSeed, tierProfile: profileFor(tier), playfield: lane });
     this.resetChatter();
+    this.tally = new RunTally();
+    this.result = null;
     // Launch is the player's first deliberate gesture: the first moment sound may exist (PRD 14.1).
     this.sound.unlock();
     this.phase = 'running';
@@ -314,9 +327,11 @@ export class GameSession {
     for (let i = 0; i < ticksToRun; i++) {
       const tickEvents = this.game.tick(this.input.readIntent());
       events.push(...tickEvents);
+      this.tally.note(tickEvents);
       ticksRun += 1;
       if (tickEvents.some((event) => event.type === 'RunWon' || event.type === 'RunLost')) {
         this.phase = tickEvents.some((event) => event.type === 'RunLost') ? 'lost' : 'won';
+        this.result = this.finishRun(this.phase === 'won');
         this.reason = null;
         // Frozen on the win or lose tick: leftover catch-up must not keep simulating.
         this.accumulatorSeconds = 0;
@@ -344,6 +359,14 @@ export class GameSession {
     };
   }
 
+  /** Scores the run on the tick it ended. The headline comes from its own stream, so it never touches play. */
+  private finishRun(won: boolean): RunResult {
+    const view = this.game.view;
+    const random = createRandomStream(endingSeed(this.runSeed));
+    const headline = pickEnding(won ? 'won' : 'lost', random);
+    return buildRunResult(view, this.tally.facts(view, won), SCORE_WEIGHTS, headline.id, pickReaction(random));
+  }
+
   private resetChatter(): void {
     this.comms.reset(this.runSeed);
     this.sound.reset(this.runSeed);
@@ -368,6 +391,10 @@ export class GameSession {
     const hud = buildHudViewModel(this.game.view);
     for (const listener of this.hudListeners) listener(hud);
   }
+}
+
+function endingSeed(runSeed: number): number {
+  return (runSeed ^ 0xe4d1e) >>> 0;
 }
 
 function clampFrameSeconds(frameSeconds: number): number {

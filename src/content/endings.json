@@ -1,0 +1,26 @@
+{
+  "_readme": "The end screen's headline (PRD 5.4). One line is drawn per run from the cosmetic stream, and its id rides in the share link, so keep ids stable: a link whose id is gone falls back to the first line of its outcome. Headline up to 40 characters, text up to 140. {score} and {cycles} are filled in. mostKilled.text is the fixed part, with {identity} and {count}; one of mostKilled.reactions is drawn per run and follows it. A shared link names its reaction by position, so reordering the list changes which joke an older link shows. Every entry marked PLACEHOLDER is a first pass by the engineer, waiting for the owner's content pass.",
+  "won": [
+    { "id": "won-01", "note": "", "headline": "The download is offline!", "text": "No more backups. No more do-overs. The toasters have to live with their choices now." },
+    { "id": "won-02", "note": "", "headline": "Resurrection ship: resolved.", "text": "{score} points and a fleet that can finally sleep for more than thirty-three seconds." },
+    { "id": "won-03", "note": "", "headline": "So say we all!", "text": "Somewhere in CIC, someone is allowed to smile. Briefly. Then back to work." },
+    { "id": "won-04", "note": "", "headline": "Clear skies. Actually clear.", "text": "Tyrol wants the Viper back in one piece. It's in roughly one piece. Take the win." },
+    { "id": "won-05", "note": "", "headline": "Nothing left to resurrect.", "text": "{cycles} jumps, and every Raider that came back had to stop coming back." }
+  ],
+  "lost": [
+    { "id": "lost-01", "note": "", "headline": "The fleet did not make it.", "text": "On the bright side, the paperwork is also gone." },
+    { "id": "lost-02", "note": "", "headline": "That was the last jump.", "text": "{cycles} cycles. The Raiders will be insufferable about this for weeks." },
+    { "id": "lost-03", "note": "", "headline": "Fleet Integrity: zero.", "text": "The Viper is fine, though. Tyrol will want that noted." },
+    { "id": "lost-04", "note": "", "headline": "The civilians have notes.", "text": "They were going to file them, but the filing ship was the first one hit." },
+    { "id": "lost-05", "note": "", "headline": "Well. That happened.", "text": "{score} points. The cylons are celebrating somewhere, downloading their victory speech." }
+  ],
+  "mostKilled": {
+    "note": "",
+    "text": "Most-killed Raider: #{identity}, {count} times.",
+    "reactions": [
+      "Still not over it.",
+      "It all happened before, and it will happen again.",
+      "So much for the plan."
+    ]
+  }
+}
