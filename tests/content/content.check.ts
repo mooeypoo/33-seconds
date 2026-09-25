@@ -353,10 +353,12 @@ describe('Training Run', () => {
   it('loads every lesson a writer wrote, each id once', () => {
     const rawLessons: unknown[] = Array.isArray(trainingRaw.lessons) ? trainingRaw.lessons : [];
     const loaded = new Set(script.lessons.map((lesson) => lesson.id));
+    // Every lesson is held to the writing limits, including one the game still plays: a long line
+    // plays, but it is named here.
     const problems = rawLessons.flatMap((raw, index) => {
-      const id = record(raw).id;
-      if (typeof id === 'string' && loaded.has(id)) return [];
       const reasons = lessonProblems(raw, index);
+      const id = record(raw).id;
+      if (typeof id === 'string' && loaded.has(id)) return reasons;
       return reasons.length > 0 ? reasons : [`training.json lessons[${String(index)}]: dropped (check the id, the when, and repeats)`];
     });
     expect(problems).toEqual([]);

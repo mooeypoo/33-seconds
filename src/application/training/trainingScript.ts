@@ -39,11 +39,17 @@ export type LessonFocus = (typeof LESSON_FOCUS)[number];
 /** Filled when the lesson is shown. `before` and `after` are the last jump's repair. */
 export const LESSON_PLACEHOLDERS = ['before', 'after', 'cap'] as const;
 
-export const LESSON_BEAT_MAX_CHARACTERS = 120;
+/**
+ * Writing limits, enforced by `check:content`. The loader does not drop a lesson for running long
+ * (a writer's longer line must never make a lesson vanish from play); it only caps absurd sizes.
+ */
+export const LESSON_BEAT_MAX_CHARACTERS = 200;
 export const LESSON_HEADING_MAX_CHARACTERS = 28;
 export const LESSON_RECAP_MAX_CHARACTERS = 140;
 export const LESSON_MAX_BEATS = 4;
 export const LESSON_ID_PATTERN = /^[a-z0-9-]{1,40}$/;
+/** Past this, the text is not a line anyone wrote on purpose. */
+const LOADER_MAX_CHARACTERS = 1000;
 
 export interface LessonBeat {
   readonly speaker: BanterSpeaker;
@@ -117,7 +123,7 @@ function parseBeats(value: unknown, allowPlaceholders: boolean): LessonBeat[] | 
   for (const entry of value) {
     const beat = record(entry);
     if (!beat || !isSpeaker(beat.speaker)) return null;
-    if (!isPlainText(beat.text, LESSON_BEAT_MAX_CHARACTERS, allowPlaceholders)) return null;
+    if (!isPlainText(beat.text, LOADER_MAX_CHARACTERS, allowPlaceholders)) return null;
     beats.push({ speaker: beat.speaker, text: beat.text });
   }
   return beats;
@@ -147,10 +153,10 @@ export function parseLesson(value: unknown): Lesson | null {
   if (!isTrigger(lesson.trigger)) return null;
   const when = parseConditions(lesson.trigger, lesson.when);
   if (!when) return null;
-  if (!isPlainText(lesson.heading, LESSON_HEADING_MAX_CHARACTERS, false)) return null;
+  if (!isPlainText(lesson.heading, LOADER_MAX_CHARACTERS, false)) return null;
   if (lesson.focus !== undefined && !isFocus(lesson.focus)) return null;
   // Opening lessons always show, so a recap for them would never be read.
-  if (lesson.recap !== undefined && (lesson.trigger === 'TrainingStarted' || !isPlainText(lesson.recap, LESSON_RECAP_MAX_CHARACTERS, false))) {
+  if (lesson.recap !== undefined && (lesson.trigger === 'TrainingStarted' || !isPlainText(lesson.recap, LOADER_MAX_CHARACTERS, false))) {
     return null;
   }
   const beats = parseBeats(lesson.beats, true);
@@ -172,12 +178,12 @@ function parseDebrief(value: unknown): TrainingDebriefScript {
   const debrief = record(value);
   if (!debrief) return EMPTY_DEBRIEF;
   const grades = Array.isArray(debrief.grades)
-    ? debrief.grades.filter((grade) => isPlainText(grade, LESSON_RECAP_MAX_CHARACTERS, false))
+    ? debrief.grades.filter((grade) => isPlainText(grade, LOADER_MAX_CHARACTERS, false))
     : [];
   return {
-    heading: isPlainText(debrief.heading, LESSON_HEADING_MAX_CHARACTERS, false) ? debrief.heading : EMPTY_DEBRIEF.heading,
+    heading: isPlainText(debrief.heading, LOADER_MAX_CHARACTERS, false) ? debrief.heading : EMPTY_DEBRIEF.heading,
     beats: parseBeats(debrief.beats, false) ?? [],
-    recapIntro: isPlainText(debrief.recapIntro, LESSON_RECAP_MAX_CHARACTERS, false) ? debrief.recapIntro : '',
+    recapIntro: isPlainText(debrief.recapIntro, LOADER_MAX_CHARACTERS, false) ? debrief.recapIntro : '',
     grades,
   };
 }

@@ -244,12 +244,14 @@ the debrief. Tyrol teaches and Starbuck heckles, but any speaker from section 2 
 | `heading` | Up to **28** characters. |
 | `focus` | Optional. The HUD element to outline: `clock`, `fleet`, `status`, or `objective`. |
 | `recap` | Optional, up to **140**. The debrief line when the lesson never came up. Leave it off for lessons that always happen. Not allowed on `TrainingStarted`. |
-| `beats` | One to **4** lines, each up to **120** characters. Placeholders: `{cap}` (the fleet's damage cap per cycle), and `{before}` and `{after}` (the last jump's repair, in whole percent). |
+| `beats` | One to **4** lines, each up to **200** characters. Placeholders: `{cap}` (the fleet's damage cap per cycle), and `{before}` and `{after}` (the last jump's repair, in whole percent). |
 
 - A lesson fires once per run, the first time its trigger happens and its `when` holds. Lessons due
   at the same moment show in file order. Fight lessons wait 3 game seconds after the fight resumes.
 - The debrief `grades` are drawn one per run. Beats there take no placeholders.
-- Plain text only, no markup or emoji. `check:content` names any lesson the game would drop and why.
+- Plain text only, no markup or emoji. A line over a length limit still plays; `check:content`
+  names it. Markup, an unknown speaker, a bad trigger, or a placeholder nothing fills drops the
+  whole lesson from the game, and `check:content` names that too.
 - Every line in the file is a placeholder until the owner's content pass.
 
 ## 7. Coverage targets for the MVP
