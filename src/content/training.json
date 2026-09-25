@@ -76,7 +76,7 @@
         { "speaker": "tyrol", "text": "About six seconds later it comes back, marked Returned. Loop on, up top, means that is still happening." }
       ],
       "beats": [
-        { "speaker": "tyrol", "text": "See the ones marked Returned? That is your first raider kills coming back. The blip it left, with the little bar, was it downloading into a new body." },
+        { "speaker": "tyrol", "text": "See the Raiders marked with numbers? Those are the raiders you killed, coming back. The blip it left, with the little bar, was it downloading into a new body." },
         { "speaker": "starbuck", "text": "Your sim cheats." },
         { "speaker": "tyrol", "text": "Out there, the Cylons do that themselves, until the resurrection ship is gone. 'Loop on', up top, means it is still happening." }
       ]
@@ -244,7 +244,7 @@
       "focus": ["subject", "status"],
       "recap": "When the shield drops, the ship can be hurt. Missiles do the most damage. Its hull stays down across jumps.",
       "beats": [
-        { "speaker": "tyrol", "text": "Shield is down. Hit it. Missiles do the most damage." },
+        { "speaker": "tyrol", "text": "The resurrection ship's shield is down. Hit it. Missiles do the most damage." },
         { "speaker": "tyrol", "text": "Whatever you take off it stays off, even across a jump." }
       ]
     },
@@ -255,7 +255,7 @@
       "focus": ["status"],
       "recap": "With the resurrection ship gone the loop is offline: kills stay dead. Clear the last waves to win.",
       "beats": [
-        { "speaker": "tyrol", "text": "It is down. Loop offline: whatever you destroy now stays destroyed." },
+        { "speaker": "tyrol", "text": "The resurrection ship is down. The download loop is offline: whatever you destroy now stays destroyed." },
         { "speaker": "tyrol", "text": "Clear the last of them and the sim is done." },
         { "speaker": "starbuck", "text": "Now we are talking." }
       ]
