@@ -20,6 +20,11 @@ import missile2 from '../../../assets/projectiles/missile_2.png';
 import raiderEyeCenter from '../../../assets/ships/raider_eye_center.png';
 import raiderEyeLeft from '../../../assets/ships/raider_eye_left.png';
 import raiderEyeRight from '../../../assets/ships/raider_eye_right.png';
+import raiderHeavy from '../../../assets/ships/raider_heavy.png';
+import raiderHeavyDamaged from '../../../assets/ships/raider_heavy_damaged.png';
+import resurrectionShipOpen from '../../../assets/ships/resurrection_ship_open.png';
+import resurrectionShipSealed from '../../../assets/ships/resurrection_ship_sealed.png';
+import resurrectionShipWreck from '../../../assets/ships/resurrection_ship_wreck.png';
 import viperBankLeft from '../../../assets/ships/viper_bank_left.png';
 import viperBankRight from '../../../assets/ships/viper_bank_right.png';
 import viperFlicker from '../../../assets/ships/viper_flicker.png';
@@ -30,6 +35,9 @@ export const SHIP_SHOWN_UNITS = 32;
 
 /** The Raider in world units: its 48 x 48 file at two art pixels per unit. */
 export const RAIDER_SHOWN_UNITS = 24;
+
+/** The heavy Raider in world units: its 72 x 72 file at two art pixels per unit. */
+export const RAIDER_HEAVY_SHOWN_UNITS = 36;
 
 export const VIPER_NEUTRAL = 'viper-neutral';
 export const VIPER_BANK_LEFT = 'viper-bank-left';
@@ -79,6 +87,18 @@ export const RAIDER_EYE_FRAMES = [RAIDER_EYE_CENTER, RAIDER_EYE_LEFT, RAIDER_EYE
 
 export const RAIDER_EYE_ANIM = 'raider-eye-sweep';
 
+/** The heavy Raider is one still picture, and a broken one from half its hull (PRD 8.5). No eye sweep. */
+export const RAIDER_HEAVY = 'raider-heavy';
+export const RAIDER_HEAVY_DAMAGED = 'raider-heavy-damaged';
+
+/** The resurrection ship in world units: its 96 x 64 file at two art pixels per unit. */
+export const RESURRECTION_SHIP_SHOWN = { width: 48, height: 32 } as const;
+
+/** Bays shut (and under the shield), bays open, and the dead factory (PRD 5.2). */
+export const RESURRECTION_SHIP_SEALED = 'resurrection-ship-sealed';
+export const RESURRECTION_SHIP_OPEN = 'resurrection-ship-open';
+export const RESURRECTION_SHIP_WRECK = 'resurrection-ship-wreck';
+
 /** Two pictures a second, so the eye is a tell and not a flash (PRD 15). */
 export const RAIDER_EYE_FRAME_RATE = 2;
 
@@ -126,6 +146,11 @@ export const SPRITE_FILES: readonly { key: string; url: string }[] = [
   { key: RAIDER_EYE_CENTER, url: raiderEyeCenter },
   { key: RAIDER_EYE_LEFT, url: raiderEyeLeft },
   { key: RAIDER_EYE_RIGHT, url: raiderEyeRight },
+  { key: RAIDER_HEAVY, url: raiderHeavy },
+  { key: RAIDER_HEAVY_DAMAGED, url: raiderHeavyDamaged },
+  { key: RESURRECTION_SHIP_SEALED, url: resurrectionShipSealed },
+  { key: RESURRECTION_SHIP_OPEN, url: resurrectionShipOpen },
+  { key: RESURRECTION_SHIP_WRECK, url: resurrectionShipWreck },
   { key: BULLET_PLAYER, url: bulletPlayer },
   { key: BULLET_AIMED, url: bulletAimed },
   { key: BULLET_STRAY, url: bulletStray },

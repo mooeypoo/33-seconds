@@ -6,11 +6,15 @@ import type { GameView, GhostView, RaiderView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
 import type { ReducedEffectsSource } from '../../shared/comfort';
 import { PALETTE } from '../../shared/palette';
+import { PIXELS_PER_WORLD_UNIT } from '../../shared/renderScale';
 import {
   RAIDER_EYE_ANIM,
   RAIDER_EYE_CENTER,
   RAIDER_EYE_FRAME_RATE,
   RAIDER_EYE_FRAMES,
+  RAIDER_HEAVY,
+  RAIDER_HEAVY_DAMAGED,
+  RAIDER_HEAVY_SHOWN_UNITS,
   RAIDER_SHOWN_UNITS,
 } from '../../sprites';
 
@@ -20,10 +24,10 @@ const EYE_SWEEP_MS = 900;
 const DESTROY_FADE_MS = 140;
 
 /**
- * A heavy Raider drawn from the same picture at 36 units until `raider_heavy` (72 x 72) exists
- * (docs/art/SPRITE-FILES.md). Its size and its eight hull pips are the tell, not a colour.
+ * A heavy Raider swaps to its broken picture at this share of its hull or less (PRD 8.5). The
+ * shape changes, so damage is not only a colour; the hull pips still give the count.
  */
-const HEAVY_SHOWN_SCALE = 1.5;
+const HEAVY_DAMAGED_HULL_SHARE = 0.5;
 
 /** Quiet download tell (PRD 6). Wide enough to read as a wait, small enough not to be a HUD. */
 const DOWNLOAD_BAR_WIDTH = 20;
@@ -46,14 +50,34 @@ interface HullMark {
   knock: { value: number };
 }
 
+/**
+ * A Raider that came back wears a soft glow, kept inside its picture so it never reads as a shield
+ * or a bigger target, and `x<n>`: which life this is, so the first return reads `x2` (PRD 6.1). The
+ * glow is still, and the number is the non-colour cue.
+ */
+const RETURNED_GLOW_OUTER_UNITS = 12;
+const RETURNED_GLOW_INNER_UNITS = 8;
+const RETURNED_GLOW_ALPHA = 0.14;
+const RETURNED_LABEL_SIZE_UNITS = 12;
+
+/** The display face, or the readable one when that setting is on (PRD 15). */
+function labelFont(): string {
+  const readable = document.documentElement.classList.contains('readable-font');
+  return readable ? "'Atkinson Hyperlegible', system-ui, sans-serif" : "'VT323', ui-monospace, monospace";
+}
+
+function cssColour(colour: number): string {
+  return `#${colour.toString(16).padStart(6, '0')}`;
+}
+
 /** How far a hit pushes a Raider's picture, and how long it takes to settle. Not a shake (PRD 15). */
 const KNOCK_UNITS = 2;
 const KNOCK_MS = 120;
 
 /**
- * Draws the Raiders from the 48×48 frames, shown at 12 world units. A still eye means this one
- * does not hold an attack token; a sweep means it may fire (PRD 9). Hull pips stay, because the
- * picture is not the health readout.
+ * Draws the Raiders from the 48×48 frames, shown at 24 world units. A still eye means this one
+ * does not hold an attack token; a sweep means it may fire (PRD 9). The heavy is its own still
+ * 72×72 picture at 36 units. Hull pips stay, because the picture is not the health readout.
  */
 export class RaiderPresenter implements Presenter {
   private readonly scene: Phaser.Scene;
@@ -87,7 +111,7 @@ export class RaiderPresenter implements Presenter {
   onEvent(event: DomainEvent): void {
     if (event.type === 'RaiderSpawned') {
       this.forget(event.id);
-      this.hulls.set(event.id, this.build(event.x, event.y, event.returned));
+      this.hulls.set(event.id, this.build(event.x, event.y, event.deaths));
       return;
     }
 
@@ -123,10 +147,12 @@ export class RaiderPresenter implements Presenter {
       mark.hull.x = Phaser.Math.Linear(raider.previousX, raider.x, alpha);
       mark.hull.y = Phaser.Math.Linear(raider.previousY, raider.y, alpha) + mark.knock.value;
       mark.hull.setAlpha(raider.protected ? 0.55 : 1);
-      const shown = RAIDER_SHOWN_UNITS * view.fighterScale * (raider.kind === 'heavy' ? HEAVY_SHOWN_SCALE : 1);
+      const heavy = raider.kind === 'heavy';
+      const shown = (heavy ? RAIDER_HEAVY_SHOWN_UNITS : RAIDER_SHOWN_UNITS) * view.fighterScale;
       this.ensurePips(mark, raider.hpMax, shown);
       this.drawPips(mark.pips, raider);
-      this.syncEye(mark, raider.armed);
+      if (heavy) this.syncHeavyPicture(mark, raider);
+      else this.syncEye(mark, raider.armed);
       mark.body.setDisplaySize(shown, shown);
       this.syncDive(raider, mark.hull.x, mark.hull.y);
     }
@@ -154,6 +180,13 @@ export class RaiderPresenter implements Presenter {
     dive.line.setPosition(x, y + span / 2);
     dive.line.setSize(1, span);
     dive.chevron.setPosition(x, FLEET_LINE_Y_UNITS);
+  }
+
+  /** Only the Raider's eye sweeps; the heavy is a still picture, intact or broken. */
+  private syncHeavyPicture(mark: HullMark, raider: RaiderView): void {
+    const key = raider.hp <= raider.hpMax * HEAVY_DAMAGED_HULL_SHARE ? RAIDER_HEAVY_DAMAGED : RAIDER_HEAVY;
+    if (mark.body.anims.isPlaying) mark.body.stop();
+    if (mark.body.texture.key !== key) mark.body.setTexture(key);
   }
 
   private syncEye(mark: HullMark, armed: boolean): void {
@@ -252,15 +285,31 @@ export class RaiderPresenter implements Presenter {
     return clamp(y, 10, WORLD_HEIGHT_UNITS - 10);
   }
 
-  private build(x: number, y: number, returned: boolean): HullMark {
+  /**
+   * `deaths` counts the times this Raider came back; the label shows the life it is on, one more.
+   * A Raider carried through the jump as the last wave (PRD 6) did not die, so it has no mark.
+   */
+  private build(x: number, y: number, deaths: number): HullMark {
     const body = this.scene.add.sprite(0, 0, RAIDER_EYE_CENTER);
     body.setDisplaySize(RAIDER_SHOWN_UNITS, RAIDER_SHOWN_UNITS);
     const parts: Phaser.GameObjects.GameObject[] = [body];
 
-    if (returned) {
-      const ring = this.scene.add.rectangle(0, 0, RAIDER_SHOWN_UNITS + 6, RAIDER_SHOWN_UNITS + 6, PALETTE.ghostBlip, 0);
-      ring.setStrokeStyle(1, PALETTE.ghostBlip, 0.9);
-      parts.unshift(ring);
+    if (deaths > 0) {
+      const outer = this.scene.add.circle(0, 0, RETURNED_GLOW_OUTER_UNITS, PALETTE.ghostBlip, RETURNED_GLOW_ALPHA);
+      const inner = this.scene.add.circle(0, 0, RETURNED_GLOW_INNER_UNITS, PALETTE.ghostBlip, RETURNED_GLOW_ALPHA);
+      const label = this.scene.add.text(RAIDER_SHOWN_UNITS / 2, 0, `x${String(deaths + 1)}`, {
+        fontFamily: labelFont(),
+        fontSize: `${String(RETURNED_LABEL_SIZE_UNITS)}px`,
+        color: cssColour(PALETTE.ghostBlip),
+        stroke: cssColour(PALETTE.space),
+        strokeThickness: 2,
+        // Drawn at the canvas's own density, so the camera zoom does not blur it.
+        resolution: PIXELS_PER_WORLD_UNIT,
+      });
+      // Beside the right wingtip, clear of the hull pips above and the nose below.
+      label.setOrigin(0, 0.5);
+      parts.unshift(outer, inner);
+      parts.push(label);
     }
 
     return {

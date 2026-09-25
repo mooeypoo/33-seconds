@@ -8,7 +8,7 @@ import type { RandomStream } from '../shared/random';
 import type { Playfield } from '../shared/world';
 import type { Raider } from '../swarm/raider';
 import type { ResurrectionShip } from '../swarm/resurrectionShip';
-import { RESURRECTION_SHIP_RADIUS_UNITS } from '../swarm/resurrectionShip';
+import { resurrectionShipHitAlong } from '../swarm/resurrectionShip';
 import type { Swarm } from '../swarm/Swarm';
 import { CYLON_SAVE_INVULN_SECONDS } from '../progression/catalog';
 import { SIX_DAMAGE, type ImaginarySix } from './imaginarySix';
@@ -99,16 +99,8 @@ function resolvePlayerHits(field: Battlefield, events: DomainEvent[]): void {
     if (tryDelayGhost(field, shot, view, events)) continue;
     const ship = field.resurrectionShip;
     if (!ship || ship.isDestroyed) continue;
-    const hitsShip = movingCircleHits(
-      view.previousX,
-      view.previousY,
-      view.x,
-      view.y,
-      loadout.playerShotRadius,
-      ship.x,
-      ship.y,
-      RESURRECTION_SHIP_RADIUS_UNITS,
-    );
+    const hitsShip =
+      resurrectionShipHitAlong(ship.x, ship.y, view.previousX, view.previousY, view.x, view.y, loadout.playerShotRadius) !== null;
     if (!hitsShip) continue;
     shot.kill();
     const shielded = ship.isShielded;
@@ -189,16 +181,7 @@ function resolveMissileHits(field: Battlefield, events: DomainEvent[]): void {
 
     const ship = field.resurrectionShip;
     if (ship && !ship.isDestroyed) {
-      const along = movingCircleHitAlong(
-        view.previousX,
-        view.previousY,
-        view.x,
-        view.y,
-        MISSILE_RADIUS_UNITS,
-        ship.x,
-        ship.y,
-        RESURRECTION_SHIP_RADIUS_UNITS,
-      );
+      const along = resurrectionShipHitAlong(ship.x, ship.y, view.previousX, view.previousY, view.x, view.y, MISSILE_RADIUS_UNITS);
       if (along !== null && (along < bestAlong || (along === bestAlong && RESURRECTION_SHIP_LOCK_ID < bestId))) {
         hitRaider = null;
         hitShip = true;
