@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { nextTick, onMounted, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 import type { LessonCard } from '../../application/training/LessonDirector';
+import type { FocusBox } from '../../application/training/lessonFocus';
+import { chooseCardSlot, spansFromWorld, type CardSlot } from '../lessonPlacement';
 import { portraitSrc } from '../portraits';
 
 /**
@@ -8,20 +10,54 @@ import { portraitSrc } from '../portraits';
  * the HUD it points at stays in view. Over the pick sheet it covers the sheet until it is read.
  * Esc and P are handled at the window (main.ts), so this only needs its buttons.
  */
-const props = defineProps<{ lesson: LessonCard }>();
+const props = defineProps<{
+  lesson: LessonCard;
+  /** What the lesson is about in the playfield, in world units (`lessonFocusBoxes`). */
+  focusBoxes: readonly FocusBox[];
+  /** The element holding the canvas, to turn world units into the lane's pixels. */
+  canvasHost: HTMLElement | null;
+}>();
 const emit = defineEmits<{ gotIt: []; skip: [] }>();
+
+/** A lesson about the playfield dims it less, so what it points at stays easy to see. */
+const showsField = computed(() => props.lesson.pauses && props.focusBoxes.length > 0);
 
 const gotItButton = useTemplateRef<HTMLButtonElement>('gotItButton');
 const root = useTemplateRef<HTMLElement>('root');
+const scrim = useTemplateRef<HTMLElement>('scrim');
+/** Chosen once per lesson: the world is frozen while it is up, so the card never moves. */
+const slot = ref<CardSlot>('bottom');
 
-function focusGotIt(): void {
+/**
+ * Puts the card where it covers the least of what the lesson is about (PRD 5.5). Runs after the
+ * card is in the page, since the choice needs its real height, and before the browser paints.
+ */
+function place(): void {
+  const lane = scrim.value;
+  const card = root.value;
+  const canvas = props.canvasHost?.querySelector('canvas');
+  if (!lane || !card || !props.lesson.pauses) return;
+  const laneRect = lane.getBoundingClientRect();
+  const spans = canvas ? spansFromWorld(props.focusBoxes, canvas.getBoundingClientRect(), laneRect) : [];
+  const padding = Number.parseFloat(getComputedStyle(lane).paddingTop) || 0;
+  slot.value = chooseCardSlot(laneRect.height, card.offsetHeight, padding, spans);
+}
+
+function show(): void {
   void nextTick(() => {
+    place();
     gotItButton.value?.focus();
   });
 }
 
-onMounted(focusGotIt);
-watch(() => props.lesson.id, focusGotIt);
+onMounted(() => {
+  show();
+  window.addEventListener('resize', place);
+});
+onUnmounted(() => {
+  window.removeEventListener('resize', place);
+});
+watch(() => props.lesson.id, show);
 
 /** Tab stays inside the card. */
 function onKeydown(event: KeyboardEvent): void {
@@ -43,7 +79,7 @@ function onKeydown(event: KeyboardEvent): void {
 </script>
 
 <template>
-  <div class="scrim" :class="{ 'over-sheet': !lesson.pauses }" data-ui>
+  <div ref="scrim" class="scrim" :class="[{ 'over-sheet': !lesson.pauses, 'shows-field': showsField }, `slot-${slot}`]" data-ui>
     <section
       ref="root"
       class="card"
@@ -52,6 +88,7 @@ function onKeydown(event: KeyboardEvent): void {
       aria-labelledby="lesson-heading"
       data-testid="lesson"
       :data-lesson-id="lesson.id"
+      :data-slot="lesson.pauses ? slot : undefined"
       @keydown="onKeydown"
     >
       <p class="kicker">
@@ -97,6 +134,18 @@ function onKeydown(event: KeyboardEvent): void {
   overflow: auto;
   padding: var(--space-3);
   background: rgb(var(--rgb-deep) / 55%);
+}
+
+.scrim.slot-top {
+  align-items: safe flex-start;
+}
+
+.scrim.slot-middle {
+  align-items: safe center;
+}
+
+.scrim.shows-field {
+  background: rgb(var(--rgb-deep) / 20%);
 }
 
 /* The pick sheet is a full-screen board on a wide window, so the lesson over it is too. */

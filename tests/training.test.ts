@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { GameSession, RESUME_COUNTDOWN_SECONDS } from '../src/application/GameSession';
 import type { InputPort } from '../src/application/ports/InputPort';
-import { LESSON_GAP_SECONDS } from '../src/application/training/LessonDirector';
+import { LESSON_GAP_SECONDS, STRAY_NEAR_FLEET_UNITS } from '../src/application/training/LessonDirector';
+import { subjectBox, type LessonSubject } from '../src/application/training/lessonFocus';
 import { TRAINING_SCRIPT } from '../src/application/training/trainingScript';
 import { TRAINING_PRESET } from '../src/balance/training';
+import { FLEET_LINE_Y_UNITS } from '../src/domain/fleet/integrity';
+import type { DomainEvent } from '../src/domain/shared/events';
 import type { InputIntent } from '../src/domain/shared/intent';
 import { IDLE_INTENT } from '../src/domain/shared/intent';
 import { TICK_SECONDS, TICKS_PER_SECOND } from '../src/domain/shared/time';
@@ -74,6 +77,19 @@ interface Shown {
   readonly text: string;
   readonly integrity: number;
   readonly lastCycleDamage: number;
+  readonly subject: LessonSubject | null;
+  /** Whether the subject was on screen when the lesson came up. */
+  readonly subjectOnScreen: boolean;
+  /** For a Raider subject: whether it was a Returned one, and whether it was a heavy. */
+  readonly subjectRaider: { readonly returned: boolean; readonly heavy: boolean } | null;
+  /** The drill name in the status row while the lesson was up. */
+  readonly drill: string | null;
+}
+
+function raiderOf(subject: LessonSubject | null): Shown['subjectRaider'] {
+  if (subject?.kind !== 'raider') return null;
+  const raider = session.view.raiders.find((body) => body.id === subject.id);
+  return raider ? { returned: raider.returned, heavy: raider.kind === 'heavy' } : null;
 }
 
 /**
@@ -101,6 +117,10 @@ function playTraining(maxSeconds = 600): Shown[] {
         text: status.lesson.beats.map((beat) => beat.text).join(' '),
         integrity: view.fleet.integrity,
         lastCycleDamage: view.fleet.lastCycleDamage,
+        subject: status.lesson.subject,
+        subjectOnScreen: status.lesson.subject !== null && subjectBox(status.lesson.subject, view) !== null,
+        subjectRaider: raiderOf(status.lesson.subject),
+        drill: status.drill,
       });
       if (status.lesson.pauses) {
         expect(status.phase).toBe('paused');
@@ -188,8 +208,9 @@ describe('lessons during the fight', () => {
     expect(session.status.phase).toBe('won');
     expect(new Set(ids).size).toBe(ids.length);
     const gapTicks = Math.round(LESSON_GAP_SECONDS * TICKS_PER_SECOND);
+    const interrupting = new Set(TRAINING_SCRIPT.lessons.filter((lesson) => lesson.interrupt).map((lesson) => lesson.id));
     for (const entry of shown) {
-      if (entry.pauses && !entry.chained && entry.tick > 0) {
+      if (entry.pauses && !entry.chained && entry.tick > 0 && !interrupting.has(entry.id)) {
         expect(entry.ticksSinceResume, entry.id).toBeGreaterThanOrEqual(gapTicks);
       }
     }
@@ -213,11 +234,13 @@ describe('lessons during the fight', () => {
   });
 
   it('shows a lesson whose moment never came at its deadline, with its fallback lines', () => {
-    // Raiders that never fire cannot hit the Viper, so the hull and eject lessons only have deadlines.
+    // Raiders that never fire cannot hit the Viper or send a stray, so those lessons only have deadlines.
     session = new GameSession(input, { seed: 1, raidersFire: false });
     session.startTraining();
     const shown = playTraining();
-    const late = TRAINING_SCRIPT.lessons.filter((lesson) => lesson.trigger === 'ViperHit' || lesson.trigger === 'ViperEjected');
+    const late = TRAINING_SCRIPT.lessons.filter((lesson) =>
+      ['ViperHit', 'ViperEjected', 'StrayNearFleet'].includes(lesson.trigger),
+    );
 
     expect(session.status.phase).toBe('won');
     expect(late.length).toBeGreaterThan(0);
@@ -228,6 +251,8 @@ describe('lessons during the fight', () => {
       expect(entry, `${lesson.id} should show`).toBeDefined();
       if (!entry || !by) continue;
       expect(entry.text).toBe(lesson.fallback?.map((beat) => beat.text).join(' '));
+      // Nothing happened to point at, except the Viper, which is always there.
+      expect(entry.subject).toEqual(lesson.trigger === 'StrayNearFleet' ? null : { kind: 'viper' });
       const reached = entry.cycle > by.cycle || entry.seconds >= by.seconds;
       expect(reached, `${lesson.id} came before its deadline`).toBe(true);
     }
@@ -237,12 +262,20 @@ describe('lessons during the fight', () => {
   });
 
   it('uses the real lines when the moment comes before the deadline', () => {
-    session.startTraining();
-    const shown = playTraining();
     const hull = TRAINING_SCRIPT.lessons.find((lesson) => lesson.trigger === 'ViperHit');
-    const entry = shown.find((candidate) => candidate.id === hull?.id);
-
-    expect(entry?.text).toBe(hull?.beats.map((beat) => beat.text).join(' '));
+    const by = hull?.by;
+    if (!hull || !by) throw new Error('the hull lesson needs a deadline');
+    let early = 0;
+    for (const seed of [1, 2, 3, 5]) {
+      input = new FakeInput();
+      session = new GameSession(input, { seed });
+      session.startTraining();
+      const entry = playTraining().find((candidate) => candidate.id === hull.id);
+      if (!entry || entry.cycle > by.cycle || entry.seconds >= by.seconds) continue;
+      early += 1;
+      expect(entry.text).toBe(hull.beats.map((beat) => beat.text).join(' '));
+    }
+    expect(early).toBeGreaterThan(0);
   });
 
   it('shows every lesson with a deadline in every run', () => {
@@ -306,6 +339,103 @@ describe('lessons during the fight', () => {
     expect(session.status.phase).toBe('won');
     expect(session.status.debrief).toBeNull();
     expect(session.status.result?.outcome).toBe('won');
+  });
+});
+
+describe('what a lesson points at', () => {
+  it('rings something that is on screen, and the right thing, for every lesson that rings its subject', () => {
+    const ringed = new Set(TRAINING_SCRIPT.lessons.filter((lesson) => lesson.focus.includes('subject')).map((lesson) => lesson.id));
+    const triggerOf = new Map(TRAINING_SCRIPT.lessons.map((lesson) => [lesson.id, lesson.trigger]));
+    const fallbackOf = new Map(TRAINING_SCRIPT.lessons.map((lesson) => [lesson.id, lesson.fallback?.map((beat) => beat.text).join(' ')]));
+    let checked = 0;
+    for (const seed of [1, 2, 3]) {
+      input = new FakeInput();
+      session = new GameSession(input, { seed });
+      session.startTraining();
+      for (const entry of playTraining()) {
+        if (!ringed.has(entry.id)) continue;
+        // Only a lesson shown at its deadline may have nothing to point at.
+        if (entry.subject === null) {
+          expect(entry.text, `${entry.id} lost its subject, seed ${String(seed)}`).toBe(fallbackOf.get(entry.id));
+          continue;
+        }
+        checked += 1;
+        expect(entry.subjectOnScreen, `${entry.id}, seed ${String(seed)}`).toBe(true);
+        const trigger = triggerOf.get(entry.id);
+        if (trigger === 'ViperHit' || trigger === 'ViperEjected') expect(entry.subject).toEqual({ kind: 'viper' });
+        if (trigger?.startsWith('Ship')) expect(entry.subject).toEqual({ kind: 'ship' });
+        if (trigger === 'RaiderReturned') expect(entry.subjectRaider).toEqual({ returned: true, heavy: false });
+        if (trigger === 'HeavyArrived') expect(entry.subjectRaider?.heavy).toBe(true);
+      }
+    }
+    expect(checked).toBeGreaterThan(ringed.size);
+  });
+});
+
+describe('drills', () => {
+  const firstKill = TRAINING_SCRIPT.lessons.find((lesson) => lesson.trigger === 'RaiderDestroyed');
+  const strayLesson = TRAINING_SCRIPT.lessons.find((lesson) => lesson.trigger === 'StrayNearFleet');
+
+  /** Runs the fight, reading every lesson, until `stop` says so. Returns the events on the way. */
+  function playUntil(stop: () => boolean, maxSeconds = 60): DomainEvent[] {
+    const events: DomainEvent[] = [];
+    for (let frame = 0; frame < maxSeconds * TICKS_PER_SECOND; frame++) {
+      if (stop()) return events;
+      if (session.status.lesson) {
+        session.dismissLesson();
+        continue;
+      }
+      steer();
+      events.push(...session.advance(TICK_SECONDS).events);
+    }
+    throw new Error('never got there');
+  }
+
+  it('starts with one drone that never fires, and live fire begins only once the first kill is read', () => {
+    session.startTraining();
+    expect(session.status.drill).toBe(TRAINING_SCRIPT.drillNames[TRAINING_PRESET.firstDrill]);
+    let most = 0;
+    const practice = playUntil(() => {
+      most = Math.max(most, session.view.raiders.length);
+      return session.status.lesson?.id === firstKill?.id;
+    });
+
+    expect(most).toBe(1);
+    expect(practice.some((event) => event.type === 'ShotFired' && event.owner === 'cylon')).toBe(false);
+    expect(session.status.drill).toBe(TRAINING_SCRIPT.drillNames[TRAINING_PRESET.firstDrill]);
+
+    const next = firstKill?.startsDrill ?? '';
+    session.dismissLesson();
+    expect(session.status.drill).toBe(TRAINING_SCRIPT.drillNames[next]);
+    // Same cycle: the drill changed on the read, not at a jump.
+    const live = playUntil(() => session.view.projectiles.some((shot) => shot.owner === 'cylon'), 10);
+    expect(live.some((event) => event.type === 'ShotFired' && event.owner === 'cylon')).toBe(true);
+    expect(session.view.cycle.cycleIndex).toBe(1);
+  });
+
+  it('stops on a stray a moment from the fleet, outlines it, and the fleet takes it right after', () => {
+    for (const seed of [1, 3, 5]) {
+      input = new FakeInput();
+      session = new GameSession(input, { seed });
+      session.startTraining();
+      playUntil(() => session.status.lesson?.id === strayLesson?.id);
+
+      const card = session.status.lesson;
+      expect(session.status.phase).toBe('paused');
+      expect(card?.focus).toContain('subject');
+      const round = session.view.projectiles.find((shot) => card?.subject?.kind === 'shot' && shot.id === card.subject.id);
+      expect(round?.stray, `seed ${String(seed)}`).toBe(true);
+      expect(round?.y).toBeLessThan(FLEET_LINE_Y_UNITS);
+      expect(round?.y).toBeGreaterThanOrEqual(FLEET_LINE_Y_UNITS - STRAY_NEAR_FLEET_UNITS);
+
+      const integrity = session.view.fleet.integrity;
+      while (session.status.lesson) session.dismissLesson();
+      runFrames(RESUME_COUNTDOWN_SECONDS * TICKS_PER_SECOND + 1);
+      const events: DomainEvent[] = [];
+      for (let frame = 0; frame < TICKS_PER_SECOND / 2; frame++) events.push(...session.advance(TICK_SECONDS).events);
+      expect(events.some((event) => event.type === 'FleetHit' && event.kind === 'stray')).toBe(true);
+      expect(session.view.fleet.integrity).toBeLessThan(integrity);
+    }
   });
 });
 

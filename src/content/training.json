@@ -1,44 +1,20 @@
 {
+  "drills": {
+    "target": "Target practice",
+    "live-fire": "Live fire",
+    "full": "Full sim"
+  },
   "lessons": [
     {
       "id": "sim-welcome",
       "trigger": "TrainingStarted",
       "heading": "The sim",
+      "focus": ["fleetLine", "fleet"],
       "beats": [
         { "speaker": "tyrol", "text": "Welcome to the sim, Starbuck. Painted drones, real rules. The clock is frozen while we talk." },
+        { "speaker": "tyrol", "text": "Those ships along the bottom are the fleet. Fleet health, up top, is how much of them is left. If it reaches zero, the entire run is lost." },
         { "speaker": "starbuck", "text": "Chief, I have more flight hours than this sim has lines of code." },
-        { "speaker": "tyrol", "text": "Then this won't take long." }
-      ]
-    },
-    {
-      "id": "sim-goal",
-      "trigger": "TrainingStarted",
-      "heading": "The job",
-      "focus": "objective",
-      "beats": [
-        { "speaker": "tyrol", "text": "Keep the fleet alive, and destroy the resurrection ship. Cylons will keep coming back until it is gone. Once it is gone, clear what is left and you win." },
-        { "speaker": "tyrol", "text": "The line up top always says what the run wants right now." }
-      ]
-    },
-    {
-      "id": "sim-clock",
-      "trigger": "TrainingStarted",
-      "heading": "The clock",
-      "focus": "clock",
-      "beats": [
-        { "speaker": "tyrol", "text": "That is the jump clock. Every 33 seconds the fleet jumps, and the next cycle starts somewhere new." },
-        { "speaker": "tyrol", "text": "The last eight seconds are the spool. It says Spooling and turns amber. Hold on until it fills." }
-      ]
-    },
-    {
-      "id": "sim-fleet",
-      "trigger": "TrainingStarted",
-      "heading": "The fleet",
-      "focus": "fleet",
-      "beats": [
-        { "speaker": "tyrol", "text": "That is fleet health. If it reaches zero, the run is lost. It is the only way to lose." },
-        { "speaker": "starbuck", "text": "And if I get shot down?" },
-        { "speaker": "tyrol", "text": "You eject and lose a few seconds. The fleet does not care about your ego." }
+        { "speaker": "tyrol", "text": "Just get the training Viper back in one piece, Starbuck." }
       ]
     },
     {
@@ -46,34 +22,72 @@
       "trigger": "TrainingStarted",
       "heading": "Flying",
       "beats": [
-        { "speaker": "tyrol", "text": "Drag anywhere on the screen, or use WASD or the arrows, to move your viper." },
-        { "speaker": "tyrol", "text": "Your guns fire on their own. Do not go looking for a trigger." },
+        { "speaker": "tyrol", "text": "Drag anywhere on the screen, or use WASD or the arrows, to move your Viper." },
+        { "speaker": "tyrol", "text": "Your guns fire on their own. You fly, they shoot. First drill: one drone, and it will not shoot back. Get under it." },
         { "speaker": "starbuck", "text": "Finally, a Viper that gets me." }
       ]
     },
     {
       "id": "sim-first-kill",
       "trigger": "RaiderDestroyed",
-      "heading": "They come back",
-      "focus": "status",
-      "recap": "A destroyed Raider leaves a blip with a bar. When the bar fills, about six seconds later, it comes back.",
-      "by": { "cycle": 1, "seconds": 15 },
+      "heading": "They shoot back",
+      "startsDrill": "live-fire",
+      "recap": "Your guns fire on their own: you only fly. Real Raiders shoot back.",
+      "by": { "cycle": 1, "seconds": 12 },
       "fallback": [
-        { "speaker": "tyrol", "text": "When you destroy a Raider it leaves a blip with a little bar. That is it downloading. About six seconds later, it comes back." }
+        { "speaker": "tyrol", "text": "Still chasing it? Fine. You only fly; the guns do the rest." },
+        { "speaker": "tyrol", "text": "Real Raiders shoot back, so here come two that do. Stay under them." }
       ],
       "beats": [
-        { "speaker": "tyrol", "text": "See the blip where that drone died, with the little bar? It is downloading. In about six seconds it comes back." },
+        { "speaker": "tyrol", "text": "Scratch one. That is the whole trick: you fly, the guns do the rest." },
+        { "speaker": "tyrol", "text": "Real Raiders shoot back, so here come two that do. Stay under them." },
+        { "speaker": "starbuck", "text": "Now THAT is a party." }
+      ]
+    },
+    {
+      "id": "sim-stray",
+      "trigger": "StrayNearFleet",
+      "heading": "Stray round",
+      "focus": ["subject", "fleet"],
+      "interrupt": true,
+      "recap": "A round that misses you turns orange and keeps going. When it reaches the ships at the bottom, fleet health drops.",
+      "by": { "cycle": 1, "seconds": 22 },
+      "fallback": [
+        { "speaker": "tyrol", "text": "A round that misses you does not vanish. It turns orange and keeps going, down to the ships at the bottom." },
+        { "speaker": "tyrol", "text": "That is how the fleet gets hurt, and it is how you lose. Dodge, and the fleet eats the round. Block, and your Viper does." },
+        { "speaker": "tyrol", "text": "I patch your hull at every jump. The fleet only gets a little fixed up. Choose every time." }
+      ],
+      "beats": [
+        { "speaker": "tyrol", "text": "Look. That orange round missed you, and it is still going. It is about to hit the fleet. Watch fleet health when it lands." },
+        { "speaker": "tyrol", "text": "Rounds that get past you are how the fleet gets hurt, and how you lose. Dodge, and the fleet eats it. Block, and your Viper does." },
+        { "speaker": "starbuck", "text": "So dodging is bad now?" },
+        { "speaker": "tyrol", "text": "I patch your hull at every jump. The fleet only gets a little fixed up. What do you think?" }
+      ]
+    },
+    {
+      "id": "sim-returned",
+      "trigger": "RaiderReturned",
+      "heading": "They come back",
+      "focus": ["subject", "status"],
+      "recap": "A destroyed Raider leaves a blip with a bar. When it fills, about six seconds later, the Raider is back, marked Returned.",
+      "by": { "cycle": 1, "seconds": 24 },
+      "fallback": [
+        { "speaker": "tyrol", "text": "When you destroy a Raider it leaves a blip with a little bar. That is it downloading into a new body." },
+        { "speaker": "tyrol", "text": "About six seconds later it comes back, marked Returned. Loop on, up top, means that is still happening." }
+      ],
+      "beats": [
+        { "speaker": "tyrol", "text": "See the Raiders marked with numbers? Those are the raiders you killed, coming back. The blip it left, with the little bar, was it downloading into a new body." },
         { "speaker": "starbuck", "text": "Your sim cheats." },
-        { "speaker": "tyrol", "text": "The sim resets them. Out there, the Cylons do that themselves. Loop on, up top, means it is still happening." }
+        { "speaker": "tyrol", "text": "Out there, the Cylons do that themselves, until the resurrection ship is gone. 'Loop on', up top, means it is still happening." }
       ]
     },
     {
       "id": "sim-viper-hit",
       "trigger": "ViperHit",
       "heading": "Your hull",
-      "focus": "status",
+      "focus": ["subject", "status"],
       "recap": "The pips on your Viper are its hull. Five hits and you eject. The hull is patched at every jump.",
-      "by": { "cycle": 1, "seconds": 20 },
+      "by": { "cycle": 1, "seconds": 22 },
       "fallback": [
         { "speaker": "tyrol", "text": "The pips on your Viper are your hull, and Hull up top counts them. Five hits and you eject." },
         { "speaker": "starbuck", "text": "Nobody has touched me yet, Chief." },
@@ -81,110 +95,19 @@
       ],
       "beats": [
         { "speaker": "tyrol", "text": "You took a hit. The pips on your Viper are your hull, and Hull up top counts them. Five hits and you eject." },
-        { "speaker": "tyrol", "text": "I patch it at every jump. Try to bring me something to patch." }
-      ]
-    },
-    {
-      "id": "sim-fleet-hit",
-      "trigger": "FleetHit",
-      "heading": "The fleet got hit",
-      "focus": "fleet",
-      "recap": "Cylon rounds that miss you keep going, and diving Raiders strafe the line. Either one hits the fleet.",
-      "by": { "cycle": 1, "seconds": 20 },
-      "fallback": [
-        { "speaker": "tyrol", "text": "Rounds that miss you keep flying, and a drone that dives past you strafes the line. Either one hits the fleet." },
-        { "speaker": "starbuck", "text": "So far, so clean." },
-        { "speaker": "tyrol", "text": "So far." }
-      ],
-      "beats": [
-        { "speaker": "tyrol", "text": "That one hit the fleet. Rounds that miss you keep flying, and a drone that dives past you strafes the line." },
-        { "speaker": "tyrol", "text": "Depending on the difficulty level, the fleet can get a certain number of hits in one cycle from stray shots and strafing Raiders." },
-        { "speaker": "starbuck", "text": "So dodging is bad now?" },
-        { "speaker": "tyrol", "text": "Dodging has a price. Are you going to keep my Viper intact, or the Fleet?" }
-      ]
-    },
-    {
-      "id": "sim-returned",
-      "trigger": "RaiderReturned",
-      "heading": "Returned",
-      "recap": "A Raider that came back is marked Returned. They keep returning until the resurrection ship is destroyed.",
-      "by": { "cycle": 1, "seconds": 24 },
-      "fallback": [
-        { "speaker": "tyrol", "text": "A Raider that comes back is marked Returned. Same drone, second try." },
-        { "speaker": "tyrol", "text": "They keep coming back until the resurrection ship is destroyed. Remember that." }
-      ],
-      "beats": [
-        { "speaker": "tyrol", "text": "There it is, marked Returned. Same drone, second try." },
-        { "speaker": "tyrol", "text": "They keep coming back until the resurrection ship is destroyed. Remember that." }
-      ]
-    },
-    {
-      "id": "sim-missiles",
-      "trigger": "CombatTime",
-      "when": { "cycle": 1, "seconds": 8 },
-      "heading": "Missiles",
-      "recap": "Missiles: Space on a keyboard, or the missile button or a second finger on a phone. Three per cycle.",
-      "beats": [
-        { "speaker": "tyrol", "text": "Missiles. Space on a keyboard. On a phone, the missile button or a tap with a second finger." },
-        { "speaker": "tyrol", "text": "Three per cycle. The small reticle shows what it locks. It hits the first thing in its path." },
-        { "speaker": "starbuck", "text": "Only three?" },
-        { "speaker": "tyrol", "text": "Budget cuts." }
-      ]
-    },
-    {
-      "id": "sim-speech",
-      "trigger": "CombatTime",
-      "when": { "cycle": 1, "seconds": 15 },
-      "heading": "The Speech",
-      "recap": "The Speech (E, or its button): for four seconds the Raiders hold fire and you cannot be hurt. Ready again every third jump.",
-      "beats": [
-        { "speaker": "tyrol", "text": "'The Speech' is a rare weaponized ability. It stops all raiders short as they listen to the inspirational words. Press E, or the speech button." },
-        { "speaker": "tyrol", "text": "For four seconds the drones hold fire and nothing can hurt you." },
-        { "speaker": "adama", "text": "Use it wisely, Starbuck. I can only inspire everyone every three jumps." },
-        { "speaker": "starbuck", "text": "The Old Man gets all the good lines." }
+        { "speaker": "tyrol", "text": "The good news: that round did not reach the fleet. I patch your hull at every jump." }
       ]
     },
     {
       "id": "sim-spool",
       "trigger": "SpoolStarted",
       "when": { "cycle": 1 },
-      "heading": "The spool",
-      "focus": "clock",
+      "heading": "The jump clock",
+      "focus": ["clock"],
       "beats": [
-        { "speaker": "tyrol", "text": "Spooling. Eight seconds to the jump. Stop chasing kills and cover the fleet." },
-        { "speaker": "tyrol", "text": "The jump clears every round in the air and allows me time to fix up the fleet. Just get there." }
-      ]
-    },
-    {
-      "id": "sim-heavy",
-      "trigger": "HeavyArrived",
-      "heading": "A heavy",
-      "recap": "A heavy Raider is bigger and slower, takes eight hits, and a missile does three to it. It never comes back.",
-      "by": { "cycle": 2, "seconds": 20 },
-      "fallback": [
-        { "speaker": "tyrol", "text": "Watch for heavies. Bigger, slower, eight hits to kill, and a missile only does three." },
-        { "speaker": "tyrol", "text": "The good news: heavies never come back." }
-      ],
-      "beats": [
-        { "speaker": "tyrol", "text": "Big one. A heavy takes eight hits, and a missile only does three to it." },
-        { "speaker": "tyrol", "text": "The good news: heavies never come back." }
-      ]
-    },
-    {
-      "id": "sim-ejected",
-      "trigger": "ViperEjected",
-      "heading": "Ejected",
-      "recap": "If your hull runs out, you eject. A Raptor picks you up a few seconds later. It costs time, never the run.",
-      "by": { "cycle": 2, "seconds": 24 },
-      "fallback": [
-        { "speaker": "tyrol", "text": "If your hull runs out, you eject. A Raptor picks you up a few seconds later. It costs time, never the run." },
-        { "speaker": "starbuck", "text": "I do not plan on finding out." },
-        { "speaker": "tyrol", "text": "Nobody plans on it." }
-      ],
-      "beats": [
-        { "speaker": "starbuck", "text": "Ow." },
-        { "speaker": "tyrol", "text": "You ejected. A Raptor picks you up in a few seconds. It costs time, but it won't cause you to lose." },
-        { "speaker": "tyrol", "text": "The fleet is on its own until then, though, and it can take damage." }
+        { "speaker": "tyrol", "text": "That is the jump clock. Every cycle is 33 seconds, in the sim and out there. Then the fleet jumps." },
+        { "speaker": "tyrol", "text": "The last eight seconds are the spool. It says Spooling and turns amber. Stop chasing kills and cover the fleet." },
+        { "speaker": "tyrol", "text": "The jump clears every round in the air. Just get there." }
       ]
     },
     {
@@ -192,10 +115,10 @@
       "trigger": "Recovering",
       "when": { "repaired": true },
       "heading": "Repairs",
-      "focus": "fleet",
-      "recap": "At each jump the fleet gets back part of what it lost, never all of it. Your hull and missiles are refilled.",
+      "focus": ["fleet"],
+      "recap": "At each jump the fleet gets a little fixed up, never all the way. Your hull and missiles are refilled.",
       "beats": [
-        { "speaker": "tyrol", "text": "Jumped. I patched the fleet from {before}% to {after}%. Part of the damage always stays." },
+        { "speaker": "tyrol", "text": "Jumped. I patched the fleet from {before}% to {after}%. It gets a little fixed up between cycles, never all the way." },
         { "speaker": "tyrol", "text": "Your hull and missiles are topped up too. That part I can do properly." }
       ]
     },
@@ -212,26 +135,116 @@
       ]
     },
     {
+      "id": "sim-full",
+      "trigger": "Recovering",
+      "when": { "cycle": 1 },
+      "heading": "Next: full sim",
+      "startsDrill": "full",
+      "beats": [
+        { "speaker": "tyrol", "text": "Next cycle is the full sim. More drones, and some of them will stop shooting at you and dive straight at the fleet." },
+        { "speaker": "starbuck", "text": "Rude." }
+      ]
+    },
+    {
       "id": "sim-ship-arrived",
       "trigger": "ShipArrived",
       "heading": "The resurrection ship",
-      "focus": "objective",
+      "focus": ["subject", "objective"],
       "recap": "The resurrection ship is why Raiders come back. It arrives shielded; wait for the shield to drop.",
       "beats": [
-        { "speaker": "tyrol", "text": "That is the resurrection ship. It is the reason the Raiders keep coming back." },
-        { "speaker": "tyrol", "text": "Right now it is shielded, so your rounds just splash off. The shield drops next cycle." },
+        { "speaker": "tyrol", "text": "And that is the resurrection ship. It is the reason the Raiders keep coming back." },
+        { "speaker": "tyrol", "text": "Right now it is shielded, so your rounds just splash off. The shield drops next cycle. The line up top says what the run wants." },
         { "speaker": "starbuck", "text": "So I wait." },
-        { "speaker": "tyrol", "text": "No, you make sure the fleet is safe from the Raiders. The resurrection ship will be vulnerable soon." }
+        { "speaker": "tyrol", "text": "No, you keep the fleet safe from the Raiders. The ship will be open soon." }
+      ]
+    },
+    {
+      "id": "sim-strafe",
+      "trigger": "StrafeFlagged",
+      "heading": "Strafing run",
+      "focus": ["subject", "fleetLine"],
+      "recap": "A Raider with a line down to the fleet is diving it. If it gets there it hits the fleet hard. Get under it and cut it off.",
+      "by": { "cycle": 2, "seconds": 18 },
+      "fallback": [
+        { "speaker": "tyrol", "text": "Watch for a Raider with a line down to the fleet. It is diving it, and if it gets there it hits far harder than a stray round." },
+        { "speaker": "tyrol", "text": "Get under it and cut it off." }
+      ],
+      "beats": [
+        { "speaker": "tyrol", "text": "See the line from that drone down to the fleet? It is diving it. If it gets there, it hits far harder than a stray round." },
+        { "speaker": "tyrol", "text": "Get under it and cut it off." },
+        { "speaker": "starbuck", "text": "On it." }
+      ]
+    },
+    {
+      "id": "sim-missiles",
+      "trigger": "CombatTime",
+      "when": { "cycle": 2, "seconds": 5 },
+      "heading": "Missiles",
+      "focus": ["missile"],
+      "recap": "Missiles: Space on a keyboard, or the missile button or a second finger on a phone. Three per cycle.",
+      "beats": [
+        { "speaker": "tyrol", "text": "Missiles. Space on a keyboard. On a phone, the missile button or a tap with a second finger." },
+        { "speaker": "tyrol", "text": "Three per cycle. The small reticle shows what it locks. It hits the first thing in its path." },
+        { "speaker": "starbuck", "text": "Only three?" },
+        { "speaker": "tyrol", "text": "Budget cuts." }
+      ]
+    },
+    {
+      "id": "sim-heavy",
+      "trigger": "HeavyArrived",
+      "heading": "A heavy",
+      "focus": ["subject"],
+      "recap": "A heavy Raider is bigger and slower, takes eight hits, and a missile does three to it. It never comes back.",
+      "by": { "cycle": 2, "seconds": 20 },
+      "fallback": [
+        { "speaker": "tyrol", "text": "Watch for heavies. Bigger, slower, eight hits to kill, and a missile only does three." },
+        { "speaker": "tyrol", "text": "The good news: heavies never come back." }
+      ],
+      "beats": [
+        { "speaker": "tyrol", "text": "Big one. A heavy takes eight hits, and a missile only does three to it." },
+        { "speaker": "tyrol", "text": "The good news: heavies never come back." }
+      ]
+    },
+    {
+      "id": "sim-speech",
+      "trigger": "CombatTime",
+      "when": { "cycle": 2, "seconds": 14 },
+      "heading": "The Speech",
+      "focus": ["speech"],
+      "recap": "The Speech (E, or its button): for four seconds the Raiders hold fire and you cannot be hurt. Ready again every third jump.",
+      "beats": [
+        { "speaker": "tyrol", "text": "'The Speech' is a rare weaponized ability. It stops all raiders short as they listen to the inspirational words. Press E, or the speech button." },
+        { "speaker": "tyrol", "text": "For four seconds the drones hold fire and nothing can hurt you." },
+        { "speaker": "adama", "text": "Use it wisely, Starbuck. I can only inspire everyone every three jumps." },
+        { "speaker": "starbuck", "text": "The Old Man gets all the good lines." }
+      ]
+    },
+    {
+      "id": "sim-ejected",
+      "trigger": "ViperEjected",
+      "heading": "Ejected",
+      "focus": ["subject"],
+      "recap": "If your hull runs out, you eject. A Raptor picks you up a few seconds later. It costs time, never the run.",
+      "by": { "cycle": 2, "seconds": 24 },
+      "fallback": [
+        { "speaker": "tyrol", "text": "If your hull runs out, you eject. A Raptor picks you up a few seconds later. It costs time, never the run." },
+        { "speaker": "starbuck", "text": "I do not plan on finding out." },
+        { "speaker": "tyrol", "text": "Nobody plans on it. And the fleet is on its own until you are back." }
+      ],
+      "beats": [
+        { "speaker": "starbuck", "text": "Ow." },
+        { "speaker": "tyrol", "text": "You ejected. A Raptor picks you up in a few seconds. It costs time, but it won't cause you to lose." },
+        { "speaker": "tyrol", "text": "The fleet is on its own until then, though, and it can take damage." }
       ]
     },
     {
       "id": "sim-ship-exposed",
       "trigger": "ShipExposed",
       "heading": "Shield down",
-      "focus": "status",
+      "focus": ["subject", "status"],
       "recap": "When the shield drops, the ship can be hurt. Missiles do the most damage. Its hull stays down across jumps.",
       "beats": [
-        { "speaker": "tyrol", "text": "Shield is down. Hit it. Missiles do the most damage." },
+        { "speaker": "tyrol", "text": "The resurrection ship's shield is down. Hit it. Missiles do the most damage." },
         { "speaker": "tyrol", "text": "Whatever you take off it stays off, even across a jump." }
       ]
     },
@@ -239,10 +252,10 @@
       "id": "sim-ship-destroyed",
       "trigger": "ShipDestroyed",
       "heading": "Loop offline",
-      "focus": "status",
+      "focus": ["status"],
       "recap": "With the resurrection ship gone the loop is offline: kills stay dead. Clear the last waves to win.",
       "beats": [
-        { "speaker": "tyrol", "text": "It is down. Loop offline: whatever you destroy now stays destroyed." },
+        { "speaker": "tyrol", "text": "The resurrection ship is down. The download loop is offline: whatever you destroy now stays destroyed." },
         { "speaker": "tyrol", "text": "Clear the last of them and the sim is done." },
         { "speaker": "starbuck", "text": "Now we are talking." }
       ]

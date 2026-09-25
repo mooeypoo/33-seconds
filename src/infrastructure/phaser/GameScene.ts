@@ -14,6 +14,7 @@ import { FleetPresenter } from './contexts/fleet/FleetPresenter';
 import { RaptorPresenter } from './contexts/fleet/RaptorPresenter';
 import { RaiderPresenter } from './contexts/swarm/RaiderPresenter';
 import { ResurrectionShipPresenter } from './contexts/swarm/ResurrectionShipPresenter';
+import { LessonFocusPresenter } from './contexts/training/LessonFocusPresenter';
 import type { ReducedEffectsSource } from './shared/comfort';
 import { PALETTE } from './shared/palette';
 import { PIXELS_PER_WORLD_UNIT } from './shared/renderScale';
@@ -102,6 +103,7 @@ export class GameScene extends Phaser.Scene {
       new ImpactPresenter(this, this.reducedEffects),
       new ResurrectionShipPresenter(this),
       new StickPresenter(this, this.stick, this.reducedEffects),
+      new LessonFocusPresenter(this, () => this.session.lessonCard),
     ];
     this.spritesReady = true;
   }

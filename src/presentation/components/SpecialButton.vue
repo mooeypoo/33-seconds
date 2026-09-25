@@ -28,6 +28,7 @@ const label = computed(() => {
     type="button"
     :disabled="disabled"
     data-testid="fire-special"
+    data-lesson-target="speech"
     aria-label="The Speech"
     @pointerdown.prevent="pressSpecial"
   >

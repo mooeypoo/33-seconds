@@ -2,5 +2,11 @@
   "tier": "civilian-ship",
   "resurrectionShipArrivesCycle": 2,
   "resurrectionShipVulnerableCycle": 3,
-  "resurrectionShipHitPoints": 24
+  "resurrectionShipHitPoints": 24,
+  "firstDrill": "target",
+  "drills": {
+    "target": { "cap": 1, "floor": 0, "sineShare": 0, "attackTokens": 0, "strafeTokens": 0 },
+    "live-fire": { "cap": 3, "floor": 2, "sineShare": 0, "attackTokens": 1, "strafeTokens": 0 },
+    "full": {}
+  }
 }

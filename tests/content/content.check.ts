@@ -11,8 +11,11 @@ import trainingPresetRaw from '../../src/balance/training.json';
 import { parseTrainingPreset } from '../../src/balance/training';
 import {
   isPlainText,
+  DRILL_NAME_MAX_CHARACTERS,
   LESSON_BEAT_MAX_CHARACTERS,
   LESSON_FOCUS,
+  LESSON_ID_PATTERN,
+  SUBJECT_TRIGGERS,
   LESSON_HEADING_MAX_CHARACTERS,
   LESSON_MAX_BEATS,
   LESSON_RECAP_MAX_CHARACTERS,
@@ -321,6 +324,7 @@ describe('end-screen lines', () => {
 
 describe('Training Run', () => {
   const script = parseTrainingScript(trainingRaw);
+  const drillIds = Object.keys(record(record(trainingPresetRaw).drills));
 
   function beatProblems(where: string, value: unknown): string[] {
     const problems: string[] = [];
@@ -344,8 +348,21 @@ describe('Training Run', () => {
     if (!(LESSON_TRIGGERS as readonly unknown[]).includes(lesson.trigger)) {
       problems.push(`${where}: trigger must be one of ${LESSON_TRIGGERS.join(', ')}`);
     }
-    if (lesson.focus !== undefined && !(LESSON_FOCUS as readonly unknown[]).includes(lesson.focus)) {
-      problems.push(`${where}: focus must be one of ${LESSON_FOCUS.join(', ')}`);
+    if (lesson.focus !== undefined) {
+      const focus: unknown[] = Array.isArray(lesson.focus) ? lesson.focus : [lesson.focus];
+      const known = Array.isArray(lesson.focus) && focus.every((entry) => (LESSON_FOCUS as readonly unknown[]).includes(entry));
+      if (!known || new Set(focus).size !== focus.length) {
+        problems.push(`${where}: focus must be a list of ${LESSON_FOCUS.join(', ')}, each once`);
+      }
+      if (focus.includes('subject') && !(SUBJECT_TRIGGERS as readonly unknown[]).includes(lesson.trigger)) {
+        problems.push(`${where}: "subject" only outlines something on ${SUBJECT_TRIGGERS.join(' or ')}`);
+      }
+    }
+    if (lesson.interrupt !== undefined && typeof lesson.interrupt !== 'boolean') {
+      problems.push(`${where}: interrupt must be true or false`);
+    }
+    if (lesson.startsDrill !== undefined && !drillIds.includes(lesson.startsDrill as string)) {
+      problems.push(`${where}: startsDrill must be one of the drills in balance/training.json (${drillIds.join(', ')})`);
     }
     if (!isPlainText(lesson.heading, LESSON_HEADING_MAX_CHARACTERS, false)) {
       problems.push(`${where}: heading must be plain text up to ${String(LESSON_HEADING_MAX_CHARACTERS)} characters`);
@@ -396,6 +413,20 @@ describe('Training Run', () => {
 
   it('has a valid preset in balance/training.json', () => {
     expect(() => parseTrainingPreset(trainingPresetRaw)).not.toThrow();
+  });
+
+  it('names every drill, and names no drill the preset lacks', () => {
+    const names = record(trainingRaw.drills);
+    const problems: string[] = [];
+    for (const id of drillIds) {
+      if (!isPlainText(names[id], DRILL_NAME_MAX_CHARACTERS, false)) {
+        problems.push(`training.json drills.${id}: needs a name, plain text up to ${String(DRILL_NAME_MAX_CHARACTERS)} characters`);
+      }
+    }
+    for (const id of Object.keys(names)) {
+      if (!drillIds.includes(id) || !LESSON_ID_PATTERN.test(id)) problems.push(`training.json drills.${id}: no such drill in balance/training.json`);
+    }
+    expect(problems).toEqual([]);
   });
 });
 

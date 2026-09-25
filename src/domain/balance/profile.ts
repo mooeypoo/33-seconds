@@ -40,6 +40,21 @@ export interface CycleProfile {
   readonly strafeTokens: Ramp;
 }
 
+/**
+ * Swarm numbers that replace the profile's ramps from the next tick until they are cleared, whatever
+ * the cycle (ADR-0001 D9). A field left out keeps following its ramp. The Training Run uses this to
+ * stage its drills inside one cycle (PRD 5.5); a harder tier could use it later to alternate swarms.
+ * The application sets it between ticks, so a run stays repeatable from its seed and inputs.
+ */
+export interface SwarmOverride {
+  /** Most Raiders alive at once. At least 1. */
+  readonly cap?: number;
+  readonly floor?: number;
+  readonly sineShare?: number;
+  readonly attackTokens?: number;
+  readonly strafeTokens?: number;
+}
+
 /** The ramp's value for a cycle (1-based). The last value holds for every later cycle. */
 export function rampAt(ramp: Ramp, cycleIndex: number): number {
   if (ramp.length === 0) return 0;

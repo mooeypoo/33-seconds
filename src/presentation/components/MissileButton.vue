@@ -26,6 +26,7 @@ const ammo = computed(() => {
     type="button"
     :disabled="disabled"
     data-testid="fire-missile"
+    data-lesson-target="missile"
     aria-label="Fire missile"
     @pointerdown.prevent="pressMissile"
   >

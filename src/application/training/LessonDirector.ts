@@ -1,6 +1,8 @@
+import { FLEET_LINE_Y_UNITS } from '../../domain/fleet/integrity';
 import type { DomainEvent } from '../../domain/shared/events';
 import { TICK_SECONDS } from '../../domain/shared/time';
 import type { GameView } from '../../domain/views';
+import { subjectBox, type LessonSubject } from './lessonFocus';
 import { speakBeats, type Lesson, type LessonFocus, type LessonTrigger, type SpokenBeat, type TrainingScript } from './trainingScript';
 
 /**
@@ -10,11 +12,25 @@ import { speakBeats, type Lesson, type LessonFocus, type LessonTrigger, type Spo
  */
 export const LESSON_GAP_SECONDS = 3;
 
+/**
+ * How far above the fleet line a stray round is "about to hit" (world units). At 200 units a second
+ * that is about a sixth of a second, so the round lands just after the 3-2-1: the lesson can say
+ * "watch what happens" and the next thing the player sees is the fleet taking it.
+ */
+export const STRAY_NEAR_FLEET_UNITS = 30;
+
 /** A lesson as the overlay shows it, placeholders filled. */
 export interface LessonCard {
   readonly id: string;
   readonly heading: string;
-  readonly focus: LessonFocus | null;
+  readonly focus: readonly LessonFocus[];
+  /**
+   * What the lesson is about in the playfield, which the card keeps clear of and `subject` rings.
+   * Null when there is none, or when a lesson shown at its deadline has nothing to point at.
+   */
+  readonly subject: LessonSubject | null;
+  /** The drill to start when this lesson is read, or null. */
+  readonly startsDrill: string | null;
   readonly beats: readonly SpokenBeat[];
   /** False over the pick sheet, which already waits for the player and is never paused (PRD 13.3). */
   readonly pauses: boolean;
@@ -34,6 +50,8 @@ export class LessonDirector {
   /** Due because the deadline passed, not because it happened: shown with the fallback lines. */
   private readonly late = new Set<string>();
   private readonly shown = new Set<string>();
+  /** What each due lesson is about, when its trigger names one thing. */
+  private readonly subjects = new Map<string, LessonSubject>();
   private secondsSinceResume = 0;
   /** Fleet Integrity after the last tick, so a repair can say where it started. */
   private lastIntegrity: number | null = null;
@@ -61,6 +79,7 @@ export class LessonDirector {
     this.noteEvents(events, view);
     if (isFighting(view)) {
       this.latch('CombatTime', view);
+      this.latchSubjects(view);
       this.latchOverdue(view);
     }
     this.lastIntegrity = view.fleet.integrity;
@@ -79,9 +98,11 @@ export class LessonDirector {
     const phase = view.cycle.phase;
     const recovering = phase === 'recovering';
     if (!recovering && !isFighting(view)) return null;
-    if (!recovering && !chained && this.secondsSinceResume < LESSON_GAP_SECONDS) return null;
+    // Inside the gap after a resume, only a lesson that must catch its moment may break in.
+    const inGap = !recovering && !chained && this.secondsSinceResume < LESSON_GAP_SECONDS;
     const lesson = this.script.lessons.find(
-      (candidate) => this.due.has(candidate.id) && (candidate.trigger === 'Recovering') === recovering,
+      (candidate) =>
+        this.due.has(candidate.id) && (candidate.trigger === 'Recovering') === recovering && (!inGap || candidate.interrupt),
     );
     if (!lesson) return null;
     this.due.delete(lesson.id);
@@ -90,6 +111,8 @@ export class LessonDirector {
       id: lesson.id,
       heading: lesson.heading,
       focus: lesson.focus,
+      subject: this.subjectNow(lesson, view),
+      startsDrill: lesson.startsDrill,
       beats: speakBeats(this.late.has(lesson.id) ? (lesson.fallback ?? lesson.beats) : lesson.beats, (text) =>
         this.fill(text),
       ),
@@ -107,11 +130,12 @@ export class LessonDirector {
   private noteEvent(event: DomainEvent, view: GameView): void {
     switch (event.type) {
       case 'RaiderDestroyed':
-        if (!event.heavy) this.latch('RaiderDestroyed', view);
+        // Where it died is where its blip downloads.
+        if (!event.heavy) this.latch('RaiderDestroyed', view, { kind: 'point', x: event.x, y: event.y });
         return;
       case 'RaiderSpawned':
-        if (event.heavy) this.latch('HeavyArrived', view);
-        else if (event.returned) this.latch('RaiderReturned', view);
+        if (event.heavy) this.latch('HeavyArrived', view, { kind: 'raider', id: event.id });
+        else if (event.returned) this.latch('RaiderReturned', view, { kind: 'raider', id: event.id });
         return;
       case 'ViperHit':
         this.latch('ViperHit', view);
@@ -144,11 +168,31 @@ export class LessonDirector {
   }
 
   /** Marks every not-yet-seen lesson for this trigger due, if its conditions hold right now. */
-  private latch(trigger: LessonTrigger, view: GameView | null): void {
+  private latch(trigger: LessonTrigger, view: GameView | null, subject: LessonSubject | null = null): void {
     for (const lesson of this.script.lessons) {
       if (lesson.trigger !== trigger || this.due.has(lesson.id) || this.shown.has(lesson.id)) continue;
-      if (this.holds(lesson, view)) this.due.add(lesson.id);
+      if (!this.holds(lesson, view)) continue;
+      this.due.add(lesson.id);
+      if (subject) this.subjects.set(lesson.id, subject);
     }
+  }
+
+  /** Triggers read from what is on screen, not from an event: each is about one round or Raider. */
+  private latchSubjects(view: GameView): void {
+    const stray = strayNearFleet(view);
+    if (stray) this.latch('StrayNearFleet', view, stray);
+    const strafer = diving(view);
+    if (strafer) this.latch('StrafeFlagged', view, strafer);
+  }
+
+  /**
+   * What the lesson points at as it shows. A lesson can wait out the gap after its moment, and the
+   * Raider that dived first may be gone by then; any Raider diving now makes the same point.
+   */
+  private subjectNow(lesson: Lesson, view: GameView): LessonSubject | null {
+    const latched = this.subjects.get(lesson.id) ?? standingSubject(lesson.trigger);
+    if (lesson.trigger !== 'StrafeFlagged' || (latched && subjectBox(latched, view))) return latched;
+    return diving(view);
   }
 
   /** A lesson whose moment has not come by its deadline is due anyway, with its fallback lines. */
@@ -184,6 +228,36 @@ export class LessonDirector {
       // Whole percent, as the fleet readout shows it.
       return String(Math.round(name === 'before' ? repair.before : repair.after));
     });
+  }
+}
+
+function strayNearFleet(view: GameView): LessonSubject | null {
+  const shot = view.projectiles.find(
+    (candidate) => candidate.stray && candidate.y < FLEET_LINE_Y_UNITS && candidate.y >= FLEET_LINE_Y_UNITS - STRAY_NEAR_FLEET_UNITS,
+  );
+  return shot ? { kind: 'shot', id: shot.id } : null;
+}
+
+function diving(view: GameView): LessonSubject | null {
+  const raider = view.raiders.find((candidate) => candidate.strafing);
+  return raider ? { kind: 'raider', id: raider.id } : null;
+}
+
+/**
+ * The subject of a trigger that is always on screen, so a lesson shown at its deadline can point at
+ * it too: the Viper for its hull and the eject, the resurrection ship for its own lessons.
+ */
+function standingSubject(trigger: LessonTrigger): LessonSubject | null {
+  switch (trigger) {
+    case 'ViperHit':
+    case 'ViperEjected':
+      return { kind: 'viper' };
+    case 'ShipArrived':
+    case 'ShipExposed':
+    case 'ShipDestroyed':
+      return { kind: 'ship' };
+    default:
+      return null;
   }
 }
 

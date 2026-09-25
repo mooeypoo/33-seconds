@@ -14,6 +14,7 @@ import {
 } from 'vue';
 import type { SessionStatus } from '../application/GameSession';
 import type { RunResult } from '../application/runResult';
+import { lessonFocusBoxes } from '../application/training/lessonFocus';
 import { decodeSharedRun, type SharedRun } from '../application/shareCode';
 import { playfieldForWindow } from '../application/playfield';
 import type { TierId } from '../domain/balance/profile';
@@ -162,11 +163,15 @@ watch([inRun, cic], () => {
   });
 });
 
-// A lesson outlines the HUD element it is about. One attribute on the root, so any layout's copy of
-// that element can answer to it (styles.css).
+// What the lesson on screen is about in the playfield. Read once per lesson: the world is frozen
+// while it is up.
+const lessonBoxes = computed(() => (status.value.lesson ? lessonFocusBoxes(status.value.lesson, session.view) : []));
+
+// A lesson outlines the HUD elements it is about. One word list on the root, so any layout's copy of
+// each element can answer to it (styles.css). Playfield focuses are drawn on the canvas instead.
 watchEffect(() => {
-  const focus = status.value.lesson?.focus;
-  if (focus) document.documentElement.dataset.lessonFocus = focus;
+  const focus = status.value.lesson?.focus ?? [];
+  if (focus.length > 0) document.documentElement.dataset.lessonFocus = focus.join(' ');
   else delete document.documentElement.dataset.lessonFocus;
 });
 
@@ -221,20 +226,27 @@ onUnmounted(() => {
           />
         </div>
         <div v-if="showFleet" class="detail-row">
-          <StatusRow with-objective :training="status.training" />
+          <StatusRow with-objective :training="status.training" :drill="status.drill" />
           <LatestUpgrade />
         </div>
       </header>
       <div v-if="cic" class="lane-head">
         <span class="stencil">Dradis</span>
-        <StatusRow v-if="showFleet" :training="status.training" />
+        <StatusRow v-if="showFleet" :training="status.training" :drill="status.drill" />
       </div>
       <div class="play">
         <div ref="canvasHost" class="canvas-host" aria-hidden="true" />
         <RecoveringOverlay v-if="status.choosingUpgrade" :wide="cic" :comms="status.comms" />
         <DragHint v-if="inCombat" />
         <TitleOverlay v-if="cic && status.phase === 'title' && !endScreen" in-lane @start="beginRun" @training="beginTraining" />
-        <LessonCard v-if="status.lesson" :lesson="status.lesson" @got-it="session.dismissLesson()" @skip="session.abandonRun()" />
+        <LessonCard
+          v-if="status.lesson"
+          :lesson="status.lesson"
+          :focus-boxes="lessonBoxes"
+          :canvas-host="canvasHost"
+          @got-it="session.dismissLesson()"
+          @skip="session.abandonRun()"
+        />
       </div>
       <footer v-if="inRun && !cic" class="bottom-band">
         <!-- During the pick the buttons step aside, so the Recovering scene gets the whole strip. -->
