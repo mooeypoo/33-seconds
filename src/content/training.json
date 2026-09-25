@@ -221,7 +221,7 @@
         { "speaker": "tyrol", "text": "That is the resurrection ship. It is the reason the Raiders keep coming back." },
         { "speaker": "tyrol", "text": "Right now it is shielded, so your rounds just splash off. The shield drops next cycle." },
         { "speaker": "starbuck", "text": "So I wait." },
-        { "speaker": "tyrol", "text": "You wait. I know. Try." }
+        { "speaker": "tyrol", "text": "No, you make sure the fleet is safe from the Raiders. The resurrection ship will be vulnerable soon." }
       ]
     },
     {
@@ -251,7 +251,7 @@
   "debrief": {
     "heading": "Sim complete",
     "beats": [
-      { "speaker": "tyrol", "text": "That is the sim. The real thing is longer, and the Cylons do not come painted." },
+      { "speaker": "tyrol", "text": "That is the sim. The real thing is longer, and the damage is more painful." },
       { "speaker": "starbuck", "text": "Please. I was showing off." }
     ],
     "recapIntro": "The sim never got to these:",
