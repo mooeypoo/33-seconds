@@ -46,9 +46,11 @@
 
   <text class="readable" font-size="30" fill="#cfe8d8">
     <tspan x="666" y="430">Every thirty-three seconds,</tspan>
-    <tspan x="666" y="470">the fleet jumps.</tspan>
-    <tspan x="666" y="510">Keep them alive.</tspan>
+    <tspan x="666" y="470">the fleet jumps. Keep them alive.</tspan>
   </text>
+
+  <!-- The address comes from `homepage` in package.json; render:share rewrites it. -->
+  <text id="site-url" class="display" x="666" y="522" font-size="40" fill="#4fe19a" letter-spacing="1">33seconds.netlify.app</text>
 
   <text class="display" x="666" y="570" font-size="34" fill="#9fb8ab" letter-spacing="3">UNOFFICIAL FAN GAME · FREE</text>
 

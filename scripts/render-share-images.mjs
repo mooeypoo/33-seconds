@@ -17,6 +17,7 @@ const CARD_FONTS = [
   { family: 'Atkinson Hyperlegible', file: 'assets/fonts/atkinson-hyperlegible-latin-400-normal.woff2' },
 ];
 const EMBEDDED = /<!-- embedded:start[^]*?<!-- embedded:end -->/;
+const SITE_URL_TEXT = /(<text id="site-url"[^>]*>)[^<]*(<\/text>)/;
 /** The tab icon and the iOS home-screen icon. iOS paints transparency black, so that one gets a backdrop. */
 const ICONS = [
   { file: 'favicon-32.png', size: 32, backdrop: null },
@@ -34,8 +35,13 @@ const fontFaces = await Promise.all(
     async ({ family, file }) => `    @font-face { font-family: '${family}'; src: url('${await dataUri(file, 'font/woff2')}') format('woff2'); }`,
   ),
 );
+// The card shows the same address the meta tags use, without the scheme: `homepage` in package.json.
+const { homepage } = JSON.parse(await readFile('package.json', 'utf8'));
+const siteAddress = new URL(homepage).host;
+
 const svg = await readFile(CARD_SVG, 'utf8');
 if (!EMBEDDED.test(svg)) throw new Error(`${CARD_SVG} is missing its embedded:start / embedded:end block.`);
+if (!SITE_URL_TEXT.test(svg)) throw new Error(`${CARD_SVG} is missing its <text id="site-url"> element.`);
 const block = [
   '<!-- embedded:start. Written by `npm run render:share` from assets/; do not edit by hand. -->',
   '  <style>',
@@ -46,7 +52,7 @@ const block = [
   '  </defs>',
   '  <!-- embedded:end -->',
 ].join('\n');
-await writeFile(CARD_SVG, svg.replace(EMBEDDED, block));
+await writeFile(CARD_SVG, svg.replace(EMBEDDED, block).replace(SITE_URL_TEXT, `$1${siteAddress}$2`));
 
 await mkdir(OUT, { recursive: true });
 const browser = await chromium.launch();
