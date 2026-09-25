@@ -1,3 +1,4 @@
+import { FLEET_LINE_Y_UNITS } from '../../domain/fleet/integrity';
 import type { DomainEvent } from '../../domain/shared/events';
 import { TICK_SECONDS } from '../../domain/shared/time';
 import type { GameView } from '../../domain/views';
@@ -10,11 +11,27 @@ import { speakBeats, type Lesson, type LessonFocus, type LessonTrigger, type Spo
  */
 export const LESSON_GAP_SECONDS = 3;
 
+/**
+ * How far above the fleet line a stray round is "about to hit" (world units). At 200 units a second
+ * that is about a sixth of a second, so the round lands just after the 3-2-1: the lesson can say
+ * "watch what happens" and the next thing the player sees is the fleet taking it.
+ */
+export const STRAY_NEAR_FLEET_UNITS = 30;
+
+/** The thing on screen a lesson is about, for the `subject` outline. */
+export interface LessonSubject {
+  readonly kind: 'shot' | 'raider';
+  readonly id: number;
+}
 /** A lesson as the overlay shows it, placeholders filled. */
 export interface LessonCard {
   readonly id: string;
   readonly heading: string;
-  readonly focus: LessonFocus | null;
+  readonly focus: readonly LessonFocus[];
+  /** What `subject` outlines, or null (a lesson shown at its deadline has no subject). */
+  readonly subject: LessonSubject | null;
+  /** The drill to start when this lesson is read, or null. */
+  readonly startsDrill: string | null;
   readonly beats: readonly SpokenBeat[];
   /** False over the pick sheet, which already waits for the player and is never paused (PRD 13.3). */
   readonly pauses: boolean;
@@ -34,6 +51,8 @@ export class LessonDirector {
   /** Due because the deadline passed, not because it happened: shown with the fallback lines. */
   private readonly late = new Set<string>();
   private readonly shown = new Set<string>();
+  /** What each due lesson is about, when its trigger names one thing. */
+  private readonly subjects = new Map<string, LessonSubject>();
   private secondsSinceResume = 0;
   /** Fleet Integrity after the last tick, so a repair can say where it started. */
   private lastIntegrity: number | null = null;
@@ -61,6 +80,7 @@ export class LessonDirector {
     this.noteEvents(events, view);
     if (isFighting(view)) {
       this.latch('CombatTime', view);
+      this.latchSubjects(view);
       this.latchOverdue(view);
     }
     this.lastIntegrity = view.fleet.integrity;
@@ -79,9 +99,11 @@ export class LessonDirector {
     const phase = view.cycle.phase;
     const recovering = phase === 'recovering';
     if (!recovering && !isFighting(view)) return null;
-    if (!recovering && !chained && this.secondsSinceResume < LESSON_GAP_SECONDS) return null;
+    // Inside the gap after a resume, only a lesson that must catch its moment may break in.
+    const inGap = !recovering && !chained && this.secondsSinceResume < LESSON_GAP_SECONDS;
     const lesson = this.script.lessons.find(
-      (candidate) => this.due.has(candidate.id) && (candidate.trigger === 'Recovering') === recovering,
+      (candidate) =>
+        this.due.has(candidate.id) && (candidate.trigger === 'Recovering') === recovering && (!inGap || candidate.interrupt),
     );
     if (!lesson) return null;
     this.due.delete(lesson.id);
@@ -90,6 +112,8 @@ export class LessonDirector {
       id: lesson.id,
       heading: lesson.heading,
       focus: lesson.focus,
+      subject: this.subjects.get(lesson.id) ?? null,
+      startsDrill: lesson.startsDrill,
       beats: speakBeats(this.late.has(lesson.id) ? (lesson.fallback ?? lesson.beats) : lesson.beats, (text) =>
         this.fill(text),
       ),
@@ -144,11 +168,23 @@ export class LessonDirector {
   }
 
   /** Marks every not-yet-seen lesson for this trigger due, if its conditions hold right now. */
-  private latch(trigger: LessonTrigger, view: GameView | null): void {
+  private latch(trigger: LessonTrigger, view: GameView | null, subject: LessonSubject | null = null): void {
     for (const lesson of this.script.lessons) {
       if (lesson.trigger !== trigger || this.due.has(lesson.id) || this.shown.has(lesson.id)) continue;
-      if (this.holds(lesson, view)) this.due.add(lesson.id);
+      if (!this.holds(lesson, view)) continue;
+      this.due.add(lesson.id);
+      if (subject) this.subjects.set(lesson.id, subject);
     }
+  }
+
+  /** Triggers read from what is on screen, not from an event: each is about one round or Raider. */
+  private latchSubjects(view: GameView): void {
+    const stray = view.projectiles.find(
+      (shot) => shot.stray && shot.y < FLEET_LINE_Y_UNITS && shot.y >= FLEET_LINE_Y_UNITS - STRAY_NEAR_FLEET_UNITS,
+    );
+    if (stray) this.latch('StrayNearFleet', view, { kind: 'shot', id: stray.id });
+    const strafer = view.raiders.find((raider) => raider.strafing);
+    if (strafer) this.latch('StrafeFlagged', view, { kind: 'raider', id: strafer.id });
   }
 
   /** A lesson whose moment has not come by its deadline is due anyway, with its fallback lines. */

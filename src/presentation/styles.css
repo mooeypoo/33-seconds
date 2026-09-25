@@ -172,10 +172,10 @@ body {
  * A Training Run lesson outlines the HUD element it is about (PRD 5.5). A still, thick outline: no
  * pulse, no flash (PRD 15), and the lesson names the element in words, so the colour is not the cue.
  */
-:root[data-lesson-focus='clock'] [data-lesson-target='clock'],
-:root[data-lesson-focus='fleet'] [data-lesson-target='fleet'],
-:root[data-lesson-focus='status'] [data-lesson-target='status'],
-:root[data-lesson-focus='objective'] [data-lesson-target='objective'] {
+:root[data-lesson-focus~='clock'] [data-lesson-target='clock'],
+:root[data-lesson-focus~='fleet'] [data-lesson-target='fleet'],
+:root[data-lesson-focus~='status'] [data-lesson-target='status'],
+:root[data-lesson-focus~='objective'] [data-lesson-target='objective'] {
   outline: 3px solid var(--color-amber);
   outline-offset: 3px;
 }

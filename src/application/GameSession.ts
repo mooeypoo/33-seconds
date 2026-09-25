@@ -66,6 +66,8 @@ export interface SessionStatus {
   readonly result: RunResult | null;
   /** This is a Training Run (PRD 5.5). */
   readonly training: boolean;
+  /** The running drill's name for the status row, or null outside training or for an unnamed drill. */
+  readonly drill: string | null;
   /** The lesson on screen, or null. A pausing lesson holds the clock until it is dismissed. */
   readonly lesson: LessonCard | null;
   /** Set only while a Training Run is won or lost. It replaces the scored end screen. */
@@ -130,6 +132,8 @@ export class GameSession {
   /** Set for a Training Run only. */
   private lessons: LessonDirector | null = null;
   private lesson: LessonCard | null = null;
+  /** The Training Run drill the swarm is following (balance/training.json). */
+  private drill: string | null = null;
   private debrief: TrainingDebrief | null = null;
 
   constructor(input: InputPort, options: SessionOptions = {}) {
@@ -154,6 +158,7 @@ export class GameSession {
         this.phase === 'running' && this.pendingUpgradeId === null && this.game.view.cycle.phase === 'recovering',
       result: this.phase === 'won' || this.phase === 'lost' ? this.result : null,
       training: this.lessons !== null && this.phase !== 'title',
+      drill: this.lessons !== null && this.drill !== null ? (TRAINING_SCRIPT.drillNames[this.drill] ?? null) : null,
       lesson: this.lesson,
       debrief: this.phase === 'won' || this.phase === 'lost' ? this.debrief : null,
     };
@@ -161,6 +166,11 @@ export class GameSession {
 
   get view(): GameView {
     return this.game.view;
+  }
+
+  /** The lesson on screen, for the canvas outlines. Cheaper than `status`, which is read per frame. */
+  get lessonCard(): LessonCard | null {
+    return this.lesson;
   }
 
   /** Subscribe to phase changes. Returns an unsubscribe function. */
@@ -223,6 +233,7 @@ export class GameSession {
     this.input.clear();
     if (training) {
       this.lessons = new LessonDirector(TRAINING_SCRIPT, profile.fleetCycleDamageCap);
+      this.startDrill(TRAINING_PRESET.firstDrill);
       this.lessons.start();
       this.showLesson(this.lessons.take(this.game.view, true));
     }
@@ -287,6 +298,7 @@ export class GameSession {
     const current = this.lesson;
     if (!current || !this.lessons) return;
     this.lesson = null;
+    if (current.startsDrill !== null) this.startDrill(current.startsDrill);
     const next = this.lessons.take(this.game.view, true);
     if (next) {
       this.showLesson(next);
@@ -500,9 +512,22 @@ export class GameSession {
     this.publish();
   }
 
+  /**
+   * Hands the swarm to a drill (PRD 5.5). It takes effect on the next tick, which is always after
+   * the lesson that started it has been read. An id the preset does not know changes nothing;
+   * `check:content` names it.
+   */
+  private startDrill(id: string): void {
+    const swarm = TRAINING_PRESET.drills[id];
+    if (!swarm) return;
+    this.drill = id;
+    this.game.setSwarmOverride(swarm);
+  }
+
   private clearTraining(): void {
     this.lessons = null;
     this.lesson = null;
+    this.drill = null;
     this.debrief = null;
   }
 

@@ -208,18 +208,21 @@ drawn per run for the outcome.
 
 ## 6c. Training Run lessons
 
-`src/content/training.json` is the whole Training Run script (PRD 5.5): the lessons, in order, and
-the debrief. Tyrol teaches and Starbuck heckles, but any speaker from section 2 works.
+`src/content/training.json` is the whole Training Run script (PRD 5.5): the drill names, the
+lessons, in order, and the debrief. Tyrol teaches and Starbuck heckles, but any speaker from section
+2 works.
 
 ```json
 {
+  "drills": { "target": "Target practice", "live-fire": "Live fire" },
   "lessons": [
     {
       "id": "sim-first-kill",
       "trigger": "RaiderDestroyed",
       "when": { "cycle": 1 },
-      "heading": "They come back",
-      "focus": "status",
+      "heading": "They shoot back",
+      "focus": ["status"],
+      "startsDrill": "live-fire",
       "recap": "A destroyed Raider comes back about six seconds later.",
       "beats": [
         { "speaker": "tyrol", "text": "See the blip where that drone died? It is downloading." },
@@ -239,18 +242,24 @@ the debrief. Tyrol teaches and Starbuck heckles, but any speaker from section 2 
 | Field | Rules |
 |---|---|
 | `id` | Lowercase letters, digits, and dashes, up to 40. Unique. |
-| `trigger` | `TrainingStarted` (before the first tick, shown back to back), `CombatTime` (needs `when.seconds`), `RaiderDestroyed` (first non-heavy kill), `RaiderReturned`, `HeavyArrived`, `ViperHit`, `ViperEjected`, `FleetHit`, `SpoolStarted`, `Recovering` (over the pick sheet, does not pause), `ShipArrived`, `ShipExposed`, `ShipDestroyed`. |
+| `trigger` | `TrainingStarted` (before the first tick, shown back to back), `CombatTime` (needs `when.seconds`), `RaiderDestroyed` (first non-heavy kill), `RaiderReturned`, `HeavyArrived`, `ViperHit`, `ViperEjected`, `FleetHit`, `StrayNearFleet` (the first stray round about 30 units above the fleet line), `StrafeFlagged` (the first Raider diving the fleet), `SpoolStarted`, `Recovering` (over the pick sheet, does not pause), `ShipArrived`, `ShipExposed`, `ShipDestroyed`. |
 | `when` | Optional. `cycle` (whole number, that cycle only) on any trigger; `seconds` (into the fight) on `CombatTime` only; `repaired` (true or false) on `Recovering` only. |
 | `heading` | Up to **28** characters. |
-| `focus` | Optional. The HUD element to outline: `clock`, `fleet`, `status`, or `objective`. |
+| `focus` | Optional list, each once. HUD elements: `clock`, `fleet` (fleet health), `status`, `objective`. Playfield: `fleetLine` (the row of ships) and `subject` (the round or Raider that set the lesson off; `StrayNearFleet` and `StrafeFlagged` only). A lesson with a playfield focus docks at the top of the lane. |
+| `interrupt` | Optional, `true` or `false`. `true` lets the lesson stop the fight inside the 3-second gap after a resume, so the thing it names is still on screen. Use it sparingly: each one is a stop right after a 3-2-1. |
+| `startsDrill` | Optional. A drill id from `drills`. When this lesson is read, the sim switches to that drill's swarm (`src/balance/training.json`). |
 | `recap` | Optional, up to **140**. The debrief line when the lesson never came up. Leave it off for lessons that always happen. Not allowed on `TrainingStarted`. |
-| `by` | Optional, with `fallback`. `{ "cycle": 1, "seconds": 20 }`: if the trigger has not happened by then, the lesson shows anyway. Only on `RaiderDestroyed`, `RaiderReturned`, `HeavyArrived`, `ViperHit`, `ViperEjected`, `FleetHit`, and the three `Ship` triggers. |
+| `by` | Optional, with `fallback`. `{ "cycle": 1, "seconds": 20 }`: if the trigger has not happened by then, the lesson shows anyway, outlining nothing in the playfield. Only on `RaiderDestroyed`, `RaiderReturned`, `HeavyArrived`, `ViperHit`, `ViperEjected`, `FleetHit`, `StrayNearFleet`, `StrafeFlagged`, and the three `Ship` triggers. |
 | `fallback` | With `by`. The lines shown at the deadline instead of `beats`, worded for a moment that has not happened ("If a round gets past you..."). Same rules as `beats`. |
 | `beats` | One to **4** lines, each up to **200** characters. Placeholders: `{cap}` (the fleet's damage cap per cycle), and `{before}` and `{after}` (the last jump's repair, in whole percent). |
 
 - A lesson fires once per run, the first time its trigger happens and its `when` holds, or at its
   `by` deadline with its `fallback` lines. Lessons due at the same moment queue and show in file
-  order. A lesson with a deadline always shows, so its `recap` is only read if the run ends first. Fight lessons wait 3 game seconds after the fight resumes.
+  order. A lesson with a deadline always shows, so its `recap` is only read if the run ends first. Fight lessons wait 3 game seconds after the fight resumes, unless marked `interrupt`.
+- `drills` names each drill for the status row (`Sim · Live fire`), up to **20** characters. Every
+  drill in `src/balance/training.json` needs a name there. What a drill throws at you (`cap`,
+  `floor`, `sineShare`, `attackTokens`, `strafeTokens`; left out means the tier's own number, and
+  `{}` is the tier as it is) lives in that balance file, with `firstDrill` for the start.
 - The debrief `grades` are drawn one per run. Beats there take no placeholders.
 - Plain text only, no markup or emoji. A line over a length limit still plays; `check:content`
   names it. Markup, an unknown speaker, a bad trigger, or a placeholder nothing fills drops the

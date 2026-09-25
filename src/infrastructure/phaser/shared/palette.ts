@@ -25,4 +25,6 @@ export const PALETTE = {
   missileLock: 0x4fe19a,
   /** Imaginary Six outline and beam. Pale Dradis, never Cylon red, never a flicker (PRD 10.3, 15). */
   sixGlow: 0xb8ffdc,
+  /** A Training Run lesson's outline: the same amber as the HUD outlines (styles.css). Still, never a flash. */
+  lessonFocus: 0xffc457,
 } as const;

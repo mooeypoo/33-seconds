@@ -21,6 +21,10 @@ export const LESSON_TRIGGERS = [
   'ViperHit',
   'ViperEjected',
   'FleetHit',
+  /** The first stray round about to reach the fleet line. Its subject is that round. */
+  'StrayNearFleet',
+  /** The first Raider diving the fleet. Its subject is that Raider. */
+  'StrafeFlagged',
   'SpoolStarted',
   /** The pick sheet is up. These lessons sit over it and do not pause (PRD 13.3). */
   'Recovering',
@@ -42,6 +46,8 @@ const DEADLINE_TRIGGERS: readonly LessonTrigger[] = [
   'ViperHit',
   'ViperEjected',
   'FleetHit',
+  'StrayNearFleet',
+  'StrafeFlagged',
   'ShipArrived',
   'ShipExposed',
   'ShipDestroyed',
@@ -53,10 +59,17 @@ export interface LessonDeadline {
   readonly seconds: number;
 }
 
-/** HUD elements a lesson can outline. Each is marked with `data-lesson-target` in both layouts. */
-export const LESSON_FOCUS = ['clock', 'fleet', 'status', 'objective'] as const;
+/**
+ * What a lesson can outline. The HUD ones are marked with `data-lesson-target` in both layouts.
+ * `fleetLine` is the row of hulls in the playfield, and `subject` is the round or Raider that set
+ * the lesson off (only on the triggers in `SUBJECT_TRIGGERS`); both are drawn on the canvas.
+ */
+export const LESSON_FOCUS = ['clock', 'fleet', 'status', 'objective', 'fleetLine', 'subject'] as const;
 
 export type LessonFocus = (typeof LESSON_FOCUS)[number];
+
+/** Triggers that happen to one thing on screen, which the `subject` focus outlines. */
+export const SUBJECT_TRIGGERS: readonly LessonTrigger[] = ['StrayNearFleet', 'StrafeFlagged'];
 
 /** Filled when the lesson is shown. `before` and `after` are the last jump's repair. */
 export const LESSON_PLACEHOLDERS = ['before', 'after', 'cap'] as const;
@@ -70,6 +83,7 @@ export const LESSON_HEADING_MAX_CHARACTERS = 28;
 export const LESSON_RECAP_MAX_CHARACTERS = 140;
 export const LESSON_MAX_BEATS = 4;
 export const LESSON_ID_PATTERN = /^[a-z0-9-]{1,40}$/;
+export const DRILL_NAME_MAX_CHARACTERS = 20;
 /** Past this, the text is not a line anyone wrote on purpose. */
 const LOADER_MAX_CHARACTERS = 1000;
 
@@ -92,7 +106,15 @@ export interface Lesson {
   readonly trigger: LessonTrigger;
   readonly when: LessonConditions;
   readonly heading: string;
-  readonly focus: LessonFocus | null;
+  /** Outlined while the lesson is up, in no particular order. Empty for none. */
+  readonly focus: readonly LessonFocus[];
+  /**
+   * Shows the moment it comes due, without waiting out the gap after a resume, so the thing it
+   * names is still on screen (a round a moment from the fleet).
+   */
+  readonly interrupt: boolean;
+  /** A drill (balance/training.json) that starts when this lesson is read. */
+  readonly startsDrill: string | null;
   readonly beats: readonly LessonBeat[];
   /** One line for the debrief when the lesson never came up. Null when it always will. */
   readonly recap: string | null;
@@ -114,6 +136,8 @@ export interface TrainingDebriefScript {
 
 export interface TrainingScript {
   readonly lessons: readonly Lesson[];
+  /** Drill id to the name the status row shows while it runs. */
+  readonly drillNames: Readonly<Record<string, string>>;
   readonly debrief: TrainingDebriefScript;
 }
 
@@ -133,6 +157,14 @@ function isTrigger(value: unknown): value is LessonTrigger {
 
 function isFocus(value: unknown): value is LessonFocus {
   return typeof value === 'string' && (LESSON_FOCUS as readonly string[]).includes(value);
+}
+
+/** A list of known focuses, each once. Missing means none. */
+function parseFocus(value: unknown): LessonFocus[] | null {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || !value.every(isFocus)) return null;
+  if (new Set(value).size !== value.length) return null;
+  return [...value];
 }
 
 /** Plain text, not empty, within the limit, and only placeholders the lesson can fill. */
@@ -192,7 +224,12 @@ export function parseLesson(value: unknown): Lesson | null {
   const when = parseConditions(lesson.trigger, lesson.when);
   if (!when) return null;
   if (!isPlainText(lesson.heading, LOADER_MAX_CHARACTERS, false)) return null;
-  if (lesson.focus !== undefined && !isFocus(lesson.focus)) return null;
+  const focus = parseFocus(lesson.focus);
+  if (!focus) return null;
+  if (lesson.interrupt !== undefined && typeof lesson.interrupt !== 'boolean') return null;
+  if (lesson.startsDrill !== undefined && (typeof lesson.startsDrill !== 'string' || !LESSON_ID_PATTERN.test(lesson.startsDrill))) {
+    return null;
+  }
   // Opening lessons always show, so a recap for them would never be read.
   if (lesson.recap !== undefined && (lesson.trigger === 'TrainingStarted' || !isPlainText(lesson.recap, LOADER_MAX_CHARACTERS, false))) {
     return null;
@@ -214,7 +251,9 @@ export function parseLesson(value: unknown): Lesson | null {
     trigger: lesson.trigger,
     when,
     heading: lesson.heading,
-    focus: lesson.focus ?? null,
+    focus,
+    interrupt: lesson.interrupt === true,
+    startsDrill: typeof lesson.startsDrill === 'string' ? lesson.startsDrill : null,
     beats,
     recap: typeof lesson.recap === 'string' ? lesson.recap : null,
     by,
@@ -250,7 +289,16 @@ export function parseTrainingScript(value: unknown): TrainingScript {
     seen.add(lesson.id);
     lessons.push(lesson);
   }
-  return { lessons, debrief: parseDebrief(script?.debrief) };
+  return { lessons, drillNames: parseDrillNames(script?.drills), debrief: parseDebrief(script?.debrief) };
+}
+
+/** Keeps each drill name that is plain text; a bad one leaves that drill showing plain `Sim`. */
+function parseDrillNames(value: unknown): Record<string, string> {
+  const names: Record<string, string> = {};
+  for (const [id, name] of Object.entries(record(value) ?? {})) {
+    if (LESSON_ID_PATTERN.test(id) && isPlainText(name, LOADER_MAX_CHARACTERS, false)) names[id] = name;
+  }
+  return names;
 }
 
 /** For `check:content`: whether a lesson on this trigger may carry `by` and `fallback`. */

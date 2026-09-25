@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, useTemplateRef, watch } from 'vue';
+import { computed, nextTick, onMounted, useTemplateRef, watch } from 'vue';
 import type { LessonCard } from '../../application/training/LessonDirector';
 import { portraitSrc } from '../portraits';
 
@@ -10,6 +10,12 @@ import { portraitSrc } from '../portraits';
  */
 const props = defineProps<{ lesson: LessonCard }>();
 const emit = defineEmits<{ gotIt: []; skip: [] }>();
+
+/**
+ * A lesson about something at the bottom of the playfield (the fleet, a round about to reach it)
+ * docks at the top and leaves the bottom undimmed, so the card never hides what it is pointing at.
+ */
+const showsField = computed(() => props.lesson.pauses && props.lesson.focus.some((focus) => focus === 'fleetLine' || focus === 'subject'));
 
 const gotItButton = useTemplateRef<HTMLButtonElement>('gotItButton');
 const root = useTemplateRef<HTMLElement>('root');
@@ -43,7 +49,7 @@ function onKeydown(event: KeyboardEvent): void {
 </script>
 
 <template>
-  <div class="scrim" :class="{ 'over-sheet': !lesson.pauses }" data-ui>
+  <div class="scrim" :class="{ 'over-sheet': !lesson.pauses, 'shows-field': showsField }" data-ui>
     <section
       ref="root"
       class="card"
@@ -97,6 +103,11 @@ function onKeydown(event: KeyboardEvent): void {
   overflow: auto;
   padding: var(--space-3);
   background: rgb(var(--rgb-deep) / 55%);
+}
+
+.scrim.shows-field {
+  align-items: safe flex-start;
+  background: linear-gradient(to bottom, rgb(var(--rgb-deep) / 55%) 60%, transparent 85%);
 }
 
 /* The pick sheet is a full-screen board on a wide window, so the lesson over it is too. */

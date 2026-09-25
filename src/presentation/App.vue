@@ -162,11 +162,11 @@ watch([inRun, cic], () => {
   });
 });
 
-// A lesson outlines the HUD element it is about. One attribute on the root, so any layout's copy of
-// that element can answer to it (styles.css).
+// A lesson outlines the HUD elements it is about. One word list on the root, so any layout's copy of
+// each element can answer to it (styles.css). Playfield focuses are drawn on the canvas instead.
 watchEffect(() => {
-  const focus = status.value.lesson?.focus;
-  if (focus) document.documentElement.dataset.lessonFocus = focus;
+  const focus = status.value.lesson?.focus ?? [];
+  if (focus.length > 0) document.documentElement.dataset.lessonFocus = focus.join(' ');
   else delete document.documentElement.dataset.lessonFocus;
 });
 
@@ -221,13 +221,13 @@ onUnmounted(() => {
           />
         </div>
         <div v-if="showFleet" class="detail-row">
-          <StatusRow with-objective :training="status.training" />
+          <StatusRow with-objective :training="status.training" :drill="status.drill" />
           <LatestUpgrade />
         </div>
       </header>
       <div v-if="cic" class="lane-head">
         <span class="stencil">Dradis</span>
-        <StatusRow v-if="showFleet" :training="status.training" />
+        <StatusRow v-if="showFleet" :training="status.training" :drill="status.drill" />
       </div>
       <div class="play">
         <div ref="canvasHost" class="canvas-host" aria-hidden="true" />

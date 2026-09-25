@@ -18,7 +18,7 @@ import type { Raider } from './swarm/raider';
 import { RAIDER_HALF_HEIGHT_UNITS } from './swarm/raider';
 import { Swarm, type SpawnRules } from './swarm/Swarm';
 import { DEFAULT_CYCLE_PROFILE } from './balance/defaultProfile';
-import { rampAt, type CycleProfile } from './balance/profile';
+import { rampAt, type CycleProfile, type SwarmOverride } from './balance/profile';
 import { Fleet, FLEET_INTEGRITY_MAX, FLEET_LINE_Y_UNITS } from './fleet/integrity';
 import { Raptor, raptorLaunchX } from './fleet/raptor';
 import {
@@ -138,6 +138,8 @@ export class Game {
   private lastWaveSent = false;
   /** Heavy Raiders sent this cycle; reset when the next cycle starts. */
   private heaviesThisCycle = 0;
+  /** Swarm numbers that win over the profile's ramps until cleared (see `setSwarmOverride`). */
+  private swarmOverride: SwarmOverride | null = null;
 
   constructor(options: GameOptions = {}) {
     const seed = options.seed ?? DEFAULT_RUN_SEED;
@@ -218,9 +220,13 @@ export class Game {
         this.viper.x,
         this.viper.y,
         !this.speech.isActive && this.raidersFire && this.viper.canFight,
-        rampAt(this.profile.attackTokens, cycleIndex),
+        this.swarmOverride?.attackTokens ?? rampAt(this.profile.attackTokens, cycleIndex),
       );
-      this.swarm.assignStrafeTokens(this.viper.x, this.viper.y, rampAt(this.profile.strafeTokens, cycleIndex));
+      this.swarm.assignStrafeTokens(
+        this.viper.x,
+        this.viper.y,
+        this.swarmOverride?.strafeTokens ?? rampAt(this.profile.strafeTokens, cycleIndex),
+      );
       this.autoFire(events);
       this.maybeFireMissile(missileRising, events);
       this.maybeStartSpeech(specialRising, events);
@@ -276,6 +282,16 @@ export class Game {
     if (!this.cycle.isRecovering) return [];
     if (!this.loadout.pick(cardId)) return [];
     return [{ type: 'UpgradePicked', cardId }, ...this.continueFromJump()];
+  }
+
+  /**
+   * Replaces the profile's swarm ramps (cap, floor, weavers, attack and strafe tokens) from the next
+   * tick, in any cycle, until called again; null goes back to the ramps. Raiders already alive stay:
+   * a lower cap only stops new ones. Set between ticks, like an intent, so a run still repeats.
+   */
+  setSwarmOverride(override: SwarmOverride | null): void {
+    this.cachedView = null;
+    this.swarmOverride = override;
   }
 
   /** One free reroll per Recovering (PRD 10.1). */
@@ -398,10 +414,11 @@ export class Game {
 
   private spawnRules(): SpawnRules {
     const cycleIndex = this.cycle.view.cycleIndex;
+    const override = this.swarmOverride;
     return {
-      cap: rampAt(this.profile.directorCap, cycleIndex),
-      floor: rampAt(this.profile.swarmFloor, cycleIndex),
-      sineShare: rampAt(this.profile.sineShare, cycleIndex),
+      cap: Math.max(1, override?.cap ?? rampAt(this.profile.directorCap, cycleIndex)),
+      floor: override?.floor ?? rampAt(this.profile.swarmFloor, cycleIndex),
+      sineShare: override?.sineShare ?? rampAt(this.profile.sineShare, cycleIndex),
     };
   }
 
