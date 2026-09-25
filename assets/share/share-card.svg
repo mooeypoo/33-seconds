@@ -50,9 +50,7 @@
   </text>
 
   <!-- The address comes from `homepage` in package.json; render:share rewrites it. -->
-  <text id="site-url" class="display" x="666" y="522" font-size="40" fill="#4fe19a" letter-spacing="1">33seconds.netlify.app</text>
-
-  <text class="display" x="666" y="570" font-size="34" fill="#9fb8ab" letter-spacing="3">UNOFFICIAL FAN GAME · FREE</text>
+  <text id="site-url" class="display" x="666" y="538" font-size="50" fill="#4fe19a" letter-spacing="1">33seconds.netlify.app</text>
 
   <!-- Corner brackets, as on the title board. -->
   <g fill="none" stroke="#1c8459" stroke-width="4">
