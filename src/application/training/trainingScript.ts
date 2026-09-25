@@ -31,6 +31,28 @@ export const LESSON_TRIGGERS = [
 
 export type LessonTrigger = (typeof LESSON_TRIGGERS)[number];
 
+/**
+ * Triggers that may never happen in a given run (a careful pilot is never hit), so a lesson on them
+ * can carry a deadline. The others always happen at a known moment, or are the deadline themselves.
+ */
+const DEADLINE_TRIGGERS: readonly LessonTrigger[] = [
+  'RaiderDestroyed',
+  'RaiderReturned',
+  'HeavyArrived',
+  'ViperHit',
+  'ViperEjected',
+  'FleetHit',
+  'ShipArrived',
+  'ShipExposed',
+  'ShipDestroyed',
+];
+
+/** A moment in the run: `seconds` into the fight of `cycle`. */
+export interface LessonDeadline {
+  readonly cycle: number;
+  readonly seconds: number;
+}
+
 /** HUD elements a lesson can outline. Each is marked with `data-lesson-target` in both layouts. */
 export const LESSON_FOCUS = ['clock', 'fleet', 'status', 'objective'] as const;
 
@@ -74,6 +96,13 @@ export interface Lesson {
   readonly beats: readonly LessonBeat[];
   /** One line for the debrief when the lesson never came up. Null when it always will. */
   readonly recap: string | null;
+  /**
+   * If the trigger has not happened by this moment, the lesson shows anyway with `fallback`, so
+   * every player sees it in a known window (PRD 5.5). Null means it waits for the real thing.
+   */
+  readonly by: LessonDeadline | null;
+  /** The lines for a lesson shown at its deadline, worded for something that has not happened. */
+  readonly fallback: readonly LessonBeat[] | null;
 }
 
 export interface TrainingDebriefScript {
@@ -145,6 +174,15 @@ function parseConditions(trigger: LessonTrigger, value: unknown): LessonConditio
   return conditions;
 }
 
+function parseDeadline(value: unknown): LessonDeadline | null {
+  const by = record(value);
+  if (!by || Object.keys(by).some((key) => key !== 'cycle' && key !== 'seconds')) return null;
+  const { cycle, seconds } = by;
+  if (typeof cycle !== 'number' || !Number.isInteger(cycle) || cycle < 1) return null;
+  if (typeof seconds !== 'number' || seconds < 0 || seconds >= 33) return null;
+  return { cycle, seconds };
+}
+
 /** One lesson, or null when anything about it is wrong. */
 export function parseLesson(value: unknown): Lesson | null {
   const lesson = record(value);
@@ -161,6 +199,16 @@ export function parseLesson(value: unknown): Lesson | null {
   }
   const beats = parseBeats(lesson.beats, true);
   if (!beats) return null;
+  // A deadline and its fallback lines come as a pair, and only on a trigger that can fail to happen.
+  if ((lesson.by === undefined) !== (lesson.fallback === undefined)) return null;
+  let by: LessonDeadline | null = null;
+  let fallback: LessonBeat[] | null = null;
+  if (lesson.by !== undefined) {
+    if (!DEADLINE_TRIGGERS.includes(lesson.trigger)) return null;
+    by = parseDeadline(lesson.by);
+    fallback = parseBeats(lesson.fallback, true);
+    if (!by || !fallback) return null;
+  }
   return {
     id: lesson.id,
     trigger: lesson.trigger,
@@ -169,6 +217,8 @@ export function parseLesson(value: unknown): Lesson | null {
     focus: lesson.focus ?? null,
     beats,
     recap: typeof lesson.recap === 'string' ? lesson.recap : null,
+    by,
+    fallback,
   };
 }
 
@@ -201,6 +251,11 @@ export function parseTrainingScript(value: unknown): TrainingScript {
     lessons.push(lesson);
   }
   return { lessons, debrief: parseDebrief(script?.debrief) };
+}
+
+/** For `check:content`: whether a lesson on this trigger may carry `by` and `fallback`. */
+export function canHaveDeadline(trigger: unknown): boolean {
+  return (DEADLINE_TRIGGERS as readonly unknown[]).includes(trigger);
 }
 
 export function speakBeats(beats: readonly LessonBeat[], fill: (text: string) => string = (text) => text): SpokenBeat[] {

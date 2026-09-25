@@ -17,6 +17,7 @@ import {
   LESSON_MAX_BEATS,
   LESSON_RECAP_MAX_CHARACTERS,
   LESSON_TRIGGERS,
+  canHaveDeadline,
   parseTrainingScript,
 } from '../../src/application/training/trainingScript';
 import { parseScoreWeights } from '../../src/balance/scoring';
@@ -321,7 +322,21 @@ describe('end-screen lines', () => {
 describe('Training Run', () => {
   const script = parseTrainingScript(trainingRaw);
 
-  /** Why a lesson would be dropped, in a writer's words. Empty when it loads. */
+  function beatProblems(where: string, value: unknown): string[] {
+    const problems: string[] = [];
+    const beats: unknown[] = Array.isArray(value) ? value : [];
+    if (beats.length === 0 || beats.length > LESSON_MAX_BEATS) problems.push(`${where}: needs 1 to ${String(LESSON_MAX_BEATS)} lines`);
+    beats.forEach((rawBeat, beatIndex) => {
+      const beat = record(rawBeat);
+      if (!isSpeaker(beat.speaker)) problems.push(`${where} ${String(beatIndex)}: unknown speaker ${JSON.stringify(beat.speaker)}`);
+      if (!isPlainText(beat.text, LESSON_BEAT_MAX_CHARACTERS, true)) {
+        problems.push(`${where} ${String(beatIndex)}: plain text up to ${String(LESSON_BEAT_MAX_CHARACTERS)} characters, placeholders {before}, {after}, {cap} only`);
+      }
+    });
+    return problems;
+  }
+
+  /** Why a lesson would be dropped, or breaks a writing limit, in a writer's words. Empty when fine. */
   function lessonProblems(raw: unknown, index: number): string[] {
     const lesson = record(raw);
     const where = `training.json lessons[${String(index)}] ${typeof lesson.id === 'string' ? lesson.id : '(no id)'}`;
@@ -338,15 +353,21 @@ describe('Training Run', () => {
     if (lesson.recap !== undefined && !isPlainText(lesson.recap, LESSON_RECAP_MAX_CHARACTERS, false)) {
       problems.push(`${where}: recap must be plain text up to ${String(LESSON_RECAP_MAX_CHARACTERS)} characters`);
     }
-    const beats: unknown[] = Array.isArray(lesson.beats) ? lesson.beats : [];
-    if (beats.length === 0 || beats.length > LESSON_MAX_BEATS) problems.push(`${where}: needs 1 to ${String(LESSON_MAX_BEATS)} beats`);
-    beats.forEach((rawBeat, beatIndex) => {
-      const beat = record(rawBeat);
-      if (!isSpeaker(beat.speaker)) problems.push(`${where} beat ${String(beatIndex)}: unknown speaker ${JSON.stringify(beat.speaker)}`);
-      if (!isPlainText(beat.text, LESSON_BEAT_MAX_CHARACTERS, true)) {
-        problems.push(`${where} beat ${String(beatIndex)}: plain text up to ${String(LESSON_BEAT_MAX_CHARACTERS)} characters, placeholders {before}, {after}, {cap} only`);
+    problems.push(...beatProblems(`${where} beats`, lesson.beats));
+    if ((lesson.by === undefined) !== (lesson.fallback === undefined)) {
+      problems.push(`${where}: "by" and "fallback" go together; a deadline needs lines for when the moment never came`);
+    } else if (lesson.by !== undefined) {
+      if (!canHaveDeadline(lesson.trigger)) {
+        problems.push(`${where}: a ${String(lesson.trigger)} lesson cannot have a deadline`);
       }
-    });
+      const by = record(lesson.by);
+      const cycleOk = typeof by.cycle === 'number' && Number.isInteger(by.cycle) && by.cycle >= 1;
+      const secondsOk = typeof by.seconds === 'number' && by.seconds >= 0 && by.seconds < 33;
+      if (!cycleOk || !secondsOk || Object.keys(by).length !== 2) {
+        problems.push(`${where}: "by" needs a whole "cycle" from 1 and "seconds" from 0 to under 33, nothing else`);
+      }
+      problems.push(...beatProblems(`${where} fallback`, lesson.fallback));
+    }
     return problems;
   }
 

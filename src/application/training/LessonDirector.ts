@@ -31,6 +31,8 @@ export interface LessonCard {
  */
 export class LessonDirector {
   private readonly due = new Set<string>();
+  /** Due because the deadline passed, not because it happened: shown with the fallback lines. */
+  private readonly late = new Set<string>();
   private readonly shown = new Set<string>();
   private secondsSinceResume = 0;
   /** Fleet Integrity after the last tick, so a repair can say where it started. */
@@ -57,7 +59,10 @@ export class LessonDirector {
   noteTick(events: readonly DomainEvent[], view: GameView): void {
     this.secondsSinceResume += TICK_SECONDS;
     this.noteEvents(events, view);
-    if (isFighting(view)) this.latch('CombatTime', view);
+    if (isFighting(view)) {
+      this.latch('CombatTime', view);
+      this.latchOverdue(view);
+    }
     this.lastIntegrity = view.fleet.integrity;
   }
 
@@ -85,7 +90,9 @@ export class LessonDirector {
       id: lesson.id,
       heading: lesson.heading,
       focus: lesson.focus,
-      beats: speakBeats(lesson.beats, (text) => this.fill(text)),
+      beats: speakBeats(this.late.has(lesson.id) ? (lesson.fallback ?? lesson.beats) : lesson.beats, (text) =>
+        this.fill(text),
+      ),
       pauses: !recovering,
     };
   }
@@ -141,6 +148,19 @@ export class LessonDirector {
     for (const lesson of this.script.lessons) {
       if (lesson.trigger !== trigger || this.due.has(lesson.id) || this.shown.has(lesson.id)) continue;
       if (this.holds(lesson, view)) this.due.add(lesson.id);
+    }
+  }
+
+  /** A lesson whose moment has not come by its deadline is due anyway, with its fallback lines. */
+  private latchOverdue(view: GameView): void {
+    const { cycleIndex, combatElapsedSeconds } = view.cycle;
+    for (const lesson of this.script.lessons) {
+      const by = lesson.by;
+      if (!by || this.due.has(lesson.id) || this.shown.has(lesson.id)) continue;
+      const overdue = cycleIndex > by.cycle || (cycleIndex === by.cycle && combatElapsedSeconds >= by.seconds);
+      if (!overdue) continue;
+      this.due.add(lesson.id);
+      this.late.add(lesson.id);
     }
   }
 

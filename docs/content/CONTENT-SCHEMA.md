@@ -244,10 +244,13 @@ the debrief. Tyrol teaches and Starbuck heckles, but any speaker from section 2 
 | `heading` | Up to **28** characters. |
 | `focus` | Optional. The HUD element to outline: `clock`, `fleet`, `status`, or `objective`. |
 | `recap` | Optional, up to **140**. The debrief line when the lesson never came up. Leave it off for lessons that always happen. Not allowed on `TrainingStarted`. |
+| `by` | Optional, with `fallback`. `{ "cycle": 1, "seconds": 20 }`: if the trigger has not happened by then, the lesson shows anyway. Only on `RaiderDestroyed`, `RaiderReturned`, `HeavyArrived`, `ViperHit`, `ViperEjected`, `FleetHit`, and the three `Ship` triggers. |
+| `fallback` | With `by`. The lines shown at the deadline instead of `beats`, worded for a moment that has not happened ("If a round gets past you..."). Same rules as `beats`. |
 | `beats` | One to **4** lines, each up to **200** characters. Placeholders: `{cap}` (the fleet's damage cap per cycle), and `{before}` and `{after}` (the last jump's repair, in whole percent). |
 
-- A lesson fires once per run, the first time its trigger happens and its `when` holds. Lessons due
-  at the same moment show in file order. Fight lessons wait 3 game seconds after the fight resumes.
+- A lesson fires once per run, the first time its trigger happens and its `when` holds, or at its
+  `by` deadline with its `fallback` lines. Lessons due at the same moment queue and show in file
+  order. A lesson with a deadline always shows, so its `recap` is only read if the run ends first. Fight lessons wait 3 game seconds after the fight resumes.
 - The debrief `grades` are drawn one per run. Beats there take no placeholders.
 - Plain text only, no markup or emoji. A line over a length limit still plays; `check:content`
   names it. Markup, an unknown speaker, a bad trigger, or a placeholder nothing fills drops the

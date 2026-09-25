@@ -64,6 +64,8 @@ interface Shown {
   readonly id: string;
   readonly tick: number;
   readonly cycle: number;
+  /** Seconds into that cycle's fight. */
+  readonly seconds: number;
   readonly pauses: boolean;
   /** Came up right after another was dismissed, with the clock still held. */
   readonly chained: boolean;
@@ -92,6 +94,7 @@ function playTraining(maxSeconds = 600): Shown[] {
         id: status.lesson.id,
         tick: view.tickCount,
         cycle: view.cycle.cycleIndex,
+        seconds: view.cycle.combatElapsedSeconds,
         pauses: status.lesson.pauses,
         chained,
         ticksSinceResume: view.tickCount - resumedAtTick,
@@ -209,19 +212,49 @@ describe('lessons during the fight', () => {
     expect(session.status.training).toBe(false);
   });
 
-  it('lists what never came up in the debrief, and nothing that did', () => {
-    // Raiders that never fire cannot hit the Viper, so the hull and eject lessons never come due.
+  it('shows a lesson whose moment never came at its deadline, with its fallback lines', () => {
+    // Raiders that never fire cannot hit the Viper, so the hull and eject lessons only have deadlines.
     session = new GameSession(input, { seed: 1, raidersFire: false });
     session.startTraining();
-    const ids = playTraining().map((entry) => entry.id);
+    const shown = playTraining();
+    const late = TRAINING_SCRIPT.lessons.filter((lesson) => lesson.trigger === 'ViperHit' || lesson.trigger === 'ViperEjected');
 
     expect(session.status.phase).toBe('won');
-    expect(ids).not.toContain('sim-viper-hit');
-    const recapOf = (id: string): string | null | undefined =>
-      TRAINING_SCRIPT.lessons.find((lesson) => lesson.id === id)?.recap;
-    expect(session.status.debrief?.recaps).toContain(recapOf('sim-viper-hit'));
-    expect(session.status.debrief?.recaps).toContain(recapOf('sim-ejected'));
-    expect(session.status.debrief?.recaps).not.toContain(recapOf('sim-first-kill'));
+    expect(late.length).toBeGreaterThan(0);
+    for (const lesson of late) {
+      const entry = shown.find((candidate) => candidate.id === lesson.id);
+      const by = lesson.by;
+      expect(by, `${lesson.id} needs a deadline`).not.toBeNull();
+      expect(entry, `${lesson.id} should show`).toBeDefined();
+      if (!entry || !by) continue;
+      expect(entry.text).toBe(lesson.fallback?.map((beat) => beat.text).join(' '));
+      const reached = entry.cycle > by.cycle || entry.seconds >= by.seconds;
+      expect(reached, `${lesson.id} came before its deadline`).toBe(true);
+    }
+    expect(session.status.debrief?.recaps).toEqual(
+      TRAINING_SCRIPT.lessons.filter((lesson) => lesson.recap !== null && !shown.some((entry) => entry.id === lesson.id)).map((lesson) => lesson.recap),
+    );
+  });
+
+  it('uses the real lines when the moment comes before the deadline', () => {
+    session.startTraining();
+    const shown = playTraining();
+    const hull = TRAINING_SCRIPT.lessons.find((lesson) => lesson.trigger === 'ViperHit');
+    const entry = shown.find((candidate) => candidate.id === hull?.id);
+
+    expect(entry?.text).toBe(hull?.beats.map((beat) => beat.text).join(' '));
+  });
+
+  it('shows every lesson with a deadline in every run', () => {
+    const withDeadline = TRAINING_SCRIPT.lessons.filter((lesson) => lesson.by !== null).map((lesson) => lesson.id);
+    expect(withDeadline.length).toBeGreaterThan(0);
+    for (const options of [{ seed: 2 }, { seed: 5, raidersFire: false }]) {
+      input = new FakeInput();
+      session = new GameSession(input, options);
+      session.startTraining();
+      const ids = playTraining().map((entry) => entry.id);
+      expect(withDeadline.filter((id) => !ids.includes(id))).toEqual([]);
+    }
   });
 
   it('stops on the tick a lesson came due, even when a slow frame runs several ticks', () => {
