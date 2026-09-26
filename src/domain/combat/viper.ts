@@ -2,15 +2,19 @@ import { MISSILE_CAPACITY } from './missile';
 import { clampIntentDirection } from '../shared/intent';
 import { clamp, WORLD_HEIGHT_UNITS, WORLD_WIDTH_UNITS } from '../shared/world';
 
-/** Top speed the Viper can reach, in world units per second. Crossing the world takes about 3 s. */
-export const VIPER_MAX_SPEED_UNITS_PER_SECOND = 92;
+/**
+ * Top speed the Viper can reach, in world units per second. Crossing the phone world takes about 2.6 s.
+ * Was 92; playtesters found the Viper sluggish (2026-09-25).
+ */
+export const VIPER_MAX_SPEED_UNITS_PER_SECOND = 104;
 
 /**
  * How fast the Viper approaches the speed the player asked for, in units per second squared.
  * High enough to feel responsive, low enough to read as a ship with mass rather than a cursor.
  * The same figure slows it down, so letting go coasts briefly instead of stopping dead.
+ * Raised with the top speed (was 520) so reaching it still takes the same ~0.18 s.
  */
-export const VIPER_ACCELERATION_UNITS_PER_SECOND_SQUARED = 520;
+export const VIPER_ACCELERATION_UNITS_PER_SECOND_SQUARED = 590;
 
 /**
  * Half the Viper's body, in world units: keeps it inside the play area and puts the gun at its nose.

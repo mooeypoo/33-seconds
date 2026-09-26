@@ -10,10 +10,12 @@ const RAIDER_FIRST_SHOT_DELAY_SECONDS = 0.45;
 export const RAIDER_HIT_POINTS = 3;
 
 /**
- * Slow enough that the Viper can intercept a column, fast enough that it does not hover. Was 55;
- * the first playtest with a full swarm found them a bit too fast (2026-09-24).
+ * Slow enough that the Viper can intercept a column, fast enough that it does not hover. Was 55,
+ * then 46: playtests found them a bit too fast (2026-09-24), then the Viper sluggish beside them (2026-09-25).
+ * Slower is not easier in the simulator: Raiders wrap rather than leave and fire on a clock, so 43
+ * cost the hunter bot 2.5 points of wins (PRD changelog 2026-09-25). Tune difficulty elsewhere.
  */
-export const RAIDER_SPEED_UNITS_PER_SECOND = 46;
+export const RAIDER_SPEED_UNITS_PER_SECOND = 44;
 
 /** Half the Raider's 24-unit picture, a little inside it (docs/art/ART-SCALE.md). */
 export const RAIDER_HALF_WIDTH_UNITS = 12;
