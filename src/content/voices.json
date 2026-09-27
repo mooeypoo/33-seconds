@@ -68,18 +68,19 @@
     },
     {
       "speaker": "tigh",
-      "note": "PLACEHOLDER. Gruff and terse: low, raspy, short phrases, long pauses.",
-      "pitchHz": 105,
-      "pitchRangeSemitones": 2.5,
-      "phraseEndSemitones": -4,
-      "syllablesPerPhrase": [2, 3],
-      "syllableGapSeconds": 0.04,
-      "phraseGapSeconds": 0.4,
+      "note": "PLACEHOLDER. Gruff and slow: a mid-low rasp, long heavy syllables that sag, short phrases, long pauses.",
+      "pitchHz": 150,
+      "pitchRangeSemitones": 2,
+      "phraseEndSemitones": -3,
+      "syllablesPerPhrase": [2, 4],
+      "syllableGapSeconds": 0.08,
+      "phraseGapSeconds": 0.45,
       "syllables": [
-        [0.42,0,0,0.005,0.06,0.03,2,1,-1,0,0,0,0,0.35,0,0.04,0,1,0,0,-700],
-        [0.42,0,0,0.005,0.06,0.03,2,1,-1,0,0,0,0,0.35,0,0.04,0,1,0,0,-1000]
+        [0.42,0,0,0.012,0.1,0.06,2,1,-0.5,0,0,0,0,0.25,0,0.03,0,1,0,0,-1200],
+        [0.42,0,0,0.012,0.1,0.06,2,1,-0.4,0,0,0,0,0.25,0,0.03,0,1,0,0,-1600],
+        [0.42,0,0,0.012,0.12,0.07,2,1,-0.7,0,0,0,0,0.25,0,0.03,0,1,0,0,-1000]
       ],
-      "syllableNames": ["uh", "ah"]
+      "syllableNames": ["uh", "ah", "aw"]
     },
     {
       "speaker": "baltar",
@@ -131,7 +132,7 @@
     },
     {
       "speaker": "six",
-      "note": "PLACEHOLDER. Soft, breathy, mysterious: slow, airy syllables with a breath between, and a slight rise.",
+      "note": "PLACEHOLDER. Soft and mysterious: slow, airy syllables with gentle onsets, and a slight rise.",
       "pitchHz": 230,
       "pitchRangeSemitones": 2,
       "phraseEndSemitones": 1.5,
@@ -139,11 +140,11 @@
       "syllableGapSeconds": 0.07,
       "phraseGapSeconds": 0.45,
       "syllables": [
-        [0.32,0,0,0.03,0.08,0.08,1,1,0.2,0,0,0,0,0.8,0,0,0,1,0,0,-1400],
-        [0.32,0,0,0.03,0.08,0.08,1,1,-0.2,0,0,0,0,0.8,0,0,0,1,0,0,-1000],
-        [0.14,0,0,0.04,0.05,0.08,4,1,0,0,0,0,0,0,0,0,0,1,0,0,-3000]
+        [0.42,0,0,0.03,0.08,0.08,1,0.5,0.2,0,0,0,0,0.8,0,0,0,1,0,0,-1800],
+        [0.42,0,0,0.03,0.08,0.08,1,0.5,-0.2,0,0,0,0,0.8,0,0,0,1,0,0,-1400],
+        [0.42,0,0,0.03,0.07,0.08,1,0.5,0.1,0,0,0,0,0.8,0,0,0,1,0,0,-2000]
       ],
-      "syllableNames": ["hah", "hoo", "breath"]
+      "syllableNames": ["hah", "hoo", "heh"]
     }
   ]
 }
