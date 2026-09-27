@@ -25,12 +25,14 @@ import civilian3 from '../../../assets/ships/civilian_3.png';
 import civilian3Damaged from '../../../assets/ships/civilian_3_damaged.png';
 import galacticaFleet from '../../../assets/ships/galactica_fleet.png';
 import galacticaFleetDamaged from '../../../assets/ships/galactica_fleet_damaged.png';
+import imaginarySix from '../../../assets/ships/imaginary_six.png';
 import pilotEject from '../../../assets/ships/pilot_eject.png';
 import raiderEyeCenter from '../../../assets/ships/raider_eye_center.png';
 import raiderEyeLeft from '../../../assets/ships/raider_eye_left.png';
 import raiderEyeRight from '../../../assets/ships/raider_eye_right.png';
 import raiderHeavy from '../../../assets/ships/raider_heavy.png';
 import raiderHeavyDamaged from '../../../assets/ships/raider_heavy_damaged.png';
+import raptor from '../../../assets/ships/raptor.png';
 import resurrectionShipOpen from '../../../assets/ships/resurrection_ship_open.png';
 import resurrectionShipSealed from '../../../assets/ships/resurrection_ship_sealed.png';
 import resurrectionShipWreck from '../../../assets/ships/resurrection_ship_wreck.png';
@@ -150,6 +152,14 @@ export const GALACTICA_LINE_FROM_BOTTOM_UNITS = 18;
 export const GALACTICA = 'galactica-fleet';
 export const GALACTICA_DAMAGED = 'galactica-fleet-damaged';
 
+/** The Raptor escort in world units: its 32 x 16 file at two art pixels per unit. */
+export const RAPTOR_SHOWN = { width: 16, height: 8 } as const;
+export const RAPTOR = 'raptor';
+
+/** Imaginary Six in world units: her 32 x 48 file at two art pixels per unit. Her glow is in the picture. */
+export const IMAGINARY_SIX_SHOWN = { width: 16, height: 24 } as const;
+export const IMAGINARY_SIX = 'imaginary-six';
+
 /** The ejected pilot in world units: its 32 x 40 file at two art pixels per unit. */
 export const PILOT_EJECT_SHOWN = { width: 16, height: 20 } as const;
 export const PILOT_EJECT = 'pilot-eject';
@@ -209,6 +219,8 @@ export const SPRITE_FILES: readonly { key: string; url: string }[] = [
   { key: EXPLOSION_LARGE_FRAMES[5], url: explosionLarge6 },
   { key: EXPLOSION_LARGE_FRAMES[6], url: explosionLarge7 },
   { key: PILOT_EJECT, url: pilotEject },
+  { key: RAPTOR, url: raptor },
+  { key: IMAGINARY_SIX, url: imaginarySix },
   { key: GALACTICA, url: galacticaFleet },
   { key: GALACTICA_DAMAGED, url: galacticaFleetDamaged },
   ...CIVILIAN_VARIANTS.flatMap((variant) => [

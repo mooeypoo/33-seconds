@@ -63,8 +63,8 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 | `resurrection_ship` | 48 x 32 on screen, drawn at 96 x 64 | 3 (sealed, open, wreck) | P1 | Chunky and ominous, clearly *not* a copy of anything. After it dies, the wreck must read as a dead factory, not a parked target. Hangar doors: split when open (red well visible), meet when sealed. HUD also says `bays` / `sealed`. |
 | `ghost_blip` | 8 x 8 | 2 | P1 | Dradis-style download marker. Loop-on: filling bar plus the word. Loop-off: leftover blips go grey and stay that way. *Spoilers*: a still plus / cross on the blip so it reads as a target, and it sits at the return column until pickup. Colour is never the only cue; keep a word (`loop` / `offline` or downloading / done). |
 | `returned_marker` | — | — | — | Not drawn: the game marks a Returned Raider in code, with a soft grey glow inside its picture and `x<n>` beside it. |
-| `raptor` | 14 x 12 | 2 | P2 | Escort card. Play uses an olive wedge and hull pips above the fleet line. HUD `raptor n/max` or `hangar`. Never Cylon red. |
-| `imaginary_six` | 16 x 16 | 2 | P2 | A steady outline sprite. Costume and silhouette, not likeness. Play uses a pale Dradis outline and a still glow; HUD `six`. Never flickers. Never Cylon red. |
+| `raptor` | 32 x 16 | 1 | P2 | Escort card. The drawn Raptor with hull pips above it, on the fleet line. HUD `raptor n/max` or `hangar`. Never Cylon red. |
+| `imaginary_six` | 32 x 48 | 1 | P2 | A steady silhouette with its still glow drawn in the picture. Costume and silhouette, not likeness. HUD `six`. Never flickers. Never Cylon red. |
 | `explosion_large` | 32 x 32 | 8 | P2 | Same rules as small |
 | `icon_hourglass`, `icon_hold_music`, `icon_missile`, `icon_special_ready`, `icon_eye` | 8 x 8 | 1 each | P2 | HUD and status icons |
 | `portrait_adama`, `_starbuck`, `_gaeta`, `_dualla` | 64 x 64, shown at 64 CSS px | 4 each (closed, open, blink, signature) | P2 | Core comms cast. Costume and silhouette, not actor likeness. Page images, not playfield sprites. |
@@ -171,8 +171,8 @@ While the resurrection ship is exposed, the hangar doors cycle: **4 s open, 4 s 
 
 ## 14. Raptor escort (graphics pass)
 
-*Raptor Escort* puts an olive wedge on the fleet line with three hull pips. Hangared escorts vanish; the HUD says `hangar` until the next cycle relaunches them. Play uses a rectangle and a short nose. Real `raptor` frames replace the wedge. Never Cylon red. Colour is never the only cue (PRD 9, 15).
+*Raptor Escort* puts an olive wedge on the fleet line with three hull pips. Hangared escorts vanish; the HUD says `hangar` until the next cycle relaunches them. Play uses the drawn `raptor` picture, with the hull pips above it. Never Cylon red. Colour is never the only cue (PRD 9, 15).
 
 ## 15. Imaginary Six (graphics pass)
 
-A pale outline beside the Viper and a thin persistent beam to her current target. The glow is still, never a flicker, well under 3 flashes per second because it does not flash. HUD says `six`. Play uses a stroked rectangle and a low-alpha disc. Real `imaginary_six` frames replace the outline. Costume and silhouette, not likeness. Never Cylon red. Colour is never the only cue (PRD 9, 15). Comms portraits wait.
+A pale outline beside the Viper and a thin persistent beam to her current target. The glow is still, never a flicker, well under 3 flashes per second because it does not flash. HUD says `six`. Play uses the drawn `imaginary_six` picture, whose soft glow is part of the file (the one place semi-transparent pixels are intended). She sits far enough out that she never overlaps the Viper. Costume and silhouette, not likeness. Never Cylon red. Colour is never the only cue (PRD 9, 15). Comms portraits wait.

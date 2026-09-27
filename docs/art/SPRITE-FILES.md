@@ -65,9 +65,9 @@ Redrawn at the new density and in the game.
   - **40 px of nose** above the line, tip at the top row. Taper it however you like.
 
   The dented one keeps the same outline, so it does not jump when it swaps.
-- [ ] **Raptor** — `assets/ships/raptor.png` — **32 × 16** (16 × 8 units). Olive, never red.
-- [ ] **Imaginary Six** — `assets/ships/imaginary_six.png` — **32 × 48** (16 × 24 units). A steady
-  outline figure flying beside the Viper; the glow is drawn in code. Costume and silhouette.
+- [x] **Raptor** — `assets/ships/raptor.png` — **32 × 16** (16 × 8 units). Olive, never red.
+- [x] **Imaginary Six** — `assets/ships/imaginary_six.png` — **32 × 48** (16 × 24 units). A steady
+  figure flying beside the Viper, with its still glow drawn in the picture. Costume and silhouette.
 - [x] **Ejected pilot** — `assets/ships/pilot_eject.png` — **32 × 40** (16 × 20 units). Seat and
   chute. Never used for a download.
 
