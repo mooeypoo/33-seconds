@@ -16,7 +16,8 @@ import type { SessionStatus } from '../application/GameSession';
 import type { RunResult } from '../application/runResult';
 import { lessonFocusBoxes } from '../application/training/lessonFocus';
 import { decodeSharedRun, type SharedRun } from '../application/shareCode';
-import { playfieldForWindow } from '../application/playfield';
+import { NARROW_LAYOUT_MAX_PX, playfieldForLane, playfieldForWindow } from '../application/playfield';
+import type { Playfield } from '../domain/shared/world';
 import type { TierId } from '../domain/balance/profile';
 import { CANVAS_HOST_KEY, RESIZE_PLAYFIELD_KEY, SESSION_KEY } from './injection';
 import AboutSheet from './components/AboutSheet.vue';
@@ -64,9 +65,18 @@ if (!session || !mountCanvas) throw new Error('App.vue needs a session and a can
 const canvasHost = useTemplateRef<HTMLElement>('canvasHost');
 const status = ref<SessionStatus>(session.status);
 const cyclePhase = computed(() => hudStore.state.hud?.cyclePhase ?? null);
-const inRun = computed(() => status.value.phase !== 'title');
+/**
+ * True for the moment between Launch and the run starting, so the lane can be measured with the
+ * run's bands around it. Set and cleared before the browser paints, so nobody sees it.
+ */
+const launching = ref(false);
+const inRun = computed(() => status.value.phase !== 'title' || launching.value);
 const showFleet = computed(
-  () => status.value.phase === 'running' || status.value.phase === 'paused' || status.value.phase === 'resuming',
+  () =>
+    launching.value ||
+    status.value.phase === 'running' ||
+    status.value.phase === 'paused' ||
+    status.value.phase === 'resuming',
 );
 /**
  * Missile and Speech buttons are for touch. A keyboard already has Space and E, and on a desktop
@@ -118,15 +128,30 @@ function onHashChange(): void {
 }
 let unsubscribe: (() => void) | null = null;
 
-function beginRun(tier: TierId): void {
-  const playfield = playfieldForWindow(window.innerWidth);
+/**
+ * A phone's world is as wide as its lane allows (PRD 13.2), so the lane is measured with the run's
+ * bands in place. A wider window keeps its fixed lanes. Chosen once: the run keeps it.
+ */
+async function playfieldForLaunch(): Promise<Playfield> {
+  if (window.innerWidth > NARROW_LAYOUT_MAX_PX || !canvasHost.value) return playfieldForWindow(window.innerWidth);
+  launching.value = true;
+  await nextTick();
+  const lane = canvasHost.value.getBoundingClientRect();
+  launching.value = false;
+  return playfieldForLane(lane.width, lane.height);
+}
+
+async function beginRun(tier: TierId): Promise<void> {
+  if (launching.value) return;
+  const playfield = await playfieldForLaunch();
   session?.start(tier, playfield);
   resizePlayfield?.(playfield.width);
 }
 
 /** A Training Run: the same lane, with lessons (PRD 5.5). */
-function beginTraining(): void {
-  const playfield = playfieldForWindow(window.innerWidth);
+async function beginTraining(): Promise<void> {
+  if (launching.value) return;
+  const playfield = await playfieldForLaunch();
   session?.startTraining(playfield);
   resizePlayfield?.(playfield.width);
 }
@@ -134,7 +159,7 @@ function beginTraining(): void {
 /** From the debrief straight into a real run. */
 function launchAfterTraining(): void {
   session?.returnToTitle();
-  beginRun('viper-pilot');
+  void beginRun('viper-pilot');
 }
 
 function openAbout(): void {
@@ -226,8 +251,14 @@ onUnmounted(() => {
           />
         </div>
         <div v-if="showFleet" class="detail-row">
+          <!-- The row keeps one chip's height when empty, so the lane measured at Launch holds. -->
           <StatusRow with-objective :training="status.training" :drill="status.drill" />
           <LatestUpgrade />
+        </div>
+        <!-- Above the lane, not under it: under it, the thumbs flying the Viper covered the line. -->
+        <div class="comms-slot">
+          <CommsOverlay v-if="status.comms" docked :comms="status.comms" />
+          <SpeechBanner v-if="speaking" docked />
         </div>
       </header>
       <div v-if="cic" class="lane-head">
@@ -248,14 +279,11 @@ onUnmounted(() => {
           @skip="session.abandonRun()"
         />
       </div>
-      <footer v-if="inRun && !cic" class="bottom-band">
-        <!-- During the pick the buttons step aside, so the Recovering scene gets the whole strip. -->
-        <SpecialButton v-if="isTouch && showFleet && !status.choosingUpgrade" :disabled="!inCombat" />
-        <div class="comms-slot">
-          <CommsOverlay v-if="status.comms" docked :comms="status.comms" />
-          <SpeechBanner v-if="speaking" docked />
-        </div>
-        <MissileButton v-if="isTouch && showFleet && !status.choosingUpgrade" :disabled="!inCombat" />
+      <!-- Touch only: without the buttons the lane runs to the bottom edge. -->
+      <footer v-if="inRun && !cic && isTouch" class="bottom-band">
+        <!-- During the pick the buttons step aside, so they never sit under Apply. -->
+        <SpecialButton v-if="showFleet && !status.choosingUpgrade" :disabled="!inCombat" />
+        <MissileButton v-if="showFleet && !status.choosingUpgrade" :disabled="!inCombat" />
       </footer>
     </div>
 
@@ -322,8 +350,8 @@ onUnmounted(() => {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  /* Room for the top band (fleet, clock, status) and the comms strip. */
-  width: min(100%, calc((100dvh - 240px) * 324 / 480));
+  /* Room for the top band (fleet, clock, status, comms) and the button strip. */
+  width: min(100%, calc((100dvh - 260px) * 324 / 480));
 }
 
 .top-band {
@@ -347,6 +375,8 @@ onUnmounted(() => {
 }
 
 .detail-row {
+  /* One status chip: 14px text at 1.2 line height, 1px padding and border above and below. */
+  min-height: calc(14px * 1.2 + 4px);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -356,22 +386,22 @@ onUnmounted(() => {
 
 .bottom-band {
   flex: none;
-  /* Fixed, so a longer line wraps inside the strip instead of resizing the playfield. */
-  height: 120px;
   box-sizing: border-box;
   z-index: 3;
-  overflow: hidden;
   background: var(--color-space);
-  padding: 8px 10px max(8px, env(safe-area-inset-bottom));
-  /* On touch, Speech and Missile flank the comms line: thumbs at the bottom corners (PRD 13.2). */
+  padding: 6px 10px max(6px, env(safe-area-inset-bottom));
+  /* Speech and Missile at the bottom corners, where the thumbs already are (PRD 13.2). */
   display: flex;
-  align-items: stretch;
-  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+  /* Holds its height while the buttons step aside for the pick, so the lane does not jump. */
+  min-height: calc(68px + env(safe-area-inset-bottom));
 }
 
 .comms-slot {
-  flex: 1;
-  height: 100%;
+  /* Fixed, so a longer line wraps inside the slot instead of resizing the playfield. */
+  flex: none;
+  height: 82px;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -424,12 +454,6 @@ onUnmounted(() => {
     width: 100%;
   }
 
-  .bottom-band {
-    /* 64px portrait plus its own padding. Shorter than the desktop strip so the
-       9:16 canvas can reach the screen edges instead of pillarboxing. */
-    height: calc(90px + env(safe-area-inset-bottom));
-    padding: 4px 10px max(4px, env(safe-area-inset-bottom));
-  }
 }
 
 /* ---------- Wide windows: the CIC shell, FLEET · DRADIS · COMMS (ADR-0002 Phase 2) ---------- */

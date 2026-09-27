@@ -93,12 +93,16 @@ export class FleetPresenter implements Presenter {
     }
     const key = textureFor(ship);
     if (hull.texture.key !== key) hull.setTexture(key);
+    // Placed every frame, not only when made: a new run on a phone can have a wider lane than the
+    // title's, and the ships keep their ids from one run to the next.
+    hull.setPosition(ship.x, ship.galactica ? ship.y + GALACTICA_LINE_FROM_BOTTOM_UNITS : ship.y);
 
     let notch = this.notches.get(ship.id);
     if (!notch) {
       notch = this.scene.add.rectangle(ship.x, notchY(ship), 4, 2, PALETTE.strayShot);
       this.notches.set(ship.id, notch);
     }
+    notch.setPosition(ship.x, notchY(ship));
     notch.setVisible(ship.justHit);
 
     let mark = this.marks.get(ship.id);
@@ -106,12 +110,12 @@ export class FleetPresenter implements Presenter {
       mark = this.addMark(ship);
       this.marks.set(ship.id, mark);
     }
+    mark.setPosition(ship.x, markY(ship));
     mark.setVisible(!ship.healthy);
   }
 
   private addMark(ship: CivilianShipView): Phaser.GameObjects.Graphics {
-    const y = ship.galactica ? ship.y - GALACTICA_MARK_ABOVE_LINE_UNITS : ship.y;
-    const mark = this.scene.add.graphics({ x: ship.x, y }).setDepth(MARK_DEPTH).setAlpha(MARK_ALPHA);
+    const mark = this.scene.add.graphics({ x: ship.x, y: markY(ship) }).setDepth(MARK_DEPTH).setAlpha(MARK_ALPHA);
     const half = (MARK_STEPS - 1) / 2;
     const cells: { x: number; y: number }[] = [];
     for (let step = 0; step < MARK_STEPS; step++) {
@@ -177,6 +181,11 @@ function textureFor(ship: CivilianShipView): string {
 }
 
 /** Just above the hull's top edge: the nose tip for Galactica. */
+/** Galactica's X sits up on its drawn nose, above the line; a civilian's sits on the hull. */
+function markY(ship: CivilianShipView): number {
+  return ship.galactica ? ship.y - GALACTICA_MARK_ABOVE_LINE_UNITS : ship.y;
+}
+
 function notchY(ship: CivilianShipView): number {
   const aboveLine = ship.galactica ? GALACTICA_SHOWN.height - GALACTICA_LINE_FROM_BOTTOM_UNITS : CIVILIAN_SHOWN.height / 2;
   return ship.y - aboveLine - 2;

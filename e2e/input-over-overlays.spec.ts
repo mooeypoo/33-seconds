@@ -193,6 +193,24 @@ test.describe('steering works wherever the finger lands', () => {
     }
   });
 
+  test('on a phone the comms line sits above the playfield, clear of the thumbs', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'A wide window has the comms console instead.');
+    await startRun(page);
+    const comms = page.getByTestId('comms');
+    await expect(comms).toBeVisible();
+    const playfield = (await page.locator('.canvas-host').boundingBox())!;
+    const line = (await comms.boundingBox())!;
+    expect(line.y + line.height, 'the comms line should end above the playfield').toBeLessThanOrEqual(playfield.y + 1);
+  });
+
+  test('on a phone the lane widens its world to fill the screen, instead of leaving bands at the sides', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'A wide window has its fixed lane.');
+    await startRun(page);
+    const viewport = page.viewportSize()!;
+    // The Pixel 7's lane is squatter than 9:16, so a 270-wide world would leave about 40px each side.
+    await expect.poll(async () => (await page.locator('canvas').boundingBox())!.width).toBeGreaterThan(viewport.width * 0.95);
+  });
+
   test('a desktop shows no action buttons, because the keyboard has them', async ({ page, isMobile }) => {
     test.skip(isMobile, 'Phones need the buttons.');
     await startRun(page);
