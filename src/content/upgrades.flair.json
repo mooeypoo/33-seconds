@@ -118,5 +118,35 @@
       "baltar": "Shoot the ghost and the download waits. Three seconds a copy. I love being early.",
       "roslin": "The blip sits where it will return. A hit holds it there, longer with each copy."
     }
+  },
+  {
+    "id": "water-filter",
+    "title": "The Fleet's Water Filter",
+    "joke": "Someone poured poison into the main tank. The new filter would like a word.",
+    "plain": "Jump repair +10% of missing fleet health per stack. Viper hull -1 per stack.",
+    "advice": {
+      "baltar": "The civilians drink first, and my hull gets thinner. I have filed a complaint.",
+      "roslin": "Each copy mends the fleet faster at every jump. Your Viper carries the cost."
+    }
+  },
+  {
+    "id": "lucky-streak",
+    "title": "Starbuck's Lucky Streak",
+    "joke": "Her luck is legendary. Unless she's near a gas giant.",
+    "plain": "Each Raider destroyed gives 0.5 s of cover per stack, banked up to 1.5 s. While covered, rounds pass through you to the fleet.",
+    "advice": {
+      "baltar": "Keep killing and nothing touches you. Nothing touches you, so it touches us.",
+      "roslin": "Covered is not shielding. What misses you lands on the fleet. Choose where you fly."
+    }
+  },
+  {
+    "id": "gaius-lab",
+    "title": "Gaius' Lab",
+    "joke": "The Cylon detector works 100% of the time. Maybe. Depends on who's asking.",
+    "plain": "The resurrection ship's shield drops one cycle early. Baltar will take the credit.",
+    "advice": {
+      "baltar": "My work, a full cycle ahead of schedule. Do tell the President.",
+      "roslin": "A cycle sooner at the factory. Let him have the credit. We'll have the time."
+    }
   }
 ]

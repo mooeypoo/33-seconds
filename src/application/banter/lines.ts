@@ -32,6 +32,7 @@ const TRIGGERS = [
   'FleetLost',
   'RunWon',
   'ImaginarySixActive',
+  'ShieldDroppedEarly',
   'CycleRecovering',
 ] as const;
 

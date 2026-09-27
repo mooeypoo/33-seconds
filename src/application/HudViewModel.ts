@@ -55,6 +55,8 @@ export interface HudViewModel {
   readonly ejected: boolean;
   /** *Anyone Could Be a Cylon* saved the pilot this cycle: "two transponders". */
   readonly cylonEye: boolean;
+  /** *Starbuck's Lucky Streak* cover is running: "Lucky". */
+  readonly lucky: boolean;
   /** True while kills still download: the loop is on (PRD 6). */
   readonly resurrectionsActive: boolean;
   readonly shipStatus: ShipStatus;
@@ -121,6 +123,7 @@ export function buildHudViewModel(view: GameView): HudViewModel {
     hullMax: view.viper.hpMax,
     ejected: view.viper.ejected,
     cylonEye: view.viper.cylonEye,
+    lucky: view.viper.lucky,
     resurrectionsActive: view.resurrectionsActive,
     shipStatus,
     shipHp: ship === null ? 0 : Math.ceil(ship.hp),

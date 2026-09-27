@@ -1,6 +1,6 @@
 import { damageBand, type DamageBand } from './cycle/damageBand';
 import { JumpCycle } from './cycle/jumpCycle';
-import { Viper, VIPER_HALF_HEIGHT_UNITS, VIPER_HULL_HIT_POINTS } from './combat/viper';
+import { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';
 import { MAX_CYLON_SHOTS, MAX_PLAYER_SHOTS, RAIDER_SHOT_SPEED_UNITS_PER_SECOND } from './combat/projectile';
 import { MISSILE_CAPACITY, RESURRECTION_SHIP_LOCK_ID } from './combat/missile';
 import { Munitions } from './combat/Munitions';
@@ -8,7 +8,7 @@ import { fireSix, resolveHits, type Battlefield } from './combat/hits';
 import { pickMissileLock, type LockCandidate } from './combat/targeting';
 import { Speech } from './combat/speech';
 import { ImaginarySix } from './combat/imaginarySix';
-import type { CardId } from './progression/catalog';
+import { GAIUS_LAB_CYCLES_EARLIER, LUCKY_COVER_MAX_SECONDS, type CardId } from './progression/catalog';
 import { Loadout } from './progression/loadout';
 import type { DomainEvent } from './shared/events';
 import type { InputIntent } from './shared/intent';
@@ -153,9 +153,9 @@ export class Game {
     this.resurrectionShipHitPoints = options.resurrectionShipHitPoints ?? RESURRECTION_SHIP_HIT_POINTS;
     this.profile = options.tierProfile ?? DEFAULT_CYCLE_PROFILE;
     this.playfield = options.playfield ?? PHONE_PLAYFIELD;
-    this.viper = new Viper(this.playfield.width, this.playfield.fighterScale);
-    this.fleet = new Fleet(options.fleetStartingIntegrity ?? FLEET_INTEGRITY_MAX, this.playfield.width);
     this.loadout = new Loadout(options.startingCards ?? [], this.profile.fleetCycleDamageCap);
+    this.viper = new Viper(this.playfield.width, this.playfield.fighterScale, this.loadout.viperHullMax);
+    this.fleet = new Fleet(options.fleetStartingIntegrity ?? FLEET_INTEGRITY_MAX, this.playfield.width);
     this.swarm = new Swarm(this.playfield, this.scenario, () => this.allocateId());
     this.launchRaptors();
     this.syncSix();
@@ -176,15 +176,15 @@ export class Game {
       events.push(phaseChange);
       if (phaseChange.phase === 'jumping') {
         this.clearTheSky(events);
-        this.viper.resetAtJump();
-        this.fleet.repairAtJump(this.profile.fleetRepairOfMissing);
+        this.viper.resetAtJump(this.loadout.viperHullMax);
+        this.fleet.repairAtJump(this.loadout.repairOfMissing(this.profile.fleetRepairOfMissing));
         this.recoveryBand = damageBand(this.fleet.view.lastCycleDamage, this.viper.scarHullLost, this.viper.scarEjected);
         this.speech.onJump();
         this.loadout.onJump();
         events.push({ type: 'FleetRepaired', integrity: this.fleet.view.integrity });
       }
       if (phaseChange.phase === 'recovering') {
-        this.loadout.openOffer(this.scenario);
+        this.loadout.openOffer(this.scenario, this.cardsThatWouldDoNothing());
       }
     }
 
@@ -265,7 +265,7 @@ export class Game {
     this.heaviesThisCycle = 0;
     this.launchRaptors();
     this.syncSix();
-    this.viper.resetAtJump();
+    this.viper.resetAtJump(this.loadout.viperHullMax);
     this.six?.follow(this.viper.x, this.viper.y, this.viper.isEjected);
     this.maybeArriveShip(events);
     this.maybeExposeShip(events);
@@ -298,7 +298,7 @@ export class Game {
   rerollOffer(): readonly DomainEvent[] {
     this.cachedView = null;
     if (!this.cycle.isRecovering) return [];
-    if (!this.loadout.reroll(this.scenario)) return [];
+    if (!this.loadout.reroll(this.scenario, this.cardsThatWouldDoNothing())) return [];
     return [{ type: 'UpgradeRerolled' }];
   }
 
@@ -321,12 +321,13 @@ export class Game {
         velocityX: viper.velocityXUnitsPerSecond,
         velocityY: viper.velocityYUnitsPerSecond,
         hp: viper.hp,
-        hpMax: VIPER_HULL_HIT_POINTS,
+        hpMax: viper.hpMax,
         ejected: viper.isEjected,
         ejectProgress: viper.ejectProgress,
         maxSpeed: this.loadout.viperMaxSpeed,
         scale: this.loadout.viperScale * this.playfield.fighterScale,
         cylonEye: this.loadout.cylonEye,
+        lucky: this.loadout.hasLuckyStreak && viper.coverSeconds > 0,
       },
       projectiles: this.munitions.shots.map((shot) => shot.toView()),
       missiles: this.munitions.missiles.map((missile) => missile.toView()),
@@ -392,9 +393,31 @@ export class Game {
     };
   }
 
-  /** Every weapon kills the same way. The loop is on until the resurrection ship is destroyed. */
+  /**
+   * Every weapon kills the same way. The loop is on until the resurrection ship is destroyed.
+   * *Starbuck's Lucky Streak* banks cover on every kill, Six's included: she is only the pilot.
+   */
   private destroyRaider(raider: Raider, events: DomainEvent[]): void {
     this.swarm.destroy(raider, events, !this.resurrectionShip?.isDestroyed, this.nextDownloadSeconds());
+    this.viper.addCover(this.loadout.luckyCoverPerKillSeconds, LUCKY_COVER_MAX_SECONDS);
+  }
+
+  /** The cycle the shield drops this run, after *Gaius' Lab*. */
+  private shieldDropCycle(): number {
+    return this.loadout.shieldDropCycle(this.resurrectionShipArrivesCycle, this.resurrectionShipVulnerableCycle);
+  }
+
+  /**
+   * Cards kept off the table because taking one now would change nothing (PRD 10.1 rule 7).
+   * *Gaius' Lab* only counts while the shield would still be up next cycle, and while it can move
+   * the drop at all.
+   */
+  private cardsThatWouldDoNothing(): CardId[] {
+    const nextCycle = this.cycle.view.cycleIndex + 1;
+    const base = this.resurrectionShipVulnerableCycle;
+    const withLab = Math.max(this.resurrectionShipArrivesCycle, base - GAIUS_LAB_CYCLES_EARLIER);
+    const labMatters = nextCycle < base && withLab < base;
+    return labMatters ? [] : ['gaius-lab'];
   }
 
   /**
@@ -660,7 +683,7 @@ export class Game {
   private maybeArriveShip(events: DomainEvent[]): void {
     if (this.resurrectionShip) return;
     if (this.cycle.view.cycleIndex < this.resurrectionShipArrivesCycle) return;
-    const shielded = this.cycle.view.cycleIndex < this.resurrectionShipVulnerableCycle;
+    const shielded = this.cycle.view.cycleIndex < this.shieldDropCycle();
     this.resurrectionShip = new ResurrectionShip(this.resurrectionShipHitPoints, shielded, this.playfield.width);
     events.push({ type: 'ResurrectionShipArrived', x: this.resurrectionShip.x, y: this.resurrectionShip.y });
   }
@@ -668,7 +691,7 @@ export class Game {
   private maybeExposeShip(events: DomainEvent[]): void {
     const ship = this.resurrectionShip;
     if (!ship?.isShielded) return;
-    if (this.cycle.view.cycleIndex < this.resurrectionShipVulnerableCycle) return;
+    if (this.cycle.view.cycleIndex < this.shieldDropCycle()) return;
     if (!ship.expose()) return;
     events.push({ type: 'ResurrectionShipExposed', x: ship.x, y: ship.y });
   }

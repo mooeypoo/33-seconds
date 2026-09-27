@@ -24,6 +24,9 @@ export class CommsDirector {
   private readonly cues = new BanterCues();
   private sixRemarkOwed = false;
   private sixWasPresent = false;
+  /** *Gaius' Lab* dropped the shield early and Baltar has not taken the credit yet. */
+  private labCreditOwed = false;
+  private shipWasHurtable = false;
   /** Lines shown since the last jump, oldest first (PRD 12.2). */
   private readonly history: CommsLine[] = [];
 
@@ -49,6 +52,8 @@ export class CommsDirector {
     this.scene.stop();
     this.sixRemarkOwed = false;
     this.sixWasPresent = false;
+    this.labCreditOwed = false;
+    this.shipWasHurtable = false;
     this.cues.reset();
     this.history.length = 0;
   }
@@ -85,6 +90,7 @@ export class CommsDirector {
     if (jumped) {
       this.banter.silence();
       this.history.length = 0;
+      this.labCreditOwed = false;
     }
     const enteredRecovering = events.some((event) => event.type === 'CyclePhaseChanged' && event.phase === 'recovering');
     if (enteredRecovering) this.scene.start(view.recoveryBand, this.random);
@@ -98,7 +104,10 @@ export class CommsDirector {
     this.banter.advance(deltaSeconds);
     this.scene.advance(deltaSeconds);
     // The arriving line is in next frame's events. Let it speak before anyone asks about Six.
-    if (!betweenCycles) this.maybeMentionSix(view, context);
+    if (!betweenCycles) {
+      this.maybeMentionSix(view, context);
+      this.maybeCreditLab(view, context);
+    }
     const line = this.line;
     const changed = commsKey(line) !== before;
     if (changed && line !== null) {
@@ -135,6 +144,22 @@ export class CommsDirector {
     this.sixWasPresent = present;
     if (!this.sixRemarkOwed || this.banter.line !== null) return;
     if (this.banter.mention('ImaginarySixActive', context)) this.sixRemarkOwed = false;
+  }
+
+  /**
+   * The card's cosmetic downside (PRD 10.2). Once *Gaius' Lab* drops the shield, Baltar takes the credit when the strip is next quiet, so
+   * the cycle's opening call and the arrival are heard first. Dropped at the jump if never quiet.
+   */
+  private maybeCreditLab(view: GameView, context: BanterContext): void {
+    // Read from the view, not the exposed event: a ship that arrives already open never sends one.
+    const ship = view.resurrectionShip;
+    const hurtable = ship !== null && !ship.shielded;
+    if (hurtable && !this.shipWasHurtable && view.loadout.some((card) => card.id === 'gaius-lab')) {
+      this.labCreditOwed = true;
+    }
+    this.shipWasHurtable = hurtable;
+    if (!this.labCreditOwed || this.banter.line !== null) return;
+    if (this.banter.mention('ShieldDroppedEarly', context)) this.labCreditOwed = false;
   }
 }
 

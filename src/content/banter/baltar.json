@@ -137,6 +137,43 @@
       "lines": [
         { "id": "baltar-upgrade-offered-12", "text": "Knowing where they land? I do love being right in advance." }
       ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "water-filter" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-13", "text": "Clean water for everyone. I will be tasting mine very carefully." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "lucky-streak" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-14", "text": "Luck as a flight plan. Remarkable. Please stay away from me." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "gaius-lab" },
+      "lines": [
+        { "id": "baltar-upgrade-offered-15", "text": "My lab, my detector, their shield coming down. You're welcome." }
+      ]
+    },
+    {
+      "trigger": "ShieldDroppedEarly",
+      "priority": "normal",
+      "cooldownSeconds": 30,
+      "lines": [
+        { "id": "baltar-shield-dropped-early-01", "text": "The shield is down early. My detector did that. You may applaud." },
+        { "id": "baltar-shield-dropped-early-02", "text": "One hundred percent accurate. Give or take. Depending on who's asking." },
+        { "id": "baltar-shield-dropped-early-03", "text": "Science! Mine, specifically. Do write that down." }
+      ]
     }
   ]
 }

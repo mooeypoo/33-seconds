@@ -1,4 +1,4 @@
-import { VIPER_MAX_SPEED_UNITS_PER_SECOND, VIPER_RADIUS_UNITS } from '../combat/viper';
+import { VIPER_HULL_HIT_POINTS, VIPER_MAX_SPEED_UNITS_PER_SECOND, VIPER_RADIUS_UNITS } from '../combat/viper';
 import { VIPER_FIRE_INTERVAL_SECONDS, VIPER_SHOT_RADIUS_UNITS, VIPER_SHOT_SPEED_UNITS_PER_SECOND } from '../combat/projectile';
 import { MISSILE_SPEED_UNITS_PER_SECOND } from '../combat/missile';
 import { RESURRECTION_DOWNLOAD_SECONDS } from '../swarm/resurrection';
@@ -10,6 +10,7 @@ import {
   FLAK_INTERCEPT_EXTRA_STACK,
   FLAK_INTERCEPT_FIRST_STACK,
   FLAK_INTERCEPT_MAX,
+  GAIUS_LAB_CYCLES_EARLIER,
   HANGAR_SLAM_DAMAGE_PER_STACK,
   SPOILERS_DELAY_SECONDS_PER_STACK,
   CANNON_PIERCE_PER_STACK,
@@ -20,9 +21,12 @@ import {
   HOOCH_FIRE_RATE_PER_STACK,
   HOOCH_SPEED_PER_STACK,
   isCardId,
+  LUCKY_COVER_SECONDS_PER_KILL_PER_STACK,
   maxStacksFor,
   STARTER_CARDS,
   VENDETTA_MISSILE_SPEED_PER_STACK,
+  WATER_FILTER_HULL_PER_STACK,
+  WATER_FILTER_REPAIR_PER_STACK,
   WIDE_SCALE_PER_STACK,
 } from './catalog';
 
@@ -157,9 +161,37 @@ export class Loadout {
     return this.cylonEyeActive;
   }
 
-  /** Three unique cards that are not at their stack cap. Reroll is armed. */
-  openOffer(rng: RandomStream): void {
-    this.offered = drawOffer(rng, this.stacks, []);
+  /** Share of the missing integrity the jump gives back: the tier's, plus *The Fleet's Water Filter*. */
+  repairOfMissing(tierRepair: number): number {
+    return Math.min(1, tierRepair + WATER_FILTER_REPAIR_PER_STACK * this.stacksOf('water-filter'));
+  }
+
+  /** Hull Tyrol fits at the jump. The water went to the civilians. */
+  get viperHullMax(): number {
+    return VIPER_HULL_HIT_POINTS - WATER_FILTER_HULL_PER_STACK * this.stacksOf('water-filter');
+  }
+
+  /** *Starbuck's Lucky Streak*: cover bought by one Raider kill. 0 without the card. */
+  get luckyCoverPerKillSeconds(): number {
+    return LUCKY_COVER_SECONDS_PER_KILL_PER_STACK * this.stacksOf('lucky-streak');
+  }
+
+  get hasLuckyStreak(): boolean {
+    return this.stacksOf('lucky-streak') > 0;
+  }
+
+  /** The cycle the shield drops, after *Gaius' Lab*. Never before the ship is there to see. */
+  shieldDropCycle(arrivesCycle: number, vulnerableCycle: number): number {
+    if (this.stacksOf('gaius-lab') <= 0) return vulnerableCycle;
+    return Math.max(arrivesCycle, vulnerableCycle - GAIUS_LAB_CYCLES_EARLIER);
+  }
+
+  /**
+   * Three unique cards that are not at their stack cap. Reroll is armed. `unavailable` are cards
+   * that would do nothing now (PRD 10.1 rule 7), such as *Gaius' Lab* once the shield is down.
+   */
+  openOffer(rng: RandomStream, unavailable: readonly CardId[] = []): void {
+    this.offered = drawOffer(rng, this.stacks, [], unavailable);
     this.rerollAvailable = this.offered.length > 0;
   }
 
@@ -169,9 +201,9 @@ export class Loadout {
   }
 
   /** Fresh three, excluding the current table when enough others remain (PRD 10.1). */
-  reroll(rng: RandomStream): boolean {
+  reroll(rng: RandomStream, unavailable: readonly CardId[] = []): boolean {
     if (!this.rerollAvailable) return false;
-    this.offered = drawOffer(rng, this.stacks, this.offered);
+    this.offered = drawOffer(rng, this.stacks, this.offered, unavailable);
     this.rerollAvailable = false;
     return true;
   }
@@ -216,12 +248,19 @@ export class Loadout {
   }
 }
 
-function eligibleIds(stacks: ReadonlyMap<CardId, number>): CardId[] {
-  return STARTER_CARDS.filter((card) => (stacks.get(card.id) ?? 0) < maxStacksFor(card.rarity)).map((card) => card.id);
+function eligibleIds(stacks: ReadonlyMap<CardId, number>, unavailable: readonly CardId[]): CardId[] {
+  return STARTER_CARDS.filter(
+    (card) => (stacks.get(card.id) ?? 0) < maxStacksFor(card.rarity) && !unavailable.includes(card.id),
+  ).map((card) => card.id);
 }
 
-function drawOffer(rng: RandomStream, stacks: ReadonlyMap<CardId, number>, exclude: readonly CardId[]): CardId[] {
-  const eligible = eligibleIds(stacks);
+function drawOffer(
+  rng: RandomStream,
+  stacks: ReadonlyMap<CardId, number>,
+  exclude: readonly CardId[],
+  unavailable: readonly CardId[],
+): CardId[] {
+  const eligible = eligibleIds(stacks, unavailable);
   const preferred = eligible.filter((id) => !exclude.includes(id));
   const pool = preferred.length >= Math.min(3, eligible.length) && preferred.length > 0 ? preferred : eligible;
   return pickUnique(rng, pool, 3);

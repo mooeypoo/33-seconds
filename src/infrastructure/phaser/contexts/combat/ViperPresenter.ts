@@ -87,7 +87,9 @@ export class ViperPresenter implements Presenter {
 
     this.ensurePips(hull, viper.hpMax);
     this.drawPips(viper.hp);
-    this.cover?.setVisible(view.speechActive);
+    // The same steady ring for the Speech and *Starbuck's Lucky Streak*: both mean rounds pass
+    // you by. The HUD names which (PRD 15).
+    this.cover?.setVisible(view.speechActive || viper.lucky);
     this.eye?.setVisible(viper.cylonEye);
   }
 

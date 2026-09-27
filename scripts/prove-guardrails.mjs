@@ -23,8 +23,8 @@ const SABOTAGE = [
   {
     what: 'domain imports Phaser',
     file: 'src/domain/game.ts',
-    find: "import { Viper, VIPER_HALF_HEIGHT_UNITS, VIPER_HULL_HIT_POINTS } from './combat/viper';",
-    replace: "import Phaser from 'phaser';\nimport { Viper, VIPER_HALF_HEIGHT_UNITS, VIPER_HULL_HIT_POINTS } from './combat/viper';",
+    find: "import { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';",
+    replace: "import Phaser from 'phaser';\nimport { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';",
     mustFail: 'npm run check:arch',
   },
   {
@@ -282,8 +282,15 @@ const SABOTAGE = [
     {
       what: 'Ask Baltar Again is free forever',
       file: 'src/domain/progression/loadout.ts',
-      find: '    this.offered = drawOffer(rng, this.stacks, this.offered);\n    this.rerollAvailable = false;',
-      replace: '    this.offered = drawOffer(rng, this.stacks, this.offered);\n    this.rerollAvailable = true;',
+      find: '    this.offered = drawOffer(rng, this.stacks, this.offered, unavailable);\n    this.rerollAvailable = false;',
+      replace: '    this.offered = drawOffer(rng, this.stacks, this.offered, unavailable);\n    this.rerollAvailable = true;',
+      mustFail: 'npm run test',
+    },
+    {
+      what: "Gaius' Lab is dealt after the shield would drop anyway",
+      file: 'src/domain/progression/loadout.ts',
+      find: '(stacks.get(card.id) ?? 0) < maxStacksFor(card.rarity) && !unavailable.includes(card.id),',
+      replace: '(stacks.get(card.id) ?? 0) < maxStacksFor(card.rarity),',
       mustFail: 'npm run test',
     },
     {
