@@ -28,9 +28,11 @@ All three fit the show and the game's sense of humour. They needed three adjustm
 
 ## What we built
 
-- **The Fleet's Water Filter** (Uncommon). Each jump mends 10 more points of whatever the fleet is
-  missing, per stack. The water goes to the civilians, so Tyrol fits one less hull on the Viper per
-  stack, starting at the reset after you pick it.
+- **The Fleet's Water Filter** (Uncommon). After a calm cycle, each jump mends 10 more points of
+  whatever the fleet is missing, per stack. "Calm" means under half the damage cap. Past that, the
+  bonus fades, and it is gone after a cycle at the cap: the filter can't keep up while someone is
+  shooting the tank. The water goes to the civilians, so Tyrol fits one less hull on the Viper per
+  stack, starting at the reset after you pick it. The fade was not in the first draft; see below.
 - **Starbuck's Lucky Streak** (Uncommon). Each Raider destroyed buys half a second of cover per
   stack, banked up to a second and a half. Cover is the game's ordinary invulnerability, which
   already let Cylon rounds pass through the Viper. So while the luck holds, what misses you lands on
@@ -44,13 +46,40 @@ All three fit the show and the game's sense of humour. They needed three adjustm
 
 ## What we measured
 
-- `npm run sim`, compared with main: the hunter bot is unchanged on both tiers. On Viper Pilot the
-  idle bot loses less often (48% to 33%), because the seeded picks now sometimes land on the Water
-  Filter.
-- The PRD's worst-case rule (the fleet cannot be lost if the repair rate is above the damage cap)
-  says one Water Filter already makes Viper Pilot unloseable in theory: 50% repair against a 45 cap.
-  Two stacks of *Continuity of Government* already crossed that line before this slice. This is an
-  open question for the owner, not a settled number.
+- `npm run sim`, first draft against main: the hunter bot was unchanged on both tiers. On Viper
+  Pilot, the idle bot lost less often (48% to 33%). That looked mild. It wasn't.
+- **The worst-case rule.** The PRD says a fleet cannot be lost if the jump repair is above the
+  damage cap (7.3). The first draft's flat +10% put Viper Pilot's repair at 50% against a cap of 45:
+  unloseable in theory, from one card.
+
+## What we revisited
+
+**Is the theory real in play?** The normal sim picks cards at random, which blurs one card's effect.
+So a throwaway script forced the Water Filter on and picked nothing else: 60 seeds on Viper Pilot,
+at 0, 1, and 2 copies, for each bot. Runs lost out of 60:
+
+| Version | Idle | Hunter | Guard |
+|---|---|---|---|
+| No card | 60 | 47 | 60 |
+| Flat +10% (first draft) | 0 | 0 | 0 |
+| Bonus fades across the whole cap | 60 | 45 to 48 | 60 |
+| Whole until half the cap, then fades (shipped) | 60 | 39 to 40 | 60 |
+
+- **The flat bonus was a disaster.** One copy took every bot, including one that never moves, from
+  always losing to never losing.
+- **A bigger cost on the Viper could not fix it.** The worst-case rule only compares two fleet
+  numbers, the repair and the cap. A second hull point makes the card feel pricier and leaves the
+  math where it was. The cost had to live on the fleet side.
+- **Fading across the whole cap overcorrected.** It closed the hole, but the bots rarely have a
+  quiet cycle, so the card did next to nothing. At 2 copies the hunter did slightly worse, which was
+  the hull cost showing through.
+- **Fading over the top half is the keeper.** A cycle at the cap still gets nothing, so the worst
+  case is the tier's own, however the card stacks. The bot that defends went from 13 wins to 21.
+  The bots that don't defend still lose. The card rewards the thing it is about.
+- The owner chose the half-cap fade over a smaller flat bonus (+5 per stack). A smaller flat bonus
+  would still cross the line at two copies.
+- The PRD's tuning math now says so: a card that adds repair must add nothing after a cycle at the
+  cap. A guardrail sabotage checks that the filter never gives a bonus after a full-cap cycle.
 
 ## What surprised us
 
@@ -67,4 +96,9 @@ All three fit the show and the game's sense of humour. They needed three adjustm
 ## Open
 
 - Advice lines and Baltar's credit lines are placeholders until the content pass.
-- Whether the Water Filter should be +5 per stack, or cost more, given the worst-case rule.
+- Two stacks of *Continuity of Government* already put Viper Pilot's cap (36.5) under its repair
+  (40), so they break the same rule from the other side. That was true before this slice. It needs
+  its own look.
+- The bots are weak players (the hunter wins 13 of 60 on Viper Pilot with no cards), so people will
+  earn the filter's bonus more often than the table shows. The next playtest should say whether 10
+  points is too much.
