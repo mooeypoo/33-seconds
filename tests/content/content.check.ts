@@ -38,6 +38,8 @@ import { parseScenes } from '../../src/application/banter/recoveringScene';
 import { STARTER_CARDS, isCardId } from '../../src/domain/progression/catalog';
 import { parseSoundBank } from '../../src/application/audio/soundBank';
 import { SOUND_IDS } from '../../src/application/audio/soundIds';
+import voicesRaw from '../../src/content/voices.json';
+import { parseVoiceBank } from '../../src/application/audio/voices';
 
 /**
  * `npm run check:content` (ADR-0001 D8, CONTENT-SCHEMA). The game's loaders drop a bad line or
@@ -439,5 +441,18 @@ describe('sounds', () => {
 
   it('has a sound for every id, so nothing the game asks for is silent by accident', () => {
     expect(SOUND_IDS.filter((id) => !bank.has(id))).toEqual([]);
+  });
+});
+
+describe('voices (experimental, PRD 14.3)', () => {
+  const { voices, problems } = parseVoiceBank(voicesRaw);
+
+  it('has no voice the page would skip: known speakers, numbers in range, short syllables, a valid radio', () => {
+    expect(problems).toEqual([]);
+  });
+
+  it('has a voice for every speaker who has lines, so nobody is silent by accident', () => {
+    const speakers = Object.values(banterFiles).map((raw) => record(raw).speaker);
+    expect(speakers.filter((speaker) => !isSpeaker(speaker) || !voices.has(speaker))).toEqual([]);
   });
 });

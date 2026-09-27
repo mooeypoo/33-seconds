@@ -1,0 +1,149 @@
+{
+  "_readme": "EXPERIMENTAL (PRD 14.3): each speaker's radio chatter, the 'wawawa' under a comms line. Heard only on the sound test page (/tools/sound-test/ under npm run dev), not in a run. A voice strings its syllables in random order: pitchHz is the voice's middle pitch (each syllable's own frequency slot is ignored; syllableNames only labels them on the page), pitchRangeSemitones is how far a syllable wanders either way, phraseEndSemitones bends the last syllable of a phrase (negative falls like a statement, positive rises like a question), syllablesPerPhrase is [fewest, most], and the two gaps are in seconds. A syllable is a ZzFX array or the Sound Designer's pasted text, as in sounds.json, under 0.25 s long. The vowel comes from the last slot, the filter: a negative number is a low-pass whose resonance sounds like a vowel (about -500 oo, -800 oh, -1200 ah, -1800 eh, -2500 ee). Slide (slot 8) bends a syllable by slide × 500 Hz per second: negative sounds like 'wa'. Noise (slot 13) adds rasp or breath, bitCrush (slot 15) adds grit. radio is the band every voice goes through (lowCutHz, highCutHz) and its saturation (drive, 0 clean to 1). Every voice here is a PLACEHOLDER first pass by the engineer, for the owner to tune.",
+  "radio": {"lowCutHz": 300, "highCutHz": 3400, "drive": 0.2},
+  "voices": [
+    {
+      "speaker": "adama",
+      "note": "PLACEHOLDER. Low, slow, gravelly. Few words, and the phrase falls at the end.",
+      "pitchHz": 95,
+      "pitchRangeSemitones": 2,
+      "phraseEndSemitones": -3,
+      "syllablesPerPhrase": [3, 5],
+      "syllableGapSeconds": 0.05,
+      "phraseGapSeconds": 0.3,
+      "syllables": [
+        [0.42,0,0,0.01,0.09,0.05,2,1,-0.6,0,0,0,0,0.15,0,0,0,1,0,0,-800],
+        [0.42,0,0,0.01,0.08,0.05,2,1,-0.3,0,0,0,0,0.15,0,0,0,1,0,0,-500],
+        [0.42,0,0,0.01,0.1,0.06,2,1,-0.8,0,0,0,0,0.15,0,0,0,1,0,0,-1100]
+      ],
+      "syllableNames": ["oh", "oo", "ah"]
+    },
+    {
+      "speaker": "starbuck",
+      "note": "PLACEHOLDER. Mid, quick, bouncy. Confident drop at the end.",
+      "pitchHz": 175,
+      "pitchRangeSemitones": 4,
+      "phraseEndSemitones": -2,
+      "syllablesPerPhrase": [3, 6],
+      "syllableGapSeconds": 0.03,
+      "phraseGapSeconds": 0.2,
+      "syllables": [
+        [0.35,0,0,0.01,0.06,0.04,2,1,-1.2,0,0,0,0,0.05,0,0,0,1,0,0,-1200],
+        [0.35,0,0,0.01,0.05,0.04,2,1,0.6,0,0,0,0,0.05,0,0,0,1,0,0,-1600],
+        [0.35,0,0,0.01,0.07,0.05,2,1,-0.4,0,0,0,0,0.05,0,0,0,1,0,0,-800]
+      ],
+      "syllableNames": ["wa", "yeh", "oh"]
+    },
+    {
+      "speaker": "gaeta",
+      "note": "PLACEHOLDER. Precise and even: clipped syllables, a narrow pitch range, long runs.",
+      "pitchHz": 150,
+      "pitchRangeSemitones": 1.5,
+      "phraseEndSemitones": -1,
+      "syllablesPerPhrase": [4, 6],
+      "syllableGapSeconds": 0.035,
+      "phraseGapSeconds": 0.22,
+      "syllables": [
+        [0.35,0,0,0.005,0.045,0.03,2,1,0,0,0,0,0,0,0,0,0,1,0,0,-1800],
+        [0.35,0,0,0.005,0.04,0.03,2,1,0,0,0,0,0,0,0,0,0,1,0,0,-2200],
+        [0.35,0,0,0.005,0.045,0.03,2,1,-0.2,0,0,0,0,0,0,0,0,1,0,0,-1300]
+      ],
+      "syllableNames": ["eh", "ih", "ah"]
+    },
+    {
+      "speaker": "dualla",
+      "note": "PLACEHOLDER. Calm and relayed: soft onsets, steady, a gentle fall.",
+      "pitchHz": 200,
+      "pitchRangeSemitones": 2,
+      "phraseEndSemitones": -2,
+      "syllablesPerPhrase": [3, 5],
+      "syllableGapSeconds": 0.045,
+      "phraseGapSeconds": 0.28,
+      "syllables": [
+        [0.32,0,0,0.015,0.06,0.05,2,1,-0.3,0,0,0,0,0,0,0,0,1,0,0,-1200],
+        [0.32,0,0,0.015,0.06,0.05,2,1,-0.3,0,0,0,0,0,0,0,0,1,0,0,-850],
+        [0.32,0,0,0.015,0.05,0.05,2,1,-0.2,0,0,0,0,0,0,0,0,1,0,0,-1700]
+      ],
+      "syllableNames": ["ah", "oh", "eh"]
+    },
+    {
+      "speaker": "tigh",
+      "note": "PLACEHOLDER. Gruff and terse: low, raspy, short phrases, long pauses.",
+      "pitchHz": 105,
+      "pitchRangeSemitones": 2.5,
+      "phraseEndSemitones": -4,
+      "syllablesPerPhrase": [2, 3],
+      "syllableGapSeconds": 0.04,
+      "phraseGapSeconds": 0.4,
+      "syllables": [
+        [0.42,0,0,0.005,0.06,0.03,2,1,-1,0,0,0,0,0.35,0,0.04,0,1,0,0,-700],
+        [0.42,0,0,0.005,0.06,0.03,2,1,-1,0,0,0,0,0.35,0,0.04,0,1,0,0,-1000]
+      ],
+      "syllableNames": ["uh", "ah"]
+    },
+    {
+      "speaker": "baltar",
+      "note": "PLACEHOLDER. High, fast, jumpy. Rises at the end, like a panicked question.",
+      "pitchHz": 190,
+      "pitchRangeSemitones": 5,
+      "phraseEndSemitones": 3,
+      "syllablesPerPhrase": [4, 7],
+      "syllableGapSeconds": 0.02,
+      "phraseGapSeconds": 0.15,
+      "syllables": [
+        [0.32,0,0,0.005,0.04,0.03,2,1,1,0,0,0,0,0,0,0,0,1,0,0,-1800],
+        [0.32,0,0,0.005,0.03,0.03,2,1,-1,0,0,0,0,0,0,0,0,1,0,0,-2400],
+        [0.32,0,0,0.005,0.05,0.03,2,1,0,0,0,0,0,0,0,0,0,1,0,0,-1200]
+      ],
+      "syllableNames": ["eh", "ee", "ah"]
+    },
+    {
+      "speaker": "roslin",
+      "note": "PLACEHOLDER. Calm and measured: unhurried, warm, a considered fall.",
+      "pitchHz": 215,
+      "pitchRangeSemitones": 2,
+      "phraseEndSemitones": -2.5,
+      "syllablesPerPhrase": [3, 5],
+      "syllableGapSeconds": 0.05,
+      "phraseGapSeconds": 0.3,
+      "syllables": [
+        [0.32,0,0,0.012,0.06,0.05,2,1,-0.3,0,0,0,0,0,0,0,0,1,0,0,-1100],
+        [0.32,0,0,0.012,0.05,0.05,2,1,-0.3,0,0,0,0,0,0,0,0,1,0,0,-1500],
+        [0.32,0,0,0.012,0.06,0.05,2,1,-0.2,0,0,0,0,0,0,0,0,1,0,0,-800]
+      ],
+      "syllableNames": ["ah", "eh", "oh"]
+    },
+    {
+      "speaker": "tyrol",
+      "note": "PLACEHOLDER. Overworked: mid-low, a bit rough, tumbling phrases that sag.",
+      "pitchHz": 125,
+      "pitchRangeSemitones": 3,
+      "phraseEndSemitones": -3,
+      "syllablesPerPhrase": [3, 6],
+      "syllableGapSeconds": 0.03,
+      "phraseGapSeconds": 0.25,
+      "syllables": [
+        [0.39,0,0,0.008,0.05,0.04,2,1,-0.8,0,0,0,0,0.1,0,0,0,1,0,0,-900],
+        [0.39,0,0,0.008,0.05,0.04,2,1,-0.6,0,0,0,0,0.1,0,0,0,1,0,0,-1300],
+        [0.39,0,0,0.008,0.06,0.04,2,1,-0.8,0,0,0,0,0.1,0,0,0,1,0,0,-700]
+      ],
+      "syllableNames": ["uh", "eh", "oh"]
+    },
+    {
+      "speaker": "six",
+      "note": "PLACEHOLDER. Soft, breathy, mysterious: slow, airy syllables with a breath between, and a slight rise.",
+      "pitchHz": 230,
+      "pitchRangeSemitones": 2,
+      "phraseEndSemitones": 1.5,
+      "syllablesPerPhrase": [2, 4],
+      "syllableGapSeconds": 0.07,
+      "phraseGapSeconds": 0.45,
+      "syllables": [
+        [0.32,0,0,0.03,0.08,0.08,1,1,0.2,0,0,0,0,0.8,0,0,0,1,0,0,-1400],
+        [0.32,0,0,0.03,0.08,0.08,1,1,-0.2,0,0,0,0,0.8,0,0,0,1,0,0,-1000],
+        [0.14,0,0,0.04,0.05,0.08,4,1,0,0,0,0,0,0,0,0,0,1,0,0,-3000]
+      ],
+      "syllableNames": ["hah", "hoo", "breath"]
+    }
+  ]
+}
