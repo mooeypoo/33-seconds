@@ -2,6 +2,7 @@
   "name": "thirty-three-seconds",
   "version": "0.1.0",
   "private": true,
+  "license": "GPL-3.0-or-later",
   "type": "module",
   "description": "33 Seconds -- a pixel-art survivors-style browser shooter. Unofficial fan project.",
   "homepage": "https://33seconds.netlify.app/",
