@@ -13,11 +13,15 @@ export const SIX_FIRE_INTERVAL_SECONDS = VIPER_FIRE_INTERVAL_SECONDS;
  */
 export const SIX_RANGE_UNITS = 140;
 
-/** Starboard of the Viper, unless that would leave the world. */
-export const SIX_OFFSET_X_UNITS = 18;
+/**
+ * Starboard of the Viper, unless that would leave the world. Her picture's half width (8) plus the
+ * Viper's drawn half width (15) and a small gap, so the two never overlap.
+ */
+export const SIX_OFFSET_X_UNITS = 26;
 
-export const SIX_HALF_WIDTH_UNITS = 4;
-export const SIX_HALF_HEIGHT_UNITS = 7;
+/** Her drawn size, 16 x 24 units, so the world-edge clamp keeps the whole picture on screen. */
+export const SIX_HALF_WIDTH_UNITS = 8;
+export const SIX_HALF_HEIGHT_UNITS = 12;
 
 /**
  * A wingman only the player can see. Formation, beam, no hull. She cannot be hit and does not

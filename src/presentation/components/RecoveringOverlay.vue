@@ -11,7 +11,7 @@ import UpgradeCard from './UpgradeCard.vue';
 
 /**
  * Recovering pick as cards (PRD 5.1, 10; ADR-0002 2.3). No timer on the choice. A card is selected
- * by its face; Apply starts the 3-2-1, then the next cycle. One free Refresh the list.
+ * by a click anywhere on it; Apply starts the 3-2-1, then the next cycle. One free Refresh the list.
  *
  * `wide` is the CIC shell: a full-screen requisition board with three cards side by side, every
  * detail showing, and the Recovering scene in the footer. Otherwise the cards stack in the lane and

@@ -46,18 +46,29 @@ Redrawn at the new density and in the game.
 - [x] **Missile** — `assets/projectiles/missile_1.png`, `missile_2.png` — **8 × 16**, two frames of
   flame, flickering at 2 Hz. Reduced effects holds the first frame.
 
-### New ships (placeholder shapes in the game today)
+### New ships (placeholder shapes in the game today, unless ticked)
 
-- [ ] **Civilian ships** — `assets/ships/civilian_a.png`, `civilian_b.png`, `civilian_c.png` —
-  **32 × 16** (16 × 8 units). Three silly silhouettes.
-- [ ] **Civilian ships, dented** — `assets/ships/civilian_a_damaged.png`, `_b_damaged.png`,
-  `_c_damaged.png` — **32 × 16**. The same three, visibly dented, so damage is not only a colour.
-- [ ] **Galactica on the fleet line** — `assets/ships/galactica_fleet.png`,
-  `galactica_fleet_damaged.png` — **48 × 20** (24 × 10 units). A little larger than the civilians.
-- [ ] **Raptor** — `assets/ships/raptor.png` — **32 × 16** (16 × 8 units). Olive, never red.
-- [ ] **Imaginary Six** — `assets/ships/imaginary_six.png` — **32 × 48** (16 × 24 units). A steady
-  outline figure flying beside the Viper; the glow is drawn in code. Costume and silhouette.
-- [ ] **Ejected pilot** — `assets/ships/pilot_eject.png` — **32 × 40** (16 × 20 units). Seat and
+- [x] **Civilian ships** — `assets/ships/civilian_1.png`, `civilian_2.png`, `civilian_3.png` —
+  **32 × 16** (16 × 8 units). Silly silhouettes; the line cycles through them in order. More can be
+  added as `civilian_4.png` and so on, each with its dented pair, plus one entry in
+  `CIVILIAN_VARIANTS` (`src/infrastructure/phaser/sprites.ts`).
+- [x] **Civilian ships, dented** — `assets/ships/civilian_1_damaged.png`, `_2_damaged.png`,
+  `_3_damaged.png` — **32 × 16**. The same ships, visibly dented, so damage is not only a colour.
+- [x] **Galactica on the fleet line** — `assets/ships/galactica_fleet.png`,
+  `galactica_fleet_damaged.png` — **64 wide × 76 tall** (32 × 38 units), portrait. Only the front
+  of Galactica, nose pointing up, rising out of the bottom edge of the screen; the rest of the ship
+  is "off screen", so it looks huge while taking one wider slot in the line. From the bottom of the
+  file up:
+  - **4 px bleed**, hidden below the screen edge.
+  - **32 px of hull** from the screen edge up to the fleet line. The line crosses the file 36 px up
+    from the bottom; keep the hull about 64 px wide there, so strays that land on it hit Galactica.
+  - **40 px of nose** above the line, tip at the top row. Taper it however you like.
+
+  The dented one keeps the same outline, so it does not jump when it swaps.
+- [x] **Raptor** — `assets/ships/raptor.png` — **32 × 16** (16 × 8 units). Olive, never red.
+- [x] **Imaginary Six** — `assets/ships/imaginary_six.png` — **32 × 48** (16 × 24 units). A steady
+  figure flying beside the Viper, with its still glow drawn in the picture. Costume and silhouette.
+- [x] **Ejected pilot** — `assets/ships/pilot_eject.png` — **32 × 40** (16 × 20 units). Seat and
   chute. Never used for a download.
 
 ### Effects and markers
@@ -76,22 +87,23 @@ Redrawn at the new density and in the game.
 
 ### Card art (page pictures) → `assets/cards/`
 
-A wide banner across the top of each upgrade card. **112 × 36**, shown at 3× on desktop and laptop
-and 2× on a phone. One file per card, named by its id. A small scene or emblem that says the joke at a
+A wide banner across the top of each upgrade card. **672 × 216**, a detailed illustration shown at
+336 × 108 CSS pixels on desktop and laptop and 224 × 72 on a phone, smoothly scaled (ART-SCALE). One
+file per card, named by its id. A small scene or emblem that says the joke at a
 glance, never text. A card without its file shows an empty slot, so these can land one at a time.
 
-- [ ] `accidentally-wide.png`
-- [ ] `anyone-could-be-a-cylon.png`
-- [ ] `bootleg-hooch.png`
-- [ ] `continuity-of-government.png`
-- [ ] `flak-enthusiast.png`
-- [ ] `hangar-door-slam.png`
-- [ ] `imaginary-six.png`
-- [ ] `overcompensating-cannon.png`
-- [ ] `personal-vendetta.png`
-- [ ] `raptor-escort.png`
-- [ ] `spoilers.png`
-- [ ] `your-call-is-important-to-us.png`
+- [x] `accidentally-wide.png`
+- [x] `anyone-could-be-a-cylon.png`
+- [x] `bootleg-hooch.png`
+- [x] `continuity-of-government.png`
+- [x] `flak-enthusiast.png`
+- [x] `hangar-door-slam.png`
+- [x] `imaginary-six.png`
+- [x] `overcompensating-cannon.png`
+- [x] `personal-vendetta.png`
+- [x] `raptor-escort.png`
+- [x] `spoilers.png`
+- [x] `your-call-is-important-to-us.png`
 
 ### Portraits (page pictures) → `assets/portraits/`
 

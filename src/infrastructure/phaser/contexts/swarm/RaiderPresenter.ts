@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { FLEET_LINE_Y_UNITS } from '../../../../domain/fleet/integrity';
 import type { DomainEvent } from '../../../../domain/shared/events';
+import { TICKS_PER_SECOND } from '../../../../domain/shared/time';
 import { WORLD_HEIGHT_UNITS, clamp } from '../../../../domain/shared/world';
 import type { GameView, GhostView, RaiderView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
@@ -17,6 +18,32 @@ import {
   RAIDER_HEAVY_SHOWN_UNITS,
   RAIDER_SHOWN_UNITS,
 } from '../../sprites';
+
+/**
+ * A strafer's dive is a column of down arrows from under it to the fleet line, with a diamond on the
+ * hull it is diving (PRD 7.1). The arrows sit on a fixed grid up from the line, so they do not slide
+ * with the Raider; a soft brightness wave rolls down them instead. Each arrow peaks once a second,
+ * a smooth swell and never a flash (PRD 15). Reduced effects holds them still.
+ */
+const DIVE_ARROW_SPACING_UNITS = 12;
+/** Clear of the Raider's own picture, so the first arrow never sits on it. */
+const DIVE_ARROW_CLEAR_OF_RAIDER_UNITS = 14;
+/** Clear of the diamond on the line. */
+const DIVE_ARROW_CLEAR_OF_LINE_UNITS = 8;
+const DIVE_WAVE_SECONDS = 1;
+/** Arrows per wave, so two or three swell at once on a long dive. */
+const DIVE_WAVE_ARROWS = 4;
+const DIVE_ARROW_ALPHA_LOW = 0.3;
+const DIVE_ARROW_ALPHA_HIGH = 0.95;
+const DIVE_ARROW_ALPHA_STILL = 0.7;
+/** One "v" in one-unit cells: 5 wide, 3 tall, pointing down. */
+const DIVE_ARROW_CELLS = [
+  { x: -2, y: -1 },
+  { x: 2, y: -1 },
+  { x: -1, y: 0 },
+  { x: 1, y: 0 },
+  { x: 0, y: 1 },
+] as const;
 
 /** One sweep of the eye, in milliseconds. Slow on purpose: it is a tell, not a flash (PRD 15). */
 const EYE_SWEEP_MS = 900;
@@ -85,7 +112,7 @@ export class RaiderPresenter implements Presenter {
 
   private readonly hulls = new Map<number, HullMark>();
   private readonly blips = new Map<number, GhostMark>();
-  private readonly dives = new Map<number, { line: Phaser.GameObjects.Rectangle; chevron: Phaser.GameObjects.Rectangle }>();
+  private readonly dives = new Map<number, { arrows: Phaser.GameObjects.Graphics; chevron: Phaser.GameObjects.Rectangle }>();
 
   constructor(scene: Phaser.Scene, reduced: ReducedEffectsSource) {
     this.scene = scene;
@@ -154,32 +181,41 @@ export class RaiderPresenter implements Presenter {
       if (heavy) this.syncHeavyPicture(mark, raider);
       else this.syncEye(mark, raider.armed);
       mark.body.setDisplaySize(shown, shown);
-      this.syncDive(raider, mark.hull.x, mark.hull.y);
+      this.syncDive(raider, mark.hull.x, mark.hull.y, view.tickCount / TICKS_PER_SECOND);
     }
 
     const strafing = new Set(view.raiders.filter((raider) => raider.strafing).map((raider) => raider.id));
     for (const [id, dive] of this.dives) {
       if (strafing.has(id)) continue;
-      dive.line.destroy();
+      dive.arrows.destroy();
       dive.chevron.destroy();
       this.dives.delete(id);
     }
   }
 
-  private syncDive(raider: RaiderView, x: number, y: number): void {
+  private syncDive(raider: RaiderView, x: number, y: number, seconds: number): void {
     if (!raider.strafing) return;
     let dive = this.dives.get(raider.id);
     if (!dive) {
-      const line = this.scene.add.rectangle(x, y, 1, 1, PALETTE.strayShot, 0.45);
+      const arrows = this.scene.add.graphics();
       const chevron = this.scene.add.rectangle(x, FLEET_LINE_Y_UNITS, 5, 5, PALETTE.strayShot, 0.9);
       chevron.setAngle(45);
-      dive = { line, chevron };
+      dive = { arrows, chevron };
       this.dives.set(raider.id, dive);
     }
-    const span = Math.max(0, FLEET_LINE_Y_UNITS - y);
-    dive.line.setPosition(x, y + span / 2);
-    dive.line.setSize(1, span);
     dive.chevron.setPosition(x, FLEET_LINE_Y_UNITS);
+
+    const arrows = dive.arrows.clear();
+    const still = this.reduced();
+    const lowest = FLEET_LINE_Y_UNITS - DIVE_ARROW_CLEAR_OF_LINE_UNITS;
+    const highest = y + DIVE_ARROW_CLEAR_OF_RAIDER_UNITS;
+    // Counting up from the line keeps each arrow on the same spot as the Raider comes down.
+    for (let index = 0; lowest - index * DIVE_ARROW_SPACING_UNITS >= highest; index++) {
+      const arrowY = lowest - index * DIVE_ARROW_SPACING_UNITS;
+      const alpha = still ? DIVE_ARROW_ALPHA_STILL : waveAlpha(index, seconds);
+      arrows.fillStyle(PALETTE.strayShot, alpha);
+      for (const cell of DIVE_ARROW_CELLS) arrows.fillRect(x + cell.x - 0.5, arrowY + cell.y - 0.5, 1, 1);
+    }
   }
 
   /** Only the Raider's eye sweeps; the heavy is a still picture, intact or broken. */
@@ -367,10 +403,17 @@ export class RaiderPresenter implements Presenter {
     mark.hull.destroy();
     const dive = this.dives.get(id);
     if (dive) {
-      dive.line.destroy();
+      dive.arrows.destroy();
       dive.chevron.destroy();
       this.dives.delete(id);
     }
     this.hulls.delete(id);
   }
+}
+
+/** A smooth swell that rolls down the column: higher arrows (larger index) light first. */
+function waveAlpha(index: number, seconds: number): number {
+  const phase = seconds / DIVE_WAVE_SECONDS + index / DIVE_WAVE_ARROWS;
+  const swell = (Math.sin(phase * Math.PI * 2) + 1) / 2;
+  return DIVE_ARROW_ALPHA_LOW + (DIVE_ARROW_ALPHA_HIGH - DIVE_ARROW_ALPHA_LOW) * swell;
 }

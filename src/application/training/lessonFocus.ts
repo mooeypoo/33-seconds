@@ -38,7 +38,11 @@ const EJECT_DRIFT_UNITS = 10;
 /** The ship's shield bubble reaches past the drawn hull. */
 const SHIP_HALF_HEIGHT_UNITS = 16;
 /** Just the hulls and the line, with a little room. */
-const FLEET_ROW_HALF_HEIGHT_UNITS = CIVILIAN_HALF_HEIGHT_UNITS + 4;
+const FLEET_ROW_ROOM_UNITS = 4;
+/** Galactica's nose rises this far above the line (docs/art/SPRITE-FILES.md), so the row box covers it. */
+const GALACTICA_NOSE_ABOVE_LINE_UNITS = 20;
+const FLEET_ROW_TOP_UNITS = FLEET_LINE_Y_UNITS - GALACTICA_NOSE_ABOVE_LINE_UNITS - FLEET_ROW_ROOM_UNITS;
+const FLEET_ROW_BOTTOM_UNITS = FLEET_LINE_Y_UNITS + CIVILIAN_HALF_HEIGHT_UNITS + FLEET_ROW_ROOM_UNITS;
 
 /** Where the subject is now, or null when it is gone (a round that landed, a Raider shot down). */
 export function subjectBox(subject: LessonSubject, view: GameView): FocusBox | null {
@@ -83,7 +87,13 @@ export function lessonFocusBoxes(
   const subject = lesson.subject ? subjectBox(lesson.subject, view) : null;
   if (subject) boxes.push(subject);
   if (lesson.focus.includes('fleetLine')) {
-    boxes.push({ x: view.worldWidth / 2, y: FLEET_LINE_Y_UNITS, halfWidth: view.worldWidth / 2, halfHeight: FLEET_ROW_HALF_HEIGHT_UNITS, priority: 1 });
+    boxes.push({
+      x: view.worldWidth / 2,
+      y: (FLEET_ROW_TOP_UNITS + FLEET_ROW_BOTTOM_UNITS) / 2,
+      halfWidth: view.worldWidth / 2,
+      halfHeight: (FLEET_ROW_BOTTOM_UNITS - FLEET_ROW_TOP_UNITS) / 2,
+      priority: 1,
+    });
   }
   return boxes;
 }

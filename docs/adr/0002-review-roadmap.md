@@ -178,7 +178,8 @@ Detail in the [UI and UX review](../review/2026-09-24-ui-ux.md), section "Phase 
   - Laptop collapse order: the ship list becomes one line, the log moves to the pause menu, the
     loadout shows the newest card and a count.
   - Card art is a 112 × 36 banner, shown 3× on desktop and laptop, 2× on a phone. Every picture the
-    game needs is now one checklist in `docs/art/SPRITE-FILES.md`.
+    game needs is now one checklist in `docs/art/SPRITE-FILES.md`. *Superseded 2026-09-27 (owner):
+    card art is a detailed 672 × 216 illustration, smoothly scaled; see `docs/art/ART-SCALE.md`.*
   - Civilian ship names: nine drawn per run from a pool in `src/content/fleet.json` that the owner
     writes; Galactica always present. Rule in PRD 7.4, format in CONTENT-SCHEMA.
 - [x] **2.2** (2026-09-24) Desktop consoles in the side margins, phone strips, one shell for title and run.

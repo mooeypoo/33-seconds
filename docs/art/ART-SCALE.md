@@ -41,8 +41,12 @@ per unit (the old rule) threw most of the pixels away.
   no anti-aliasing, anchor at the centre, hot red for Cylons only.
 - **Keep every picture at the same density.** A shot drawn at 12 × 20 when the list says 6 × 10 would
   have pixels half the size of the ship's, and it would look out of place.
-- **Page pictures are different** (portraits, card art, HUD icons, the title): they are shown in the
-  HUD and menus at a whole-number CSS scale, with their own sizes in the checklist.
+- **Page pictures are different** (portraits, HUD icons, the title): they are shown in the HUD and
+  menus at a whole-number CSS scale, with their own sizes in the checklist.
+- **Card art is the one exception** (owner, 2026-09-27). It is a detailed illustration, not pixel art
+  held to a grid: **672 × 216**, smoothly scaled. That is one file pixel per screen pixel on a 2×
+  desktop (336 CSS pixels wide) and on a 3× phone (224 CSS pixels), and a clean shrink anywhere else.
+  The small 112 × 36 banner blown up 3× looked coarse beside the text.
 - **The title uses the 64 × 64 Viper at exactly 2×** (128 CSS pixels), so it stays sharp.
 - Put each file at the path in the checklist. A redrawn file replaces the old one at the same path.
 
