@@ -21,6 +21,17 @@ import {
 const LINE_DEPTH = -3;
 const GALACTICA_DEPTH = -2;
 
+/** Over the hulls, so the X is never hidden by the ship it marks. */
+const MARK_DEPTH = 0.5;
+
+/** The X is seven one-unit steps each way, nearly a civilian's height,, with a half-unit dark rim so it holds up on a grey hull. */
+const MARK_STEPS = 7;
+const MARK_RIM_UNITS = 0.5;
+const MARK_ALPHA = 1;
+
+/** On Galactica the X sits on the nose, above the line, where most of the hull shows. */
+const GALACTICA_MARK_ABOVE_LINE_UNITS = 9;
+
 /** One-beat puff. Pause freezes it. Not a flash (PRD 15). */
 const FLAK_FADE_MS = 140;
 
@@ -38,6 +49,8 @@ export class FleetPresenter implements Presenter {
   private line: Phaser.GameObjects.Rectangle | null = null;
   private readonly hulls = new Map<number, Phaser.GameObjects.Image>();
   private readonly notches = new Map<number, Phaser.GameObjects.Rectangle>();
+  /** A still X on each disabled ship, so the damage reads at a glance, not only from the dented art. */
+  private readonly marks = new Map<number, Phaser.GameObjects.Graphics>();
   /** Read from the view's `galactica` flag, not a copied index. */
   private galacticaId: number | null = null;
 
@@ -87,6 +100,31 @@ export class FleetPresenter implements Presenter {
       this.notches.set(ship.id, notch);
     }
     notch.setVisible(ship.justHit);
+
+    let mark = this.marks.get(ship.id);
+    if (!mark) {
+      mark = this.addMark(ship);
+      this.marks.set(ship.id, mark);
+    }
+    mark.setVisible(!ship.healthy);
+  }
+
+  private addMark(ship: CivilianShipView): Phaser.GameObjects.Graphics {
+    const y = ship.galactica ? ship.y - GALACTICA_MARK_ABOVE_LINE_UNITS : ship.y;
+    const mark = this.scene.add.graphics({ x: ship.x, y }).setDepth(MARK_DEPTH).setAlpha(MARK_ALPHA);
+    const half = (MARK_STEPS - 1) / 2;
+    const cells: { x: number; y: number }[] = [];
+    for (let step = 0; step < MARK_STEPS; step++) {
+      cells.push({ x: step - half, y: step - half }, { x: step - half, y: half - step });
+    }
+    // Rim first, then the rust on top, so the rim only shows around the edges.
+    mark.fillStyle(PALETTE.space);
+    for (const cell of cells) {
+      mark.fillRect(cell.x - 0.5 - MARK_RIM_UNITS, cell.y - 0.5 - MARK_RIM_UNITS, 1 + MARK_RIM_UNITS * 2, 1 + MARK_RIM_UNITS * 2);
+    }
+    mark.fillStyle(PALETTE.disabledMark);
+    for (const cell of cells) mark.fillRect(cell.x - 0.5, cell.y - 0.5, 1, 1);
+    return mark;
   }
 
   private addCivilian(ship: CivilianShipView): Phaser.GameObjects.Image {
