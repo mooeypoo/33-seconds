@@ -57,6 +57,15 @@ const log = computed(() => [...props.status.commsLog].reverse());
       >
         {{ settingsStore.state.snapshot.readableFont ? 'Readable font on' : 'Readable font off' }}
       </button>
+      <button
+        data-ui
+        class="effects"
+        type="button"
+        :aria-pressed="settingsStore.state.snapshot.characterVoices"
+        @click="settingsStore.toggleCharacterVoices()"
+      >
+        {{ settingsStore.state.snapshot.characterVoices ? 'Character voices on' : 'Character voices off' }}
+      </button>
       <p class="note small">Abandon run goes back to the title and discards this run.</p>
       <section class="log" aria-label="Comms log" data-testid="comms-log">
         <h3 class="log-heading">Comms log</h3>

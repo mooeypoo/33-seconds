@@ -73,7 +73,16 @@ describe('parsePlayerSettings', () => {
       volume: DEFAULT_VOLUME,
       // Saved before the Training Run existed: not done, so the title still points new players at it.
       trainingCompleted: false,
+      // Saved before voices existed: off, the experiment's default (PRD 14.3).
+      characterVoices: false,
     });
+  });
+
+  it('turns voices on only for a real true, since an edited file can hold anything', () => {
+    for (const characterVoices of ['true', 1, 'on', {}, null]) {
+      expect(parsePlayerSettings({ version: 1, characterVoices }).characterVoices).toBe(false);
+    }
+    expect(parsePlayerSettings({ version: 1, characterVoices: true }).characterVoices).toBe(true);
   });
 
   it('only trusts a volume that is a number between 0 and 1', () => {
@@ -101,7 +110,7 @@ describe('PlayerSettings', () => {
     expect(settings.snapshot.muted).toBe(true);
   });
 
-  it('round-trips mute, volume, reduced-effects, the readable font, the drag hint, and training through memory storage', () => {
+  it('round-trips mute, volume, reduced-effects, the readable font, the drag hint, training, and voices through memory storage', () => {
     const storage = new MemoryStorageAdapter();
     const first = new PlayerSettings(storage);
     first.setMuted(true);
@@ -110,6 +119,7 @@ describe('PlayerSettings', () => {
     first.markDragHintSeen();
     first.setReadableFont(true);
     first.markTrainingCompleted();
+    first.setCharacterVoices(true);
 
     const second = new PlayerSettings(storage);
     expect(second.snapshot).toEqual({
@@ -120,6 +130,7 @@ describe('PlayerSettings', () => {
       readableFont: true,
       volume: 0.25,
       trainingCompleted: true,
+      characterVoices: true,
     });
   });
 

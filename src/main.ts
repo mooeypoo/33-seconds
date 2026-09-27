@@ -1,5 +1,6 @@
 import { createApp } from 'vue';
 import { SOUND_BANK } from './application/audio/soundBank';
+import { VOICE_BANK } from './application/audio/voices';
 import { GameSession } from './application/GameSession';
 import { playfieldForWindow } from './application/playfield';
 import { PlayerSettings, effectiveReducedEffects } from './application/playerSettings';
@@ -56,10 +57,11 @@ const playfield = playfieldForWindow(window.innerWidth);
 const session = new GameSession(new CombinedInput(stick, keyboard, buttons), {
   playfield,
   seedSource: cryptoSeed,
-  audio: new ZzfxAudio(SOUND_BANK),
+  audio: new ZzfxAudio(SOUND_BANK, VOICE_BANK.radio),
 });
 const unsubscribeSound = playerSettings.subscribe((settings) => {
   session.setSoundLevel(settings.muted, settings.volume);
+  session.setCharacterVoices(settings.characterVoices);
 });
 let resizePlayfield = (_worldWidth: number): void => {};
 

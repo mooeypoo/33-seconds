@@ -31,6 +31,11 @@ export interface PlayerSettingsSnapshot {
    * it. Added after v1 shipped: an older envelope without it reads as not done, so no version bump.
    */
   readonly trainingCompleted: boolean;
+  /**
+   * Each speaker's radio chatter under their comms line (PRD 14.3, experimental). Default off.
+   * Added after v1 shipped: an older envelope without it reads as off, so no version bump.
+   */
+  readonly characterVoices: boolean;
 }
 
 /** Loud enough to hear over a phone speaker, with room to turn it up. */
@@ -44,6 +49,7 @@ export const DEFAULT_PLAYER_SETTINGS: PlayerSettingsSnapshot = {
   readableFont: false,
   volume: DEFAULT_VOLUME,
   trainingCompleted: false,
+  characterVoices: false,
 };
 
 /** Anything that is not a finite number in 0..1 is not a volume we trust. */
@@ -66,6 +72,7 @@ export function parsePlayerSettings(raw: unknown): PlayerSettingsSnapshot {
     readableFont: record.readableFont === true,
     volume: parseVolume(record.volume),
     trainingCompleted: record.trainingCompleted === true,
+    characterVoices: record.characterVoices === true,
   };
 }
 
@@ -123,6 +130,10 @@ export class PlayerSettings {
 
   setReadableFont(readableFont: boolean): void {
     this.patch({ readableFont });
+  }
+
+  setCharacterVoices(characterVoices: boolean): void {
+    this.patch({ characterVoices });
   }
 
   markDragHintSeen(): void {

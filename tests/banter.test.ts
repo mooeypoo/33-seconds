@@ -87,7 +87,7 @@ describe('Banter', () => {
   it('shows one line, and a later equal-priority line does not replace it', () => {
     const comms = banter();
     comms.observe([arrived], quiet);
-    expect(comms.line).toEqual({
+    expect(comms.line).toMatchObject({
       speakerName: 'Adama',
       text: 'Thirty-three seconds. Hold the line.',
     });
@@ -133,7 +133,7 @@ describe('Banter', () => {
     ];
     const missed = new Banter(stream(0.9), lines);
     missed.observe([arrived], quiet);
-    expect(missed.line).toEqual({ speakerName: 'Adama', text: 'Jump in 30.' });
+    expect(missed.line).toMatchObject({ speakerName: 'Adama', text: 'Jump in 30.' });
 
     // Chance opens the pool, then the weighted roll lands on Starbuck.
     const hit = new Banter(sequence([0, 0.99]), lines);
@@ -144,10 +144,11 @@ describe('Banter', () => {
   it('lets a critical line replace flavor, and a low roll picks the other spool report', () => {
     const comms = banter();
     comms.observe([missile], quiet);
-    expect(comms.line?.speakerName).toBe('Starbuck');
+    expect(comms.line).toMatchObject({ speaker: 'starbuck', speakerName: 'Starbuck', critical: false });
 
+    // Critical, so it carries no voice over the spool sounds (PRD 14.3).
     comms.observe([spool], { secondsRemaining: 8, hull: 5 });
-    expect(comms.line?.speakerName).toBe('Gaeta');
+    expect(comms.line).toMatchObject({ speaker: 'gaeta', speakerName: 'Gaeta', critical: true });
 
     const other = new Banter(stream(0.999), BANTER_LINES);
     other.observe([spool], { secondsRemaining: 8, hull: 5 });
@@ -224,10 +225,10 @@ describe('Banter', () => {
     ];
     const comms = new Banter(stream(0), lines);
     comms.observe([recovering], { ...quiet, offeredCardIds: ['accidentally-wide'] });
-    expect(comms.line).toEqual({ speakerName: 'Baltar', text: 'Wide.' });
+    expect(comms.line).toMatchObject({ speakerName: 'Baltar', text: 'Wide.' });
 
     comms.observe([rerolled], { ...quiet, offeredCardIds: ['your-call-is-important-to-us'] });
-    expect(comms.line).toEqual({ speakerName: 'Roslin', text: 'Hold.' });
+    expect(comms.line).toMatchObject({ speakerName: 'Roslin', text: 'Hold.' });
   });
 
   it('asks who you are talking to only when the strip is empty, and not at one hull', () => {
@@ -265,7 +266,7 @@ describe('Banter', () => {
     expect(comms.line).toBeNull();
 
     expect(comms.mention('ImaginarySixActive', quiet)).toBe(true);
-    expect(comms.line).toEqual({ speakerName: 'Tigh', text: 'Who?' });
+    expect(comms.line).toMatchObject({ speakerName: 'Tigh', text: 'Who?' });
   });
 
   it('reports a fleet hit, a return, and the factory going down', () => {
@@ -318,7 +319,7 @@ describe('Banter', () => {
     const comms = new Banter(stream(0), lines);
     const hit: DomainEvent = { type: 'FleetHit', damage: 1, integrity: 99, x: 1, shipId: 0, kind: 'stray' };
     comms.observe([hit], quiet);
-    expect(comms.line).toEqual({ speakerName: 'Gaeta', text: 'Logged.' });
+    expect(comms.line).toMatchObject({ speakerName: 'Gaeta', text: 'Logged.' });
 
     comms.advance(20);
     const spawned: DomainEvent = {
@@ -334,17 +335,17 @@ describe('Banter', () => {
     comms.observe([spawned], quiet);
     expect(comms.line).toBeNull();
     comms.observe([{ ...spawned, returned: true, deaths: 1 }], quiet);
-    expect(comms.line).toEqual({ speakerName: 'Starbuck', text: 'Back.' });
+    expect(comms.line).toMatchObject({ speakerName: 'Starbuck', text: 'Back.' });
 
     comms.advance(20);
     // A heavy Raider's arrival is the moment the big-Raider lines were written for (ADR-0002 3.3).
     comms.observe([{ ...spawned, id: 3, identityId: 3, heavy: true }], quiet);
-    expect(comms.line).toEqual({ speakerName: 'Adama', text: 'Heavy.' });
+    expect(comms.line).toMatchObject({ speakerName: 'Adama', text: 'Heavy.' });
 
     comms.advance(20);
     const destroyed: DomainEvent = { type: 'ResurrectionShipDestroyed', x: 0, y: 0 };
     comms.observe([destroyed], quiet);
-    expect(comms.line).toEqual({ speakerName: 'Adama', text: 'Down.' });
+    expect(comms.line).toMatchObject({ speakerName: 'Adama', text: 'Down.' });
   });
 
   it('lets a hull warning replace a joke, and a later spool call replace the earlier one', () => {

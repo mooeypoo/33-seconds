@@ -99,7 +99,7 @@ export class ScenePlayer {
       return;
     }
     this.shown = {
-      line: { speakerName: speakerName(opener.speaker), text: opener.text },
+      line: { speaker: opener.speaker, speakerName: speakerName(opener.speaker), text: opener.text, critical: false },
       remainingSeconds: commsDurationSeconds(opener.text),
     };
   }

@@ -1,8 +1,11 @@
 import type { DomainEvent } from '../../domain/shared/events';
 import { createRandomStream, type RandomStream } from '../../domain/shared/random';
 import type { CycleView } from '../../domain/views';
+import type { CommsLine } from '../banter/Banter';
+import type { BanterSpeaker } from '../banter/lines';
 import type { AudioPort } from '../ports/AudioPort';
 import type { SoundId } from './soundIds';
+import { VOICE_BANK, type Voice as CharacterVoice } from './voices';
 
 /**
  * Two plays of one sound closer than this are one sound. A kill chain on the same frame, or a
@@ -17,6 +20,20 @@ export const MAX_VOICES = 8;
 export const PITCH_JITTER = 0.04;
 /** The spool is called at these whole seconds left, like the comms line (PRD 12.2). */
 export const SPOOL_SOUNDS: Readonly<Record<number, SoundId>> = { 5: 'spool_5s', 2: 'spool_2s' };
+
+/**
+ * A voice talks for the start of its line, not the whole time it is up (PRD 14.3): a short line
+ * gets a word or two, a long one a couple of phrases. Chatter for all 4–8 s would wear thin.
+ */
+export const VOICE_BASE_SECONDS = 0.6;
+export const VOICE_SECONDS_PER_CHARACTER = 0.04;
+export const VOICE_MIN_SECONDS = 0.8;
+export const VOICE_MAX_SECONDS = 2.5;
+
+export function voiceSeconds(text: string): number {
+  const seconds = VOICE_BASE_SECONDS + VOICE_SECONDS_PER_CHARACTER * text.length;
+  return Math.min(VOICE_MAX_SECONDS, Math.max(VOICE_MIN_SECONDS, seconds));
+}
 
 /** Sounds that come in bursts and get the pitch jitter. The rest play exactly as written. */
 const REPEATING = new Set<SoundId>([
@@ -72,6 +89,14 @@ function audioSeed(runSeed: number): number {
   return (runSeed ^ 0xa0d10) >>> 0;
 }
 
+/** The voices' own stream, so turning voices on or off never changes the effects' pitch wobble. */
+function voiceSeed(runSeed: number): number {
+  return (runSeed ^ 0x70ce5) >>> 0;
+}
+
+/** One stream seed per line: any 32-bit value. */
+const SEED_RANGE = 2 ** 32;
+
 interface Voice {
   readonly id: SoundId;
   readonly endsAt: number;
@@ -93,12 +118,18 @@ export class AudioDirector {
   private held = false;
   private pageHidden = false;
   private suspended = false;
+  private voiceRandom: RandomStream;
+  private characterVoicesOn = false;
+  /** The comms line last seen, voiced or not. A new object is a new line, even with the same text. */
+  private lastLine: CommsLine | null = null;
 
   constructor(
     private readonly port: AudioPort,
     runSeed = 0,
+    private readonly characterVoices: ReadonlyMap<BanterSpeaker, CharacterVoice> = VOICE_BANK.voices,
   ) {
     this.random = createRandomStream(audioSeed(runSeed));
+    this.voiceRandom = createRandomStream(voiceSeed(runSeed));
   }
 
   /** A new run: fresh jitter, no limits carried over. Mute, volume, and unlock stay. */
@@ -108,6 +139,9 @@ export class AudioDirector {
     this.voices = [];
     this.lastPlayedAt.clear();
     this.lastSpoolSecond = null;
+    this.voiceRandom = createRandomStream(voiceSeed(runSeed));
+    this.lastLine = null;
+    this.port.hush();
   }
 
   /** Only from inside a user gesture (PRD 14.1). Before this, nothing is ever asked to play. */
@@ -124,6 +158,31 @@ export class AudioDirector {
   setLevel(muted: boolean, volume: number): void {
     this.muted = muted;
     this.port.setMasterGain(muted ? 0 : Math.min(1, Math.max(0, volume)));
+    // A voice cut by mute stays cut: unmuting must not bring back the rest of it (PRD 14.1).
+    if (muted) this.port.hush();
+  }
+
+  /** The Character voices setting (PRD 14.3). Off stops a voice mid-word. */
+  setCharacterVoices(on: boolean): void {
+    this.characterVoicesOn = on;
+    if (!on) this.port.hush();
+  }
+
+  /**
+   * The comms strip as the player sees it. A new line hushes the last voice and, when voices are
+   * on, starts its speaker's for `voiceSeconds`. Critical lines stay voiceless so the spool sounds
+   * are heard (PRD 14.3). A voice is never started into a pause, a hidden tab, or mute, so nothing
+   * waits to play when they end.
+   */
+  noteComms(line: CommsLine | null): void {
+    if (line === this.lastLine) return;
+    this.lastLine = line;
+    this.port.hush();
+    if (line === null || line.critical || !this.characterVoicesOn) return;
+    if (!this.unlocked || this.muted || this.held || this.pageHidden) return;
+    const voice = this.characterVoices.get(line.speaker);
+    if (!voice) return;
+    this.port.speak(voice, voiceSeconds(line.text), Math.floor(this.voiceRandom.next() * SEED_RANGE));
   }
 
   /** The session is paused, or counting back in from a pause. */

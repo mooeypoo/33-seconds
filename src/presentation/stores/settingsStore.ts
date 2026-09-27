@@ -33,6 +33,10 @@ export const settingsStore = {
     backend?.setReadableFont(!state.snapshot.readableFont);
     Object.assign(state.snapshot, backend?.snapshot ?? state.snapshot);
   },
+  toggleCharacterVoices(): void {
+    backend?.setCharacterVoices(!state.snapshot.characterVoices);
+    Object.assign(state.snapshot, backend?.snapshot ?? state.snapshot);
+  },
   markDragHintSeen(): void {
     backend?.markDragHintSeen();
     Object.assign(state.snapshot, backend?.snapshot ?? state.snapshot);

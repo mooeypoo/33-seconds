@@ -8,6 +8,9 @@ import { AudioDirector } from '../../src/application/audio/AudioDirector';
 import { parseSoundBank } from '../../src/application/audio/soundBank';
 import { SOUND_IDS, type SoundId } from '../../src/application/audio/soundIds';
 import { ZzfxAudio } from '../../src/infrastructure/audio/ZzfxAudio';
+import voicesRaw from '../../src/content/voices.json';
+import { parseVoiceBank } from '../../src/application/audio/voices';
+import { createVoicePanel } from './voices';
 
 const { bank, problems } = parseSoundBank(soundsRaw);
 const notes = new Map<string, string>();
@@ -15,7 +18,8 @@ for (const entry of (soundsRaw as { sounds: { id: string; note?: string }[] }).s
   if (entry.note) notes.set(entry.id, entry.note);
 }
 
-const audio = new ZzfxAudio(bank);
+const voiceBank = parseVoiceBank(voicesRaw);
+const audio = new ZzfxAudio(bank, voiceBank.radio);
 const director = new AudioDirector(audio);
 let muted = false;
 let volume = 0.7;
@@ -40,6 +44,22 @@ for (const problem of problems) {
   item.textContent = `sounds.json: ${problem} (npm run check:content fails on this)`;
   problemList.append(item);
 }
+
+const voiceProblemList = element('voice-problems', 'ul');
+for (const problem of voiceBank.problems) {
+  const item = document.createElement('li');
+  item.textContent = `voices.json: ${problem} (npm run check:content fails on this)`;
+  voiceProblemList.append(item);
+}
+const voicePanel = createVoicePanel(audio, voiceBank.voices, {
+  list: element('voices', 'ul'),
+  everyone: element('voices-everyone', 'button'),
+  stop: element('voices-stop', 'button'),
+  radioToggle: element('voices-radio', 'input'),
+  seconds: element('voices-seconds', 'input'),
+  secondsValue: element('voices-seconds-value', 'span'),
+  status: element('voices-status', 'span'),
+});
 
 const playButtons: HTMLButtonElement[] = [];
 for (const id of SOUND_IDS) {
@@ -76,6 +96,7 @@ unlockButton.addEventListener('click', () => {
   unlockButton.textContent = 'Audio on';
   mixButton.disabled = false;
   for (const button of playButtons) button.disabled = false;
+  voicePanel.enable();
 });
 
 muteButton.addEventListener('click', () => {
