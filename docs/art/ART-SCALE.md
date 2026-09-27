@@ -18,8 +18,8 @@ at 4× and let the game shrink it" rule. The file list, with sizes and what exis
 
 Two separate things decide how the ships look:
 
-1. **How big a ship is on screen** is how many world units it spans. The world is 270 units wide on
-   a phone and 324 on a desktop, and it is stretched to fit the screen. The Viper spans 32 units:
+1. **How big a ship is on screen** is how many world units it spans. The world is 270 to 324 units wide
+   on a phone (fitted to its lane) and 324 on a desktop, and it is stretched to fit the screen. The Viper spans 32 units:
    about 53 CSS pixels on a 1440 × 900 desktop and 46 on a phone, roughly an eighth of the lane.
 2. **How much detail it has** is how many art pixels go into each world unit. At two per unit, the
    detail shows on the screens people actually play on:

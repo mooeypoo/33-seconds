@@ -16,7 +16,8 @@ import type { SessionStatus } from '../application/GameSession';
 import type { RunResult } from '../application/runResult';
 import { lessonFocusBoxes } from '../application/training/lessonFocus';
 import { decodeSharedRun, type SharedRun } from '../application/shareCode';
-import { playfieldForWindow } from '../application/playfield';
+import { NARROW_LAYOUT_MAX_PX, playfieldForLane, playfieldForWindow } from '../application/playfield';
+import type { Playfield } from '../domain/shared/world';
 import type { TierId } from '../domain/balance/profile';
 import { CANVAS_HOST_KEY, RESIZE_PLAYFIELD_KEY, SESSION_KEY } from './injection';
 import AboutSheet from './components/AboutSheet.vue';
@@ -64,9 +65,18 @@ if (!session || !mountCanvas) throw new Error('App.vue needs a session and a can
 const canvasHost = useTemplateRef<HTMLElement>('canvasHost');
 const status = ref<SessionStatus>(session.status);
 const cyclePhase = computed(() => hudStore.state.hud?.cyclePhase ?? null);
-const inRun = computed(() => status.value.phase !== 'title');
+/**
+ * True for the moment between Launch and the run starting, so the lane can be measured with the
+ * run's bands around it. Set and cleared before the browser paints, so nobody sees it.
+ */
+const launching = ref(false);
+const inRun = computed(() => status.value.phase !== 'title' || launching.value);
 const showFleet = computed(
-  () => status.value.phase === 'running' || status.value.phase === 'paused' || status.value.phase === 'resuming',
+  () =>
+    launching.value ||
+    status.value.phase === 'running' ||
+    status.value.phase === 'paused' ||
+    status.value.phase === 'resuming',
 );
 /**
  * Missile and Speech buttons are for touch. A keyboard already has Space and E, and on a desktop
@@ -118,15 +128,30 @@ function onHashChange(): void {
 }
 let unsubscribe: (() => void) | null = null;
 
-function beginRun(tier: TierId): void {
-  const playfield = playfieldForWindow(window.innerWidth);
+/**
+ * A phone's world is as wide as its lane allows (PRD 13.2), so the lane is measured with the run's
+ * bands in place. A wider window keeps its fixed lanes. Chosen once: the run keeps it.
+ */
+async function playfieldForLaunch(): Promise<Playfield> {
+  if (window.innerWidth > NARROW_LAYOUT_MAX_PX || !canvasHost.value) return playfieldForWindow(window.innerWidth);
+  launching.value = true;
+  await nextTick();
+  const lane = canvasHost.value.getBoundingClientRect();
+  launching.value = false;
+  return playfieldForLane(lane.width, lane.height);
+}
+
+async function beginRun(tier: TierId): Promise<void> {
+  if (launching.value) return;
+  const playfield = await playfieldForLaunch();
   session?.start(tier, playfield);
   resizePlayfield?.(playfield.width);
 }
 
 /** A Training Run: the same lane, with lessons (PRD 5.5). */
-function beginTraining(): void {
-  const playfield = playfieldForWindow(window.innerWidth);
+async function beginTraining(): Promise<void> {
+  if (launching.value) return;
+  const playfield = await playfieldForLaunch();
   session?.startTraining(playfield);
   resizePlayfield?.(playfield.width);
 }
@@ -134,7 +159,7 @@ function beginTraining(): void {
 /** From the debrief straight into a real run. */
 function launchAfterTraining(): void {
   session?.returnToTitle();
-  beginRun('viper-pilot');
+  void beginRun('viper-pilot');
 }
 
 function openAbout(): void {
@@ -226,6 +251,7 @@ onUnmounted(() => {
           />
         </div>
         <div v-if="showFleet" class="detail-row">
+          <!-- The row keeps one chip's height when empty, so the lane measured at Launch holds. -->
           <StatusRow with-objective :training="status.training" :drill="status.drill" />
           <LatestUpgrade />
         </div>
@@ -349,6 +375,8 @@ onUnmounted(() => {
 }
 
 .detail-row {
+  /* One status chip: 14px text at 1.2 line height, 1px padding and border above and below. */
+  min-height: calc(14px * 1.2 + 4px);
   display: flex;
   align-items: center;
   justify-content: space-between;

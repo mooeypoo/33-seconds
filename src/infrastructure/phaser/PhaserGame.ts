@@ -54,7 +54,8 @@ export function bootPhaser(
       game.destroy(true);
     },
     resize: (width: number) => {
-      game.scale.resize(width * PIXELS_PER_WORLD_UNIT, WORLD_HEIGHT_UNITS * PIXELS_PER_WORLD_UNIT);
+      // setGameSize, not resize: resize keeps the first aspect ratio, so FIT would still fit a 9:16 box.
+      game.scale.setGameSize(width * PIXELS_PER_WORLD_UNIT, WORLD_HEIGHT_UNITS * PIXELS_PER_WORLD_UNIT);
     },
   };
 }
