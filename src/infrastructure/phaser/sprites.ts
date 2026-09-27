@@ -17,6 +17,15 @@ import bulletPlayerBig from '../../../assets/projectiles/bullet_player_big.png';
 import bulletStray from '../../../assets/projectiles/bullet_stray.png';
 import missile1 from '../../../assets/projectiles/missile_1.png';
 import missile2 from '../../../assets/projectiles/missile_2.png';
+import civilian1 from '../../../assets/ships/civilian_1.png';
+import civilian1Damaged from '../../../assets/ships/civilian_1_damaged.png';
+import civilian2 from '../../../assets/ships/civilian_2.png';
+import civilian2Damaged from '../../../assets/ships/civilian_2_damaged.png';
+import civilian3 from '../../../assets/ships/civilian_3.png';
+import civilian3Damaged from '../../../assets/ships/civilian_3_damaged.png';
+import galacticaFleet from '../../../assets/ships/galactica_fleet.png';
+import galacticaFleetDamaged from '../../../assets/ships/galactica_fleet_damaged.png';
+import pilotEject from '../../../assets/ships/pilot_eject.png';
 import raiderEyeCenter from '../../../assets/ships/raider_eye_center.png';
 import raiderEyeLeft from '../../../assets/ships/raider_eye_left.png';
 import raiderEyeRight from '../../../assets/ships/raider_eye_right.png';
@@ -116,6 +125,35 @@ export const MISSILE_ANIM = 'missile-flame';
 /** Two flame frames, swapped twice a second: a flicker, not a strobe (PRD 15). */
 export const MISSILE_FRAME_RATE = 2;
 
+/** A civilian ship in world units: its 32 x 16 file at two art pixels per unit. */
+export const CIVILIAN_SHOWN = { width: 16, height: 8 } as const;
+
+/**
+ * Each civilian design, whole and dented, so damage is a shape and not only a colour (PRD 7.4). The
+ * line cycles through them in order. A new design is two imports and one entry here.
+ */
+export const CIVILIAN_VARIANTS = [
+  { healthy: 'civilian-1', damaged: 'civilian-1-damaged', healthyUrl: civilian1, damagedUrl: civilian1Damaged },
+  { healthy: 'civilian-2', damaged: 'civilian-2-damaged', healthyUrl: civilian2, damagedUrl: civilian2Damaged },
+  { healthy: 'civilian-3', damaged: 'civilian-3-damaged', healthyUrl: civilian3, damagedUrl: civilian3Damaged },
+] as const;
+
+/**
+ * Galactica's nose on the line, in world units: its 64 x 76 file at two art pixels per unit. The
+ * file's bottom sits past the screen edge, so the rest of the ship reads as off screen.
+ */
+export const GALACTICA_SHOWN = { width: 32, height: 38 } as const;
+
+/** Where the fleet line crosses the file, measured up from its bottom row (docs/art/SPRITE-FILES.md). */
+export const GALACTICA_LINE_FROM_BOTTOM_UNITS = 18;
+
+export const GALACTICA = 'galactica-fleet';
+export const GALACTICA_DAMAGED = 'galactica-fleet-damaged';
+
+/** The ejected pilot in world units: its 32 x 40 file at two art pixels per unit. */
+export const PILOT_EJECT_SHOWN = { width: 16, height: 20 } as const;
+export const PILOT_EJECT = 'pilot-eject';
+
 /**
  * Phaser's file loader turns images into blob URLs, and the CSP allows `img-src 'self' data:` only.
  * A same-origin `Image` stays on `'self'`.
@@ -170,4 +208,11 @@ export const SPRITE_FILES: readonly { key: string; url: string }[] = [
   { key: EXPLOSION_LARGE_FRAMES[4], url: explosionLarge5 },
   { key: EXPLOSION_LARGE_FRAMES[5], url: explosionLarge6 },
   { key: EXPLOSION_LARGE_FRAMES[6], url: explosionLarge7 },
+  { key: PILOT_EJECT, url: pilotEject },
+  { key: GALACTICA, url: galacticaFleet },
+  { key: GALACTICA_DAMAGED, url: galacticaFleetDamaged },
+  ...CIVILIAN_VARIANTS.flatMap((variant) => [
+    { key: variant.healthy, url: variant.healthyUrl },
+    { key: variant.damaged, url: variant.damagedUrl },
+  ]),
 ];

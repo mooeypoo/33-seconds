@@ -47,7 +47,7 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 | Asset id | Size (px) | Frames | Priority | Notes |
 |---|---|---|---|---|
 | `viper` | 16 x 16 on screen, drawn at 64 x 64 | neutral x2 (engine flicker), bank_left, bank_right | P0 | Angular wedge, not a crescent: tapers from a wide flat back to a sharp nose, hard straight edges. A raised center spine with a small cockpit bump, plus a small fin at each wingtip for detail. Olive and gunmetal hull, white-yellow twin engine glow. A similitude, not a traced show ship. |
-| `pilot_eject` | 12 x 16 | 1 (still) | P2 | Ejection seat / chute at the last Viper pose until pickup. Not a flash. Never used for *Anyone Could Be a Cylon* (that death keeps the hull and a red-eye). HUD also says `ejected`. |
+| `pilot_eject` | 32 x 40 | 1 (still) | P2 | Ejection seat / chute at the last Viper pose until pickup. Not a flash. Never used for *Anyone Could Be a Cylon* (that death keeps the hull and a red-eye). HUD also says `ejected`. |
 | `raider` | 12 x 12 on screen, drawn at 48 x 48 | 3 (eye center, left, right) | P0 | Upside-down crescent, boomerang-shaped: two wingtips sweep forward and out, curving back to a narrower point at the center-rear. The **only** thing in the game that uses hot red. The eye moves 4 pixels in the 48 x 48 picture so the shift survives the shrink. |
 | `bullet_player` | 3 x 5 | 1 | P0 | Dradis green |
 | `bullet_aimed` | 3 x 5 | 1 | P0 | Red |
@@ -57,7 +57,7 @@ Sprite sizes below assume a 270 x 480 world. If the world size changes, sizes ma
 | `raider_heavy` | 36 x 36 on screen, drawn at 72 x 72 | 2 (intact, damaged) | P1 | Bigger arrowhead, visible bays. A still picture: no eye sweep, that is the Raider's alone. The damaged picture shows from half hull, so damage is not only a colour. |
 | `missile` | 5 x 9 | 2 (flame) | P1 | |
 | `missile_pickup` | 8 x 8 | 1 | P1 | |
-| `fleet_ship_a/b/c` | 16 x 10 | 1 each | P1 | Civilian ships along the fleet edge, three silly silhouettes |
+| `civilian_1/2/3` (+ `_damaged`) | 32 x 16 | 1 each | P1 | Civilian ships along the fleet edge, silly silhouettes; more may follow |
 | `fleet_pip` | 8 x 6 | 2 (ok, damaged) | P1 | HUD version of the fleet ships |
 | `galactica_silhouette` | about 200 x 60 | 1 | P1 | Dark, slow parallax in the background. Original design. |
 | `resurrection_ship` | 48 x 32 on screen, drawn at 96 x 64 | 3 (sealed, open, wreck) | P1 | Chunky and ominous, clearly *not* a copy of anything. After it dies, the wreck must read as a dead factory, not a parked target. Hangar doors: split when open (red well visible), meet when sealed. HUD also says `bays` / `sealed`. |
@@ -151,7 +151,7 @@ Do not restyle this while proving other rules. Arrive cycle, expose cycle, HP, a
 
 Hull to zero is never a run loss (PRD 8.1). There are two ways back onto the board, and they must read as different deaths at a glance.
 
-**Eject** (default): the Viper leaves. You are gone for about 3 seconds, then a pickup at spawn. Play uses a vanished hull, HUD `ejected`, and a placeholder parachute that drifts in one slow arc from where you were. Reduced effects keeps the chute and skips the arc. The real `pilot_eject` sprite replaces that drawing: a pilot-ejection symbol (seat / chute), one frame, no flash, no strobe. The drift can stay in code. It sits until the Viper reappears, then it is gone. Olive/gunmetal, never Cylon red.
+**Eject** (default): the Viper leaves. You are gone for about 3 seconds, then a pickup at spawn. Play uses a vanished hull, HUD `ejected`, and the `pilot_eject` sprite, which drifts in one slow arc from where you were. Reduced effects keeps the sprite and skips the arc. The sprite is a pilot-ejection symbol (seat / chute), one frame, no flash, no strobe. The drift can stay in code. It sits until the Viper reappears, then it is gone. Olive/gunmetal, never Cylon red.
 
 **Download** (*Anyone Could Be a Cylon*): you do not leave. The hull stays, a red-eye pixel appears until the next jump, HUD says `two transponders`. No seat, no chute, no empty sky. The joke is that you resurrect like they do.
 

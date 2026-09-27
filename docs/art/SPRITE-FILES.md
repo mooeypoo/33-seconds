@@ -46,18 +46,29 @@ Redrawn at the new density and in the game.
 - [x] **Missile** — `assets/projectiles/missile_1.png`, `missile_2.png` — **8 × 16**, two frames of
   flame, flickering at 2 Hz. Reduced effects holds the first frame.
 
-### New ships (placeholder shapes in the game today)
+### New ships (placeholder shapes in the game today, unless ticked)
 
-- [ ] **Civilian ships** — `assets/ships/civilian_a.png`, `civilian_b.png`, `civilian_c.png` —
-  **32 × 16** (16 × 8 units). Three silly silhouettes.
-- [ ] **Civilian ships, dented** — `assets/ships/civilian_a_damaged.png`, `_b_damaged.png`,
-  `_c_damaged.png` — **32 × 16**. The same three, visibly dented, so damage is not only a colour.
-- [ ] **Galactica on the fleet line** — `assets/ships/galactica_fleet.png`,
-  `galactica_fleet_damaged.png` — **48 × 20** (24 × 10 units). A little larger than the civilians.
+- [x] **Civilian ships** — `assets/ships/civilian_1.png`, `civilian_2.png`, `civilian_3.png` —
+  **32 × 16** (16 × 8 units). Silly silhouettes; the line cycles through them in order. More can be
+  added as `civilian_4.png` and so on, each with its dented pair, plus one entry in
+  `CIVILIAN_VARIANTS` (`src/infrastructure/phaser/sprites.ts`).
+- [x] **Civilian ships, dented** — `assets/ships/civilian_1_damaged.png`, `_2_damaged.png`,
+  `_3_damaged.png` — **32 × 16**. The same ships, visibly dented, so damage is not only a colour.
+- [x] **Galactica on the fleet line** — `assets/ships/galactica_fleet.png`,
+  `galactica_fleet_damaged.png` — **64 wide × 76 tall** (32 × 38 units), portrait. Only the front
+  of Galactica, nose pointing up, rising out of the bottom edge of the screen; the rest of the ship
+  is "off screen", so it looks huge while taking one wider slot in the line. From the bottom of the
+  file up:
+  - **4 px bleed**, hidden below the screen edge.
+  - **32 px of hull** from the screen edge up to the fleet line. The line crosses the file 36 px up
+    from the bottom; keep the hull about 64 px wide there, so strays that land on it hit Galactica.
+  - **40 px of nose** above the line, tip at the top row. Taper it however you like.
+
+  The dented one keeps the same outline, so it does not jump when it swaps.
 - [ ] **Raptor** — `assets/ships/raptor.png` — **32 × 16** (16 × 8 units). Olive, never red.
 - [ ] **Imaginary Six** — `assets/ships/imaginary_six.png` — **32 × 48** (16 × 24 units). A steady
   outline figure flying beside the Viper; the glow is drawn in code. Costume and silhouette.
-- [ ] **Ejected pilot** — `assets/ships/pilot_eject.png` — **32 × 40** (16 × 20 units). Seat and
+- [x] **Ejected pilot** — `assets/ships/pilot_eject.png` — **32 × 40** (16 × 20 units). Seat and
   chute. Never used for a download.
 
 ### Effects and markers

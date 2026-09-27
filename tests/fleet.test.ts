@@ -3,6 +3,7 @@ import { createGame, type Game } from '../src/domain/game';
 import { Projectile } from '../src/domain/combat/projectile';
 import { CYCLE_COMBAT_SECONDS, JUMPING_SECONDS } from '../src/domain/cycle/jumpCycle';
 import {
+  CIVILIAN_HALF_WIDTH_UNITS,
   CIVILIAN_SHIP_COUNT,
   FLEET_CYCLE_DAMAGE_CAP,
   FLEET_DAMAGE_PER_STRAY,
@@ -11,10 +12,17 @@ import {
   FLEET_LINE_Y_UNITS,
   FLEET_REPAIR_OF_MISSING,
   Fleet,
+  GALACTICA_HALF_WIDTH_UNITS,
+  GALACTICA_SHIP_INDEX,
   civilianShipX,
+  shipHalfWidthUnits,
 } from '../src/domain/fleet/integrity';
+import { DESKTOP_WORLD_WIDTH_UNITS, PHONE_WORLD_WIDTH_UNITS } from '../src/domain/shared/world';
 import { IDLE_INTENT } from '../src/domain/shared/intent';
 import { TICKS_PER_SECOND } from '../src/domain/shared/time';
+
+/** Enough open space that the line reads as separate ships, even on a phone. */
+const MIN_GAP_UNITS = 4;
 
 function ticksFor(seconds: number): number {
   return Math.round(seconds * TICKS_PER_SECOND);
@@ -82,6 +90,37 @@ describe('Fleet Integrity', () => {
     expect(fleet.view.ships[9]?.justHit).toBe(true);
     expect(fleet.view.ships[0]?.justHit).toBe(false);
   });
+
+  it.each([PHONE_WORLD_WIDTH_UNITS, DESKTOP_WORLD_WIDTH_UNITS])(
+    'spaces the hulls with one even gap, Galactica included, at width %i',
+    (worldWidth) => {
+      const hulls = new Fleet(FLEET_INTEGRITY_MAX, worldWidth).view.ships.map((ship) => ({
+        left: ship.x - shipHalfWidthUnits(ship.id),
+        right: ship.x + shipHalfWidthUnits(ship.id),
+      }));
+      const gaps = hulls.slice(1).map((hull, index) => hull.left - (hulls[index]?.right ?? 0));
+      for (const gap of gaps) {
+        expect(gap).toBeGreaterThanOrEqual(MIN_GAP_UNITS);
+        expect(gap).toBeCloseTo(gaps[0] ?? 0, 6);
+      }
+      expect(hulls[0]?.left).toBeGreaterThan(0);
+      expect(hulls[hulls.length - 1]?.right).toBeLessThan(worldWidth);
+    },
+  );
+
+  it.each([PHONE_WORLD_WIDTH_UNITS, DESKTOP_WORLD_WIDTH_UNITS])(
+    'marks Galactica for a round on its wingtip, not the civilian beside it, at width %i',
+    (worldWidth) => {
+      const fleet = new Fleet(FLEET_INTEGRITY_MAX, worldWidth);
+      const wingtip = civilianShipX(GALACTICA_SHIP_INDEX, worldWidth) + GALACTICA_HALF_WIDTH_UNITS - 0.5;
+      fleet.takeStray(wingtip);
+      expect(fleet.view.lastHitShipId).toBe(GALACTICA_SHIP_INDEX);
+
+      const neighbourEdge = civilianShipX(GALACTICA_SHIP_INDEX + 1, worldWidth) - CIVILIAN_HALF_WIDTH_UNITS + 0.5;
+      fleet.takeStray(neighbourEdge);
+      expect(fleet.view.lastHitShipId).toBe(GALACTICA_SHIP_INDEX + 1);
+    },
+  );
 
   it('dings a hull once enough integrity is gone, and the jump clears the hit mark', () => {
     const fleet = new Fleet();

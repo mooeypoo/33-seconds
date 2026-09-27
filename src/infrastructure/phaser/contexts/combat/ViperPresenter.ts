@@ -4,7 +4,13 @@ import type { GameView } from '../../../../domain/views';
 import type { Presenter } from '../../Presenter';
 import type { ReducedEffectsSource } from '../../shared/comfort';
 import { PALETTE } from '../../shared/palette';
-import { SHIP_SHOWN_UNITS, VIPER_BANK_LEFT, VIPER_BANK_RIGHT, VIPER_FLICKER, VIPER_NEUTRAL } from '../../sprites';
+import {
+  PILOT_EJECT,
+  PILOT_EJECT_SHOWN,
+  SHIP_SHOWN_UNITS,
+  VIPER_BANK_LEFT, VIPER_BANK_RIGHT, VIPER_FLICKER,
+  VIPER_NEUTRAL,
+} from '../../sprites';
 
 /** Sideways speed, as a fraction of top speed, before the bank frame replaces neutral. */
 const BANK_AT = 0.4;
@@ -24,8 +30,8 @@ export class ViperPresenter implements Presenter {
   private cover: Phaser.GameObjects.Arc | null = null;
   private eye: Phaser.GameObjects.Rectangle | null = null;
   private pips: Phaser.GameObjects.Rectangle[] = [];
-  /** Placeholder parachute. Not a child of the hull, or hiding the Viper would hide it too. */
-  private ejectSeat: Phaser.GameObjects.Container | null = null;
+  /** The ejected pilot. Not a child of the hull, or hiding the Viper would hide it too. */
+  private ejectSeat: Phaser.GameObjects.Image | null = null;
   private readonly reducedEffects: ReducedEffectsSource;
 
   constructor(scene: Phaser.Scene, reducedEffects: ReducedEffectsSource) {
@@ -127,21 +133,16 @@ export class ViperPresenter implements Presenter {
   }
 
   /**
-   * Placeholder parachute until `pilot_eject` ships (PRD 8.1). A canopy, two lines, and a seat.
-   * Gunmetal, never Cylon red. HUD also says ejected, so colour is not the only cue.
-   * The download card never builds this.
+   * The ejected pilot, one still picture (PRD 8.1). HUD also says ejected, so the picture is not the
+   * only cue. The download card never builds this.
    */
-  private ensureEjectSeat(): Phaser.GameObjects.Container {
+  private ensureEjectSeat(): Phaser.GameObjects.Image {
     if (this.ejectSeat) return this.ejectSeat;
-    const canopy = this.scene.add.triangle(0, -12, -9, 4, 9, 4, 0, -6, PALETTE.viperHull);
-    const skirt = this.scene.add.rectangle(0, -8, 18, 2, PALETTE.viperCockpit);
-    const leftLine = this.scene.add.rectangle(-4, -2, 1, 10, PALETTE.ghostBlip);
-    const rightLine = this.scene.add.rectangle(4, -2, 1, 10, PALETTE.ghostBlip);
-    const seat = this.scene.add.rectangle(0, 4, 6, 3, PALETTE.viperHull);
-    const marker = this.scene.add.container(0, 0, [canopy, skirt, leftLine, rightLine, seat]);
-    marker.setDepth(3);
-    this.ejectSeat = marker;
-    return marker;
+    const seat = this.scene.add.image(0, 0, PILOT_EJECT);
+    seat.setDisplaySize(PILOT_EJECT_SHOWN.width, PILOT_EJECT_SHOWN.height);
+    seat.setDepth(3);
+    this.ejectSeat = seat;
+    return seat;
   }
 
   /**

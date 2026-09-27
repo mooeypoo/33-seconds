@@ -35,23 +35,38 @@ export const CIVILIAN_HALF_WIDTH_UNITS = 8;
 export const CIVILIAN_HALF_HEIGHT_UNITS = 3;
 
 /**
- * The slightly larger hull in the middle. Visual only: no flak, no extra HP.
+ * The wider hull, fourth from the left. Visual only: no flak, no extra HP.
  * ASSUMPTION: Galactica sits in the line with the civilians until it has its own rules.
  */
 export const GALACTICA_SHIP_INDEX = 4;
 
+/** Galactica's hull where it crosses the line: twice a civilian's (docs/art/SPRITE-FILES.md). */
+export const GALACTICA_HALF_WIDTH_UNITS = 16;
+
 const EDGE_PAD_UNITS = 18;
+
+/** Galactica's slot is wider by exactly its extra hull, so every gap in the line is the same. */
+const GALACTICA_EXTRA_WIDTH_UNITS = (GALACTICA_HALF_WIDTH_UNITS - CIVILIAN_HALF_WIDTH_UNITS) * 2;
+
+export function shipHalfWidthUnits(index: number): number {
+  return index === GALACTICA_SHIP_INDEX ? GALACTICA_HALF_WIDTH_UNITS : CIVILIAN_HALF_WIDTH_UNITS;
+}
 
 export function civilianShipX(index: number, worldWidth: number = WORLD_WIDTH_UNITS): number {
   const span = worldWidth - EDGE_PAD_UNITS * 2;
-  return EDGE_PAD_UNITS + ((index + 0.5) / CIVILIAN_SHIP_COUNT) * span;
+  const slot = (span - GALACTICA_EXTRA_WIDTH_UNITS) / CIVILIAN_SHIP_COUNT;
+  const left = EDGE_PAD_UNITS + index * slot + (index > GALACTICA_SHIP_INDEX ? GALACTICA_EXTRA_WIDTH_UNITS : 0);
+  const width = slot + (index === GALACTICA_SHIP_INDEX ? GALACTICA_EXTRA_WIDTH_UNITS : 0);
+  return left + width / 2;
 }
 
+/** The hull under `x`, else the one whose edge is closest, so a wingtip hit lands on the wide ship. */
 export function nearestCivilianShipIndex(x: number, worldWidth: number = WORLD_WIDTH_UNITS): number {
   let best = 0;
   let bestDistance = Infinity;
   for (let index = 0; index < CIVILIAN_SHIP_COUNT; index++) {
-    const distance = Math.abs(civilianShipX(index, worldWidth) - x);
+    const fromCentre = Math.abs(civilianShipX(index, worldWidth) - x);
+    const distance = Math.max(0, fromCentre - shipHalfWidthUnits(index));
     if (distance < bestDistance) {
       best = index;
       bestDistance = distance;
