@@ -229,6 +229,11 @@ onUnmounted(() => {
           <StatusRow with-objective :training="status.training" :drill="status.drill" />
           <LatestUpgrade />
         </div>
+        <!-- Above the lane, not under it: under it, the thumbs flying the Viper covered the line. -->
+        <div class="comms-slot">
+          <CommsOverlay v-if="status.comms" docked :comms="status.comms" />
+          <SpeechBanner v-if="speaking" docked />
+        </div>
       </header>
       <div v-if="cic" class="lane-head">
         <span class="stencil">Dradis</span>
@@ -248,14 +253,11 @@ onUnmounted(() => {
           @skip="session.abandonRun()"
         />
       </div>
-      <footer v-if="inRun && !cic" class="bottom-band">
-        <!-- During the pick the buttons step aside, so the Recovering scene gets the whole strip. -->
-        <SpecialButton v-if="isTouch && showFleet && !status.choosingUpgrade" :disabled="!inCombat" />
-        <div class="comms-slot">
-          <CommsOverlay v-if="status.comms" docked :comms="status.comms" />
-          <SpeechBanner v-if="speaking" docked />
-        </div>
-        <MissileButton v-if="isTouch && showFleet && !status.choosingUpgrade" :disabled="!inCombat" />
+      <!-- Touch only: without the buttons the lane runs to the bottom edge. -->
+      <footer v-if="inRun && !cic && isTouch" class="bottom-band">
+        <!-- During the pick the buttons step aside, so they never sit under Apply. -->
+        <SpecialButton v-if="showFleet && !status.choosingUpgrade" :disabled="!inCombat" />
+        <MissileButton v-if="showFleet && !status.choosingUpgrade" :disabled="!inCombat" />
       </footer>
     </div>
 
@@ -322,8 +324,8 @@ onUnmounted(() => {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  /* Room for the top band (fleet, clock, status) and the comms strip. */
-  width: min(100%, calc((100dvh - 240px) * 324 / 480));
+  /* Room for the top band (fleet, clock, status, comms) and the button strip. */
+  width: min(100%, calc((100dvh - 260px) * 324 / 480));
 }
 
 .top-band {
@@ -356,22 +358,22 @@ onUnmounted(() => {
 
 .bottom-band {
   flex: none;
-  /* Fixed, so a longer line wraps inside the strip instead of resizing the playfield. */
-  height: 120px;
   box-sizing: border-box;
   z-index: 3;
-  overflow: hidden;
   background: var(--color-space);
-  padding: 8px 10px max(8px, env(safe-area-inset-bottom));
-  /* On touch, Speech and Missile flank the comms line: thumbs at the bottom corners (PRD 13.2). */
+  padding: 6px 10px max(6px, env(safe-area-inset-bottom));
+  /* Speech and Missile at the bottom corners, where the thumbs already are (PRD 13.2). */
   display: flex;
-  align-items: stretch;
-  gap: var(--space-2);
+  align-items: center;
+  justify-content: space-between;
+  /* Holds its height while the buttons step aside for the pick, so the lane does not jump. */
+  min-height: calc(68px + env(safe-area-inset-bottom));
 }
 
 .comms-slot {
-  flex: 1;
-  height: 100%;
+  /* Fixed, so a longer line wraps inside the slot instead of resizing the playfield. */
+  flex: none;
+  height: 82px;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -424,12 +426,6 @@ onUnmounted(() => {
     width: 100%;
   }
 
-  .bottom-band {
-    /* 64px portrait plus its own padding. Shorter than the desktop strip so the
-       9:16 canvas can reach the screen edges instead of pillarboxing. */
-    height: calc(90px + env(safe-area-inset-bottom));
-    padding: 4px 10px max(4px, env(safe-area-inset-bottom));
-  }
 }
 
 /* ---------- Wide windows: the CIC shell, FLEET · DRADIS · COMMS (ADR-0002 Phase 2) ---------- */

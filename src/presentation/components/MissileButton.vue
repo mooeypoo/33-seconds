@@ -37,7 +37,7 @@ const ammo = computed(() => {
 
 <style scoped>
 .missile {
-  /* In the comms strip, not on the playfield, so it never covers the fleet (ADR-0002 1.4). */
+  /* In the strip under the lane, not on the playfield, so it never covers the fleet (ADR-0002 1.4). */
   flex: none;
   align-self: center;
   pointer-events: auto;

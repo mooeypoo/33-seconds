@@ -193,6 +193,16 @@ test.describe('steering works wherever the finger lands', () => {
     }
   });
 
+  test('on a phone the comms line sits above the playfield, clear of the thumbs', async ({ page, isMobile }) => {
+    test.skip(!isMobile, 'A wide window has the comms console instead.');
+    await startRun(page);
+    const comms = page.getByTestId('comms');
+    await expect(comms).toBeVisible();
+    const playfield = (await page.locator('.canvas-host').boundingBox())!;
+    const line = (await comms.boundingBox())!;
+    expect(line.y + line.height, 'the comms line should end above the playfield').toBeLessThanOrEqual(playfield.y + 1);
+  });
+
   test('a desktop shows no action buttons, because the keyboard has them', async ({ page, isMobile }) => {
     test.skip(isMobile, 'Phones need the buttons.');
     await startRun(page);
