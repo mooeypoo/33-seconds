@@ -34,8 +34,11 @@ const NUMBER_TEXT = /^-?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/i;
  *  - a JSON array of numbers, with `null` for an empty slot;
  *  - the Sound Designer's text, such as `"zzfx(...[,,925,.04,.3])"` or `"[,,925,.04,.3]"`, which is
  *    not valid JSON (holes, leading dots), so it has to travel as a string.
+ *
+ * Returns the parameters, or the problem as the end of a sentence. Voice syllables (`voices.ts`)
+ * use it too, so both files accept exactly the same pastes.
  */
-function parseParameters(value: unknown): ZzfxParameters | string {
+export function parseZzfxParameters(value: unknown): ZzfxParameters | string {
   let slots: unknown[];
   const pasted = typeof value === 'string';
   if (Array.isArray(value)) {
@@ -97,7 +100,7 @@ export function parseSoundBank(raw: unknown): ParsedSoundBank {
       problems.push(`${label} appears twice`);
       continue;
     }
-    const parameters = parseParameters(fields.zzfx);
+    const parameters = parseZzfxParameters(fields.zzfx);
     if (typeof parameters === 'string') {
       problems.push(`${label} ${parameters}`);
       continue;

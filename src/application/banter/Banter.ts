@@ -1,11 +1,15 @@
 import type { RandomStream } from '../../domain/shared/random';
 import type { DomainEvent } from '../../domain/shared/events';
-import type { BanterLine, BanterPriority, BanterTrigger } from './lines';
+import type { BanterLine, BanterPriority, BanterSpeaker, BanterTrigger } from './lines';
 import { speakerName } from './lines';
 
-/** What the overlay shows. No ids, no markup. `partnerName` is the other portrait in a scene. */
+/** What the overlay shows, and who says it. No line ids, no markup. `partnerName` is the other portrait in a scene. */
 export interface CommsLine {
+  /** Who says it, for their voice (PRD 14.3). The name below is what the strip shows. */
+  readonly speaker: BanterSpeaker;
   readonly speakerName: string;
+  /** The spool countdown and its like. Voiceless, so the spool sounds stay clear (PRD 14.3). */
+  readonly critical: boolean;
   readonly text: string;
   readonly partnerName?: string | null;
 }
@@ -160,7 +164,12 @@ export class Banter {
       id: chosen.id,
       trigger: chosen.trigger,
       priority: chosen.priority,
-      line: { speakerName: speakerName(chosen.speaker), text },
+      line: {
+        speaker: chosen.speaker,
+        speakerName: speakerName(chosen.speaker),
+        text,
+        critical: chosen.priority === 'critical',
+      },
       shownAtSeconds: this.elapsedSeconds,
       remainingSeconds: commsDurationSeconds(text),
     };

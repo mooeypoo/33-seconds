@@ -246,6 +246,11 @@ export class GameSession {
     this.sound.setLevel(muted, volume);
   }
 
+  /** The Character voices setting (PRD 14.3). Takes effect from the next line; off cuts the current one. */
+  setCharacterVoices(on: boolean): void {
+    this.sound.setCharacterVoices(on);
+  }
+
   /**
    * The tab was hidden or shown. Sound stops while it is hidden, even on the Recovering sheet,
    * which the session does not pause (PRD 13.3).
@@ -547,6 +552,8 @@ export class GameSession {
     // after Apply is not a pause, so the Apply sound plays through it.
     this.sound.setHeld(this.phase === 'paused' || (this.phase === 'resuming' && this.pendingUpgradeId === null));
     const status = this.status;
+    // The voice follows the strip the player sees: a new line talks, a line gone takes its voice along.
+    this.sound.noteComms(status.comms);
     for (const listener of this.listeners) listener(status);
   }
 

@@ -1,4 +1,5 @@
 import type { SoundId } from '../audio/soundIds';
+import type { Voice } from '../audio/voices';
 
 /**
  * Sound out (ADR-0001 D12). The application decides what plays and when; the adapter only makes
@@ -18,6 +19,14 @@ export interface AudioPort {
    * when nothing played (not unlocked yet, still loading, or no such sound).
    */
   play(id: SoundId, rate: number): number;
+  /**
+   * Starts a character voice (PRD 14.3): `seconds` of `voice`'s chatter, rendered from `seed`, through
+   * the radio and the same master as every sound. A voice already talking stops first: one at a
+   * time, like the comms strip.
+   */
+  speak(voice: Voice, seconds: number, seed: number): void;
+  /** Fades out the voice that is talking, if any, quickly enough to read as a cut. */
+  hush(): void;
   /** Freezes or thaws everything already sounding, as the session pauses and resumes. */
   setSuspended(suspended: boolean): void;
   /** 0 is silent. Applied at once, including to sounds already playing. */
@@ -28,6 +37,8 @@ export interface AudioPort {
 export const SILENT_AUDIO: AudioPort = {
   unlock: () => {},
   play: () => 0,
+  speak: () => {},
+  hush: () => {},
   setSuspended: () => {},
   setMasterGain: () => {},
 };

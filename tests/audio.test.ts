@@ -31,6 +31,11 @@ class FakeAudio implements AudioPort {
     return this.seconds;
   }
 
+  /** Character voices have their own tests (character-voices.test.ts). */
+  speak(): void {}
+
+  hush(): void {}
+
   setSuspended(suspended: boolean): void {
     this.suspended = suspended;
   }
