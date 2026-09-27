@@ -138,7 +138,7 @@
       "cooldownSeconds": 20,
       "when": { "upgrade": "water-filter" },
       "lines": [
-        { "id": "roslin-upgrade-offered-13", "text": "The fleet heals faster. The pilot pays for it in hull." }
+        { "id": "roslin-upgrade-offered-13", "text": "A calm cycle heals the fleet faster. The pilot pays in hull." }
       ]
     },
     {

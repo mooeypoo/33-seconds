@@ -177,7 +177,9 @@ export class Game {
       if (phaseChange.phase === 'jumping') {
         this.clearTheSky(events);
         this.viper.resetAtJump(this.loadout.viperHullMax);
-        this.fleet.repairAtJump(this.loadout.repairOfMissing(this.profile.fleetRepairOfMissing));
+        this.fleet.repairAtJump(
+          this.loadout.repairOfMissing(this.profile.fleetRepairOfMissing, this.fleet.view.damageThisCycle),
+        );
         this.recoveryBand = damageBand(this.fleet.view.lastCycleDamage, this.viper.scarHullLost, this.viper.scarEjected);
         this.speech.onJump();
         this.loadout.onJump();

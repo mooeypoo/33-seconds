@@ -123,16 +123,16 @@
     "id": "water-filter",
     "title": "The Fleet's Water Filter",
     "joke": "Someone poured poison into the main tank. The new filter would like a word.",
-    "plain": "Jump repair +10% of missing fleet health per stack. Viper hull -1 per stack.",
+    "plain": "Jump repair +10% of missing fleet health per stack after a cycle under half the damage cap, fading to nothing at the cap. Viper hull -1 per stack.",
     "advice": {
       "baltar": "The civilians drink first, and my hull gets thinner. I have filed a complaint.",
-      "roslin": "Each copy mends the fleet faster at every jump. Your Viper carries the cost."
+      "roslin": "Keep the fleet's losses low and each copy mends it faster. A brutal cycle earns nothing."
     }
   },
   {
     "id": "lucky-streak",
     "title": "Starbuck's Lucky Streak",
-    "joke": "Her luck is legendary. Unless she's near a gas giant.",
+    "joke": "Her luck is legendary. Her flight plans are a separate conversation.",
     "plain": "Each Raider destroyed gives 0.5 s of cover per stack, banked up to 1.5 s. While covered, rounds pass through you to the fleet.",
     "advice": {
       "baltar": "Keep killing and nothing touches you. Nothing touches you, so it touches us.",

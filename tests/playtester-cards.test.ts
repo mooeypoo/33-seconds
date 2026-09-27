@@ -4,9 +4,13 @@ import { GameSession, IDLE_INPUT } from '../src/application/GameSession';
 import { BANTER_LINES } from '../src/application/banter/lines';
 import { Viper, VIPER_HULL_HIT_POINTS } from '../src/domain/combat/viper';
 import { DEFAULT_CYCLE_PROFILE } from '../src/domain/balance/defaultProfile';
+import { FLEET_CYCLE_DAMAGE_CAP } from '../src/domain/fleet/integrity';
+import { Loadout } from '../src/domain/progression/loadout';
 import {
+  CONTINUITY_CAP_PER_STACK,
   LUCKY_COVER_MAX_SECONDS,
   LUCKY_COVER_SECONDS_PER_KILL_PER_STACK,
+  WATER_FILTER_FADE_SHARE_OF_CAP,
   WATER_FILTER_HULL_PER_STACK,
   WATER_FILTER_REPAIR_PER_STACK,
 } from '../src/domain/progression/catalog';
@@ -43,13 +47,15 @@ function hunt(game: Game): DomainEvent[] {
   return [...game.tick({ ...IDLE_INTENT, moveX })];
 }
 
-/** Integrity on the tick before the jump and right after its repair. */
-function acrossTheJump(game: Game): { before: number; after: number } {
+/** Integrity and the cycle's damage on the tick before the jump, and integrity after its repair. */
+function acrossTheJump(game: Game): { before: number; damage: number; after: number } {
   let before = game.view.fleet.integrity;
+  let damage = game.view.fleet.damageThisCycle;
   for (let i = 0; i < ticksFor(CYCLE_COMBAT_SECONDS + JUMPING_SECONDS); i++) {
     const events = game.tick(IDLE_INTENT);
-    if (events.some((event) => event.type === 'FleetRepaired')) return { before, after: game.view.fleet.integrity };
+    if (events.some((event) => event.type === 'FleetRepaired')) return { before, damage, after: game.view.fleet.integrity };
     before = game.view.fleet.integrity;
+    damage = game.view.fleet.damageThisCycle;
   }
   throw new Error('no jump');
 }
@@ -75,25 +81,40 @@ function seedDealing(cardId: string, options: GameOptions = {}): Game {
 }
 
 describe("The Fleet's Water Filter", () => {
-  it('mends more of the missing fleet at the jump, per stack', () => {
-    const options = { seed: 1, raidersFire: false, fleetStartingIntegrity: 50 } as const;
-    const repair = DEFAULT_CYCLE_PROFILE.fleetRepairOfMissing;
+  it('mends more of the missing fleet at the jump, per stack, in full after a calm cycle', () => {
+    // A roomy cap keeps this cycle's strafes under half of it: the bonus is whole.
+    const tierProfile = { ...DEFAULT_CYCLE_PROFILE, fleetCycleDamageCap: 100 };
+    const options = { seed: 1, raidersFire: false, fleetStartingIntegrity: 50, tierProfile } as const;
+    const { fleetRepairOfMissing: repair, fleetCycleDamageCap: cap } = tierProfile;
     for (const [stacks, cards] of [[0, []], [1, ['water-filter']], [2, ['water-filter', 'water-filter']]] as const) {
-      const { before, after } = acrossTheJump(createGame({ ...options, startingCards: cards }));
-      expect(after).toBeCloseTo(before + (100 - before) * (repair + stacks * WATER_FILTER_REPAIR_PER_STACK));
+      const { before, damage, after } = acrossTheJump(createGame({ ...options, startingCards: cards }));
+      // Strafes still land with the guns quiet, but the cycle stays under half the cap.
+      expect(damage).toBeGreaterThan(0);
+      expect(damage).toBeLessThan(cap * (1 - WATER_FILTER_FADE_SHARE_OF_CAP));
+      const bonus = stacks * WATER_FILTER_REPAIR_PER_STACK;
+      expect(after).toBeCloseTo(before + (100 - before) * (repair + bonus));
     }
   });
 
-  it('never mends past a full fleet, however generous the tier', () => {
-    const game = createGame({
-      seed: 1,
-      raidersFire: false,
-      fleetStartingIntegrity: 10,
-      tierProfile: { ...DEFAULT_CYCLE_PROFILE, fleetRepairOfMissing: 0.95 },
-      startingCards: ['water-filter', 'water-filter'],
-    });
-    toRecovering(game);
-    expect(game.view.fleet.integrity).toBeCloseTo(100);
+  it('adds nothing after a cycle at the cap, so the worst case repairs as the tier does', () => {
+    const tierProfile = { ...DEFAULT_CYCLE_PROFILE, fleetCycleDamageCap: 4 };
+    const game = createGame({ seed: 1, tierProfile, startingCards: ['water-filter', 'water-filter'] });
+    const { before, damage, after } = acrossTheJump(game);
+    expect(damage).toBeCloseTo(tierProfile.fleetCycleDamageCap);
+    expect(after).toBeCloseTo(before + (100 - before) * tierProfile.fleetRepairOfMissing);
+  });
+
+  it('fades past half the cap, measures the cap after Continuity of Government, and never overfills', () => {
+    const repair = 0.4;
+    const filter = new Loadout(['water-filter']);
+    const governed = new Loadout(['water-filter', 'continuity-of-government']);
+    const cap = FLEET_CYCLE_DAMAGE_CAP * CONTINUITY_CAP_PER_STACK;
+    expect(filter.repairOfMissing(repair, 0)).toBeCloseTo(repair + WATER_FILTER_REPAIR_PER_STACK);
+    expect(governed.repairOfMissing(repair, cap / 2)).toBeCloseTo(repair + WATER_FILTER_REPAIR_PER_STACK);
+    expect(governed.repairOfMissing(repair, cap * 0.75)).toBeCloseTo(repair + WATER_FILTER_REPAIR_PER_STACK / 2);
+    expect(governed.repairOfMissing(repair, cap)).toBeCloseTo(repair);
+    expect(governed.repairOfMissing(repair, cap * 3)).toBeCloseTo(repair);
+    expect(new Loadout(['water-filter', 'water-filter']).repairOfMissing(0.95, 0)).toBe(1);
   });
 
   it('launches a thinner Viper, and a download refills it only to the thinner hull', () => {

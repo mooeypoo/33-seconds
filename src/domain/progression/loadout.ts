@@ -25,6 +25,7 @@ import {
   maxStacksFor,
   STARTER_CARDS,
   VENDETTA_MISSILE_SPEED_PER_STACK,
+  WATER_FILTER_FADE_SHARE_OF_CAP,
   WATER_FILTER_HULL_PER_STACK,
   WATER_FILTER_REPAIR_PER_STACK,
   WIDE_SCALE_PER_STACK,
@@ -161,9 +162,16 @@ export class Loadout {
     return this.cylonEyeActive;
   }
 
-  /** Share of the missing integrity the jump gives back: the tier's, plus *The Fleet's Water Filter*. */
-  repairOfMissing(tierRepair: number): number {
-    return Math.min(1, tierRepair + WATER_FILTER_REPAIR_PER_STACK * this.stacksOf('water-filter'));
+  /**
+   * Share of the missing integrity the jump gives back: the tier's, plus *The Fleet's Water Filter*.
+   * The filter's bonus is whole after a cycle under half the cap, fades as damage climbs past that,
+   * and is gone after a cycle at the cap. So the worst case (the cap every cycle) repairs exactly as
+   * the tier does, and the card can never make a tier unloseable (PRD 7.2).
+   */
+  repairOfMissing(tierRepair: number, cycleDamage: number): number {
+    const cap = this.fleetCycleDamageCap;
+    const calm = cap > 0 ? Math.min(1, Math.max(0, (cap - cycleDamage) / (cap * WATER_FILTER_FADE_SHARE_OF_CAP))) : 0;
+    return Math.min(1, tierRepair + WATER_FILTER_REPAIR_PER_STACK * this.stacksOf('water-filter') * calm);
   }
 
   /** Hull Tyrol fits at the jump. The water went to the civilians. */

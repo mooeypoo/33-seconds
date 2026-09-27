@@ -106,11 +106,17 @@ export const FLAK_INTERCEPT_MAX = 0.85;
 export const HANGAR_SLAM_DAMAGE_PER_STACK = 0.3;
 
 /**
- * *The Fleet's Water Filter*: jump repair gains this share of the missing integrity per stack, and
- * Tyrol's reset gives the Viper this many fewer hull points per stack. Two stacks leave 3 hull.
- * ASSUMPTION: +10 points of repair against -1 hull until play or the sim says otherwise.
+ * *The Fleet's Water Filter*: jump repair gains this share of the missing integrity per stack after
+ * a cycle under half the damage cap. Past that the bonus fades, and it is gone after a cycle at the
+ * cap, so the worst case is the tier's own (PRD 7.2). Tyrol's reset gives the Viper this many fewer
+ * hull points per stack. Two stacks leave 3 hull.
+ * ASSUMPTION: +10 points of repair against -1 hull until play says otherwise. The half-cap fade was
+ * chosen from a forced-card sim (journal 0061): a flat bonus made Viper Pilot unloseable, and a
+ * fade across the whole cap left the card doing next to nothing for the bots.
  */
 export const WATER_FILTER_REPAIR_PER_STACK = 0.1;
+/** The last share of the cap over which the filter's bonus fades to nothing. */
+export const WATER_FILTER_FADE_SHARE_OF_CAP = 0.5;
 export const WATER_FILTER_HULL_PER_STACK = 1;
 
 /**

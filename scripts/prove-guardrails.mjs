@@ -287,6 +287,13 @@ const SABOTAGE = [
       mustFail: 'npm run test',
     },
     {
+      what: 'the Water Filter still mends after a cycle at the cap, so a tier can become unloseable',
+      file: 'src/domain/progression/loadout.ts',
+      find: "WATER_FILTER_REPAIR_PER_STACK * this.stacksOf('water-filter') * calm);",
+      replace: "WATER_FILTER_REPAIR_PER_STACK * this.stacksOf('water-filter'));",
+      mustFail: 'npm run test',
+    },
+    {
       what: "Gaius' Lab is dealt after the shield would drop anyway",
       file: 'src/domain/progression/loadout.ts',
       find: '(stacks.get(card.id) ?? 0) < maxStacksFor(card.rarity) && !unavailable.includes(card.id),',
