@@ -1,0 +1,9 @@
+# Every issue goes through a form, so reports arrive with the device and the run attached.
+blank_issues_enabled: false
+contact_links:
+  - name: Play 33 Seconds
+    url: https://33seconds.netlify.app/
+    about: The game itself. Play a few runs, then come back and tell us about them.
+  - name: Developer guide
+    url: https://github.com/mooeypoo/33-seconds/blob/main/DEVELOPERS.md
+    about: How the code is built, and how to fork it and send a pull request.

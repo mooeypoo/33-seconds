@@ -1,0 +1,106 @@
+name: Playtest notes
+description: You played a few runs. How did it feel?
+title: "[Playtest] "
+labels: [playtest]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the most useful report you can send. Short answers are fine, and every question except the first is optional. Please don't include personal details.
+
+  - type: dropdown
+    id: tier
+    attributes:
+      label: What did you play?
+      multiple: true
+      options:
+        - Training Run
+        - Civilian Run
+        - Viper Pilot
+    validations:
+      required: true
+
+  - type: input
+    id: runs
+    attributes:
+      label: How many runs, and how did they end?
+      placeholder: 4 runs. Won 1, lost 3, all on Viper Pilot.
+
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      multiple: true
+      options:
+        - Desktop or laptop (keyboard)
+        - Phone (touch)
+        - Tablet
+
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: How hard did it feel?
+      options:
+        - Way too easy
+        - A bit easy
+        - About right
+        - A bit hard
+        - Way too hard
+
+  - type: dropdown
+    id: length
+    attributes:
+      label: How long did a run feel?
+      options:
+        - Too short
+        - About right
+        - Dragged on
+
+  - type: dropdown
+    id: knew-why
+    attributes:
+      label: When you lost, did you know why?
+      options:
+        - Yes, it was clear
+        - Mostly
+        - No, it felt random or unfair
+        - I didn't lose
+
+  - type: dropdown
+    id: again
+    attributes:
+      label: Did you want to play again right away?
+      options:
+        - Yes, I started another run
+        - Maybe later
+        - Not really
+
+  - type: textarea
+    id: best
+    attributes:
+      label: Best moment
+      description: What was fun, funny, or satisfying?
+
+  - type: textarea
+    id: worst
+    attributes:
+      label: Most frustrating or confusing moment
+      description: Something you didn't understand, a death that felt cheap, a control that fought you.
+
+  - type: textarea
+    id: cards
+    attributes:
+      label: Cards
+      description: Any card you always pick, never pick, or think is too strong or too weak?
+
+  - type: textarea
+    id: comfort
+    attributes:
+      label: Comfort and readability
+      description: Anything that was hard to read, too fast, too flashy, or uncomfortable to watch? We take these seriously.
+
+  - type: input
+    id: share-link
+    attributes:
+      label: Share link from a run (optional)
+      placeholder: https://33seconds.netlify.app/#r=...

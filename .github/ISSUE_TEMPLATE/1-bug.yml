@@ -1,0 +1,89 @@
+name: Bug report
+description: Something broke, looked wrong, or did not do what it said.
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for flying! Please don't include personal details (your name, email, or location). Your device and browser are all we need.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of problem?
+      options:
+        - Gameplay (a rule or a number seems wrong)
+        - Controls or input
+        - Visuals or layout
+        - Sound
+        - Text, comms, or a card
+        - Performance (stutter, slowdown, battery)
+        - Comfort or accessibility (flashing, motion, readability)
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you see, and what did you expect instead?
+      placeholder: I fired a missile at the resurrection ship and it went straight through it.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: How can we make it happen again?
+      description: Steps, if you know them. "It happened once" is useful too.
+      placeholder: |
+        1. Launch on Viper Pilot
+        2. Reach cycle 4, when the shield drops
+        3. Fire a missile while the ship is drifting left
+
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      options:
+        - Desktop or laptop
+        - Phone
+        - Tablet
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and operating system
+      placeholder: Firefox 131 on Windows 11, or Safari on iPhone 14
+    validations:
+      required: true
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Where in the game?
+      options:
+        - Title screen or menus
+        - Training Run
+        - Civilian Run
+        - Viper Pilot
+        - The card pick between jumps
+        - The end screen
+        - Not sure
+
+  - type: input
+    id: share-link
+    attributes:
+      label: Share link (optional)
+      description: If the run finished, the end screen's **Share link** button gives a link with the run's details and the game version. It contains no personal data.
+      placeholder: https://33seconds.netlify.app/#r=...
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshot or recording (optional)
+      description: Drag an image or a short video here.

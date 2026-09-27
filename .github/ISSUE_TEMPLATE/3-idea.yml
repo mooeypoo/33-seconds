@@ -1,0 +1,51 @@
+name: Idea or change request
+description: A new card, a balance change, a joke, a control tweak, or anything else you'd like.
+title: "[Idea] "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ideas are welcome. The owner decides what goes in, so an idea may be adapted, saved for later, or politely declined. Starting a discussion here before writing code saves everyone time.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of idea?
+      options:
+        - A new upgrade card
+        - Balance or difficulty
+        - Controls or phone play
+        - Comms, jokes, or story
+        - Visuals or sound
+        - Accessibility or comfort
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What prompted it?
+      description: What happened in the game, or what did you want to feel that you didn't?
+      placeholder: By cycle 5 I stop noticing the civilian ships. I'd like a reason to fly down to them.
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea
+      description: Describe it however you like. Rough is fine.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: content-rules
+    attributes:
+      label: For jokes, cards, and story ideas
+      description: The game uses only original text and art, and it is spoiler-safe for new watchers.
+      options:
+        - label: My idea doesn't quote the show's scripts or use show images, music, or voice clips.
+        - label: It doesn't spoil anything past the early episodes, or reveal who is a Cylon.
+        - label: Any jokes aim at the show's quirks, not at the cast, the community, or real people.
