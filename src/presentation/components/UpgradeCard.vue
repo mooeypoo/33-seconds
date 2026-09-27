@@ -8,6 +8,10 @@ import { portraitSrc } from '../portraits';
  * One card on the Recovering table (PRD 10, ADR-0002 2.3). The rarity is a word and a frame style,
  * never colour alone. The joke is up front; the exact effect and the two advisors sit under it.
  * A phone shows those only once the card is opened; a wide window shows them all at once.
+ *
+ * The whole card selects, not only the face: the effect and the advisors are half of a wide card,
+ * and players click there. The face stays a button for the keyboard and screen readers; its click
+ * bubbles up to the card, so Enter and Space still select.
  */
 
 const props = defineProps<{ card: UpgradeCardFace; selected: boolean; expanded: boolean; wide: boolean }>();
@@ -34,7 +38,7 @@ const showArt = computed(() => props.wide || props.expanded);
 </script>
 
 <template>
-  <article class="card" :class="[card.rarity, { selected, wide }]">
+  <article data-ui class="card" :class="[card.rarity, { selected, wide }]" @click="emit('select', card.id)">
     <span v-if="selected" class="selected-tag">Selected</span>
     <button
       data-ui
@@ -44,7 +48,6 @@ const showArt = computed(() => props.wide || props.expanded);
       :aria-expanded="expanded"
       :aria-controls="`detail-${card.id}`"
       :data-testid="`upgrade-${card.id}`"
-      @click="emit('select', card.id)"
     >
       <span class="meta">
         <span class="rarity">{{ RARITY_WORD[card.rarity] }}</span>
@@ -77,6 +80,7 @@ const showArt = computed(() => props.wide || props.expanded);
 <style scoped>
 .card {
   position: relative;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);

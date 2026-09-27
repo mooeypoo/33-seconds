@@ -81,7 +81,7 @@ test.describe('steering works wherever the finger lands', () => {
     await expect(page.getByText('Drag anywhere to fly')).toBeHidden();
   });
 
-  test('a card is picked by its face, and Apply is what leaves Recovering', async ({ page, isMobile }) => {
+  test('a card is picked by a click anywhere on it, and Apply is what leaves Recovering', async ({ page, isMobile }) => {
     test.setTimeout(90_000);
     // A wide window lays the three cards side by side with every detail showing. A phone stacks
     // them and opens one at a time, so the joke is read first (PRD 5.1, ADR-0002 2.3).
@@ -91,6 +91,14 @@ test.describe('steering works wherever the finger lands', () => {
     await expect(page.getByTestId('advisor-baltar')).toHaveCount(advisorsShown);
     await expect(page.getByTestId('apply-upgrade')).toBeDisabled();
     await expect(page.getByTestId('comms')).toContainText(/Tyrol|Adama|Tigh|Gaeta|Dualla/);
+
+    if (!isMobile) {
+      // The whole card selects: a click on the advice, well below the face, picks that card.
+      const second = page.locator('article.card').nth(1);
+      await second.getByTestId('advisor-roslin').click();
+      await expect(second.locator('[data-testid^="upgrade-"]')).toHaveAttribute('aria-pressed', 'true');
+      await expect(page.getByTestId('apply-upgrade')).toBeEnabled();
+    }
 
     await page.locator('[data-testid^="upgrade-"]').first().click();
     await expect(page.getByText('Selected', { exact: true })).toBeVisible();
