@@ -94,6 +94,13 @@ The owner tuned by ear, and twice the problem turned out not to be the one it so
   untracked file and deleted it. The lesson: check that a deliberate break actually changed the
   code before trusting a run where the tests still pass.
 
+## What we revisited
+
+- **Voices were as loud as the effects** (after the radio, 0.028–0.040 RMS, against 0.03–0.09 for
+  the effects). The owner wanted them a lot quieter. Every voice now passes through one shared
+  level, 0.4, about 8 dB down, which puts them at roughly 0.011–0.016. It is one number in
+  `voices.json`, so the balance tuned between Tigh, Six, and the rest stays as it was.
+
 ## What is still open
 
 - Play with voices on, on a real phone: do they add character or grate after a few cycles?

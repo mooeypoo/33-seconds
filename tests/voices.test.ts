@@ -9,7 +9,7 @@ import { createRandomStream } from '../src/domain/shared/random';
  * always finish.
  */
 
-const RADIO = { lowCutHz: 300, highCutHz: 3400, drive: 0.2 };
+const RADIO = { lowCutHz: 300, highCutHz: 3400, drive: 0.2, level: 0.4 };
 const VOICE = {
   speaker: 'adama',
   pitchHz: 100,
@@ -65,6 +65,14 @@ describe('the voice bank', () => {
     expect(radio).toEqual(DEFAULT_RADIO);
     expect(voices.size).toBe(1);
     expect(problems).toEqual(['radio needs lowCutHz between 20 and 2000']);
+  });
+
+  it('names a voice level that is missing or out of range, since it sets how loud every voice is', () => {
+    for (const level of [undefined, -0.1, 1.5, '0.4']) {
+      const { radio, problems } = parseVoiceBank({ radio: { ...RADIO, level }, voices: [VOICE] });
+      expect(radio).toEqual(DEFAULT_RADIO);
+      expect(problems).toEqual(['radio needs level between 0 and 1']);
+    }
   });
 });
 

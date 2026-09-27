@@ -29,6 +29,11 @@ export interface RadioSettings {
   readonly highCutHz: number;
   /** 0 is clean. 1 is as crunchy as the file allows, which is still well short of distortion. */
   readonly drive: number;
+  /**
+   * Every voice's loudness against the effects, 0..1, after the radio. Voices are background: they
+   * sit well under the fight (PRD 14.3). One number, so the balance between speakers stays as tuned.
+   */
+  readonly level: number;
 }
 
 export interface ParsedVoiceBank {
@@ -39,7 +44,7 @@ export interface ParsedVoiceBank {
 }
 
 /** Used when the file's radio block is missing or rejected, so the page still plays something sane. */
-export const DEFAULT_RADIO: RadioSettings = { lowCutHz: 300, highCutHz: 3400, drive: 0.2 };
+export const DEFAULT_RADIO: RadioSettings = { lowCutHz: 300, highCutHz: 3400, drive: 0.2, level: 0.4 };
 
 /**
  * The ranges a voice may be written in. They are wide on purpose: they catch a typo (a pitch of
@@ -57,6 +62,7 @@ export const SYLLABLE_MAX_SECONDS = 0.25;
 const LOW_CUT_HZ = [20, 2000] as const;
 const HIGH_CUT_HZ = [500, 12000] as const;
 const DRIVE = [0, 1] as const;
+const LEVEL = [0, 1] as const;
 
 /** ZzFX slots that make a syllable's length, with ZzFX's defaults for an empty slot. */
 const LENGTH_SLOTS: readonly (readonly [slot: number, fallback: number])[] = [
@@ -144,7 +150,8 @@ function parseRadio(raw: unknown): RadioSettings | string {
   if (!inRange(fields.highCutHz, HIGH_CUT_HZ)) return `needs highCutHz between ${String(HIGH_CUT_HZ[0])} and ${String(HIGH_CUT_HZ[1])}`;
   if (fields.lowCutHz >= fields.highCutHz) return 'needs lowCutHz below highCutHz';
   if (!inRange(fields.drive, DRIVE)) return 'needs drive between 0 and 1';
-  return { lowCutHz: fields.lowCutHz, highCutHz: fields.highCutHz, drive: fields.drive };
+  if (!inRange(fields.level, LEVEL)) return 'needs level between 0 and 1';
+  return { lowCutHz: fields.lowCutHz, highCutHz: fields.highCutHz, drive: fields.drive, level: fields.level };
 }
 
 /** Like the sound bank: a bad entry is skipped and named, so `check:content` can fail on it. */

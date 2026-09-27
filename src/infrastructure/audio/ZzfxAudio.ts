@@ -49,6 +49,8 @@ export class ZzfxAudio implements AudioPort {
   private suspended = false;
   private engine: ZzfxModule['ZZFX'] | null = null;
   private radioInput: AudioNode | null = null;
+  /** Every voice passes through here, radio or not, so the voice level holds either way. */
+  private voiceBus: GainNode | null = null;
   private talking: Talking | null = null;
   private radioOn = true;
   /**
@@ -79,7 +81,9 @@ export class ZzfxAudio implements AudioPort {
     // A gentle limiter, so a burst of sounds at once gets squeezed instead of clipping harshly.
     const limiter = context.createDynamicsCompressor();
     this.master.connect(limiter).connect(context.destination);
-    this.radioInput = buildRadio(context, this.radio, this.master);
+    this.voiceBus = new GainNode(context, { gain: this.radio.level });
+    this.voiceBus.connect(this.master);
+    this.radioInput = buildRadio(context, this.radio, this.voiceBus);
     void context.resume().catch(() => {});
 
     void this.loadZzfx()
@@ -118,7 +122,7 @@ export class ZzfxAudio implements AudioPort {
   speak(voice: Voice, seconds: number, seed: number): void {
     const context = this.context;
     const engine = this.engine;
-    if (!context || !this.master || !this.radioInput || !engine) return;
+    if (!context || !this.voiceBus || !this.radioInput || !engine) return;
     this.hush();
     try {
       // A fresh stream per line, well under a millisecond once the syllables are cached (journal 0062).
@@ -142,7 +146,7 @@ export class ZzfxAudio implements AudioPort {
       envelope.gain.linearRampToValueAtTime(1, now + VOICE_FADE_IN_SECONDS);
       envelope.gain.setValueAtTime(1, Math.max(now + VOICE_FADE_IN_SECONDS, end - VOICE_FADE_OUT_SECONDS));
       envelope.gain.linearRampToValueAtTime(0, end);
-      source.connect(envelope).connect(this.radioOn ? this.radioInput : this.master);
+      source.connect(envelope).connect(this.radioOn ? this.radioInput : this.voiceBus);
       const talking = { source, envelope };
       source.onended = (): void => {
         source.disconnect();
