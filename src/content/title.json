@@ -55,6 +55,7 @@
     "title": "Credits",
     "byline": "A game by Moriel Schottlender",
     "inspiration": "Fan art inspired by Battlestar Galactica, and by the episode \"33,\" in which the fleet jumps every thirty-three minutes.",
+    "thanks": "Card ideas from playtesters: Enrica.Manes (The Fleet's Water Filter, Starbuck's Lucky Streak, Gaius' Lab).",
     "links": [
       { "label": "moriel.tech", "href": "https://moriel.tech" },
       { "label": "github.com/mooeypoo/33-seconds", "href": "https://github.com/mooeypoo/33-seconds" }

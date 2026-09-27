@@ -127,6 +127,9 @@ of the URL that never reaches a server, and it names no one.
 Made by **Moriel Schottlender** ([mooeypoo](https://github.com/mooeypoo)).
 Website: [moriel.tech](https://moriel.tech) · Blog: [blog.moriel.tech](https://blog.moriel.tech)
 
+Card ideas from playtesters: **Enrica.Manes** (*The Fleet's Water Filter*, *Starbuck's Lucky
+Streak*, *Gaius' Lab*). Thank you for playing and for the ideas.
+
 Fonts: [VT323](https://fonts.google.com/specimen/VT323) and
 [Atkinson Hyperlegible](https://www.brailleinstitute.org/freefont/), both under the SIL Open Font
 License. Sound effects are synthesized with [ZzFX](https://github.com/KilledByAPixel/ZzFX). See

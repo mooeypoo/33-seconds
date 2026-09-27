@@ -194,6 +194,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
           <h2 id="credits-title" class="sheet-title">{{ titleCopy.credits.title }}</h2>
           <p class="byline">{{ titleCopy.credits.byline }}</p>
           <p class="inspiration">{{ titleCopy.credits.inspiration }}</p>
+          <p class="inspiration">{{ titleCopy.credits.thanks }}</p>
           <ul class="credit-links">
             <li v-for="link in titleCopy.credits.links" :key="link.href">
               <a class="credit-link" :href="link.href" target="_blank" rel="noopener noreferrer">
