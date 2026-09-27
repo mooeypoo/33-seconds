@@ -51,7 +51,7 @@ const showArt = computed(() => props.wide || props.expanded);
         <span class="stack">{{ stack }}</span>
       </span>
       <span v-if="showArt" class="art" aria-hidden="true">
-        <img v-if="card.art" :src="card.art" alt="" width="112" height="36" />
+        <img v-if="card.art" :src="card.art" alt="" width="672" height="216" />
       </span>
       <span class="title">{{ card.title }}</span>
       <span class="joke">{{ card.joke }}</span>
@@ -167,11 +167,15 @@ const showArt = computed(() => props.wide || props.expanded);
   color: var(--color-text-muted);
 }
 
-/* The banner: 112x36 art at a whole-number scale (SPRITE-FILES: 3x wide, 2x on a phone). */
+/*
+ * The banner: a 672x216 picture, one file pixel per screen pixel on a 2x desktop (336 CSS px) and a
+ * 3x phone (224 CSS px), smoothly scaled anywhere else (SPRITE-FILES, ART-SCALE). Sized by aspect
+ * ratio, so a narrow card shrinks the picture instead of squashing it.
+ */
 .art {
   align-self: center;
   width: 224px;
-  height: 72px;
+  aspect-ratio: 672 / 216;
   box-sizing: border-box;
   display: block;
   background: var(--color-dradis-night);
@@ -180,7 +184,6 @@ const showArt = computed(() => props.wide || props.expanded);
 
 .wide .art {
   width: 336px;
-  height: 108px;
   max-width: 100%;
 }
 
@@ -188,7 +191,8 @@ const showArt = computed(() => props.wide || props.expanded);
   display: block;
   width: 100%;
   height: 100%;
-  image-rendering: pixelated;
+  /* An illustration, not pixel art: smooth scaling keeps its detail when shrunk. */
+  image-rendering: auto;
 }
 
 .art:has(img) {

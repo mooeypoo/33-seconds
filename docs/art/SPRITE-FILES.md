@@ -87,22 +87,23 @@ Redrawn at the new density and in the game.
 
 ### Card art (page pictures) → `assets/cards/`
 
-A wide banner across the top of each upgrade card. **112 × 36**, shown at 3× on desktop and laptop
-and 2× on a phone. One file per card, named by its id. A small scene or emblem that says the joke at a
+A wide banner across the top of each upgrade card. **672 × 216**, a detailed illustration shown at
+336 × 108 CSS pixels on desktop and laptop and 224 × 72 on a phone, smoothly scaled (ART-SCALE). One
+file per card, named by its id. A small scene or emblem that says the joke at a
 glance, never text. A card without its file shows an empty slot, so these can land one at a time.
 
-- [ ] `accidentally-wide.png`
-- [ ] `anyone-could-be-a-cylon.png`
-- [ ] `bootleg-hooch.png`
-- [ ] `continuity-of-government.png`
-- [ ] `flak-enthusiast.png`
-- [ ] `hangar-door-slam.png`
-- [ ] `imaginary-six.png`
-- [ ] `overcompensating-cannon.png`
-- [ ] `personal-vendetta.png`
-- [ ] `raptor-escort.png`
-- [ ] `spoilers.png`
-- [ ] `your-call-is-important-to-us.png`
+- [x] `accidentally-wide.png`
+- [x] `anyone-could-be-a-cylon.png`
+- [x] `bootleg-hooch.png`
+- [x] `continuity-of-government.png`
+- [x] `flak-enthusiast.png`
+- [x] `hangar-door-slam.png`
+- [x] `imaginary-six.png`
+- [x] `overcompensating-cannon.png`
+- [x] `personal-vendetta.png`
+- [x] `raptor-escort.png`
+- [x] `spoilers.png`
+- [x] `your-call-is-important-to-us.png`
 
 ### Portraits (page pictures) → `assets/portraits/`
 
