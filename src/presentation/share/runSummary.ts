@@ -1,4 +1,4 @@
-import { challengeName, verdictText } from '../../application/challenges';
+import { challengeDetails, challengeName, verdictText } from '../../application/challenges';
 import { endingFor, fillEnding, mostKilledLine } from '../../application/endings';
 import type { RunResult } from '../../application/runResult';
 import type { TierId } from '../../domain/balance/profile';
@@ -21,6 +21,8 @@ export interface RunSummaryText {
   readonly mostKilled: string | null;
   /** A challenge's one-line judgment of the run (PRD 11.1), or null for Story mode. */
   readonly verdict: string | null;
+  /** What a weekly challenge changed. Empty otherwise. */
+  readonly challengeDetails: readonly string[];
 }
 
 const TIER_NAMES: Record<TierId, string> = { 'civilian-ship': 'Civilian Run', 'viper-pilot': 'Viper Pilot' };
@@ -58,5 +60,6 @@ export function summarizeRun(result: RunResult): RunSummaryText {
       ? mostKilledLine(result.mostKilled.identityId, result.mostKilled.kills, result.mostKilled.reaction)
       : null,
     verdict: result.challenge ? verdictText(result.challenge, result.score, result.cycle) : null,
+    challengeDetails: result.challenge ? challengeDetails(result.challenge.key) : [],
   };
 }

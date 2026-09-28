@@ -107,7 +107,11 @@ Each slice ends playable, with typecheck, lint, tests, `check:arch`, and `check:
    `balance/challenges.ts` merges and checks the preset, `application/challenges.ts` joins it to
    the words and owns verdicts and the rival comparison, `GameSession.startChallenge` launches it.
    `challenges.json`'s numbers joined the balance fingerprint.)
-2. [ ] **Weekly challenge.**
+2. [x] **Weekly challenge.** (2026-09-28: `application/isoWeek.ts` for the UTC ISO week;
+   `parseWeeklyPool` checks every pair's merged profile on load; `weeklyPair` picks from the key's
+   FNV-1a seed. A swarm variant may set only swarm and heavy fields and a fleet variant only the cap
+   and repair, so a pair never sets a field twice. The pool's numbers joined the balance
+   fingerprint. `npm run sim` reports every pair against the hunter bot.)
 3. [ ] **Endless** (`endless` mutator). The score changes, so the game version is bumped.
 4. [ ] **Slow FTL** (`slow-ftl` mutator, 66 seconds).
 

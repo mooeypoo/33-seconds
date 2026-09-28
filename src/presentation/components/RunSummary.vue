@@ -99,6 +99,9 @@ onMounted(() => {
       <h2 id="run-summary-headline">{{ summary.headline }}</h2>
       <p class="line">{{ summary.text }}</p>
       <p v-if="summary.verdict" class="verdict" data-testid="verdict">{{ summary.verdict }}</p>
+      <ul v-if="summary.challengeDetails.length > 0" class="details">
+        <li v-for="detail in summary.challengeDetails" :key="detail">{{ detail }}</li>
+      </ul>
 
       <p v-if="rival" class="rival" data-testid="rival">
         <span class="rival-verdict">{{ RIVAL_WORDS[rival.outcome] }}</span>
@@ -229,6 +232,14 @@ h2 {
   font-size: 16px;
   line-height: 1.4;
   color: var(--color-text-strong);
+}
+
+.details {
+  margin: -6px 0 12px;
+  padding-left: 1.1em;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--color-text-muted);
 }
 
 .rival {

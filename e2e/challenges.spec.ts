@@ -25,6 +25,21 @@ test.describe('challenges', () => {
     await expect(page.getByTestId('status-challenge').first()).toHaveText('Swarm');
   });
 
+  test("this week's challenge comes first, says what it changes, and launches as its week", async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('open-challenges').click();
+    const sheet = page.getByRole('dialog', { name: 'Challenges' });
+    const week = sheet.getByRole('heading', { name: /^Week \d{1,2}$/ });
+    await expect(week).toBeVisible();
+    const name = (await week.textContent())?.trim() ?? '';
+    await expect(sheet.getByRole('heading', { level: 3 }).first()).toHaveText(name);
+    await expect(sheet.getByTestId('weekly-details').getByRole('listitem').first()).toBeVisible();
+
+    await sheet.getByTestId('launch-weekly').click();
+    await expect(page.getByTestId('viper-x')).toBeAttached();
+    await expect(page.getByTestId('status-challenge').first()).toHaveText(name);
+  });
+
   test('a shared challenge result offers Beat this, which plays the same challenge', async ({ page, context }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Simulate challenge' }).click();

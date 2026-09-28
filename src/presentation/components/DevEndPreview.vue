@@ -2,7 +2,7 @@
 import { SCORE_WEIGHTS } from '../../balance/scoring';
 import { endingLines, reactionCount, type RunOutcome } from '../../application/endings';
 import type { RunResult } from '../../application/runResult';
-import { listChallenges, pickVerdict } from '../../application/challenges';
+import { listChallenges, pickVerdict, weeklyChallenge } from '../../application/challenges';
 import { createRandomStream } from '../../domain/shared/random';
 import { maxStacksFor, STARTER_CARDS } from '../../domain/progression/catalog';
 import { scoreRun, type RunFacts } from '../../domain/scoring/score';
@@ -49,7 +49,8 @@ function simulate(outcome: RunOutcome, challenge = false): void {
     stacks: 1 + roll(maxStacksFor(card.rarity) - 1),
   }));
   const score = scoreRun(facts, SCORE_WEIGHTS);
-  const challenges = listChallenges();
+  const weekly = weeklyChallenge(new Date());
+  const challenges = [...(weekly ? [weekly] : []), ...listChallenges()];
   const played = challenge ? challenges[nextChallenge++ % Math.max(1, challenges.length)] : undefined;
   emit('preview', {
     outcome,

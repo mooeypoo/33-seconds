@@ -3,7 +3,7 @@ import { computed, nextTick, useTemplateRef, ref } from 'vue';
 import titleCopy from '../../content/title.json';
 import viperNeutral from '../../../assets/ships/viper_neutral.png';
 import type { TierId } from '../../domain/balance/profile';
-import { listChallenges } from '../../application/challenges';
+import { listChallenges, weeklyChallenge } from '../../application/challenges';
 import { titleQuote } from '../titleQuote';
 import MuteControl from './MuteControl.vue';
 import { settingsStore } from '../stores/settingsStore';
@@ -15,7 +15,9 @@ defineProps<{ inLane?: boolean }>();
 const emit = defineEmits<{ start: [tier: TierId]; training: []; challenge: [key: string] }>();
 
 /** The set challenges (PRD 11.1), each launched from its own row on the Challenges sheet. */
-const challenges = listChallenges();
+const weekly = weeklyChallenge(new Date());
+/** This week's first (PRD 11.1), then the set challenges. The week is read once, when the title opens. */
+const challenges = [...(weekly ? [{ ...weekly, weekly: true }] : []), ...listChallenges().map((challenge) => ({ ...challenge, weekly: false }))];
 
 /** New players see the Training Run first; after one, it stays on offer but steps aside (PRD 5.5). */
 const trainingDone = computed(() => settingsStore.state.snapshot.trainingCompleted);
@@ -213,13 +215,17 @@ function onSheetKeydown(event: KeyboardEvent): void {
           <h2 id="challenges-title" class="sheet-title">{{ titleCopy.challenges.title }}</h2>
           <p class="lead">{{ titleCopy.challenges.lead }}</p>
           <ul class="challenge-list">
-            <li v-for="challenge in challenges" :key="challenge.key" class="challenge">
+            <li v-for="challenge in challenges" :key="challenge.key" class="challenge" :class="{ weekly: challenge.weekly }">
+              <p v-if="challenge.weekly" class="kicker">{{ titleCopy.challenges.thisWeek }}</p>
               <h3 class="block-heading">{{ challenge.name }}</h3>
               <p class="challenge-blurb">{{ challenge.blurb }}</p>
+              <ul v-if="challenge.details.length > 0" class="challenge-details" data-testid="weekly-details">
+                <li v-for="detail in challenge.details" :key="detail">{{ detail }}</li>
+              </ul>
               <button
                 class="challenge-launch"
                 type="button"
-                :data-testid="`launch-${challenge.key}`"
+                :data-testid="challenge.weekly ? 'launch-weekly' : `launch-${challenge.key}`"
                 :aria-label="`${titleCopy.challenges.launch} ${challenge.name}`"
                 @click="emit('challenge', challenge.key)"
               >
@@ -405,6 +411,23 @@ function onSheetKeydown(event: KeyboardEvent): void {
   padding-top: 16px;
   margin-top: 16px;
   border-top: 1px solid var(--color-dradis-deep);
+}
+
+.challenge.weekly {
+  padding: 14px;
+  border: 1px solid var(--color-amber);
+}
+
+.challenge.weekly .kicker {
+  margin: 0;
+}
+
+.challenge-details {
+  margin: 0;
+  padding-left: 1.1em;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--color-text-strong);
 }
 
 .challenge-blurb {
