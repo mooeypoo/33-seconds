@@ -16,5 +16,35 @@
         "fleetRepairOfMissing": 0.3
       }
     }
+  },
+  "weekly": {
+    "_readme": "The weekly challenge's pool (PRD 11.1). Each week takes the base tier, one swarm variant, and one fleet variant, picked from the ISO week. A swarm variant may set only swarm and heavy fields, a fleet variant only fleetCycleDamageCap and fleetRepairOfMissing. The first of each list is the tier's own numbers, and a week never pairs those two (that would be Story mode). Every pair must be one `npm run sim` has reported: keep the hunter bot winning at least a quarter of the time. Changing this pool changes past weeks' rules too; shared links carry the game version, so an old result reads as old.",
+    "tier": "viper-pilot",
+    "swarms": {
+      "steady": {},
+      "swarm": {
+        "directorCap": [4, 5, 6, 6, 7, 7, 8, 8],
+        "swarmFloor": [4, 4, 4, 5, 5, 5, 6, 6],
+        "attackTokens": [1, 2, 2, 2, 3, 3, 3, 3],
+        "strafeTokens": [1, 1, 1, 2, 2, 2, 2, 2]
+      },
+      "heavies": {
+        "heavyFromCycle": 1,
+        "heavyPerCycle": 4,
+        "heavyMax": 4
+      },
+      "weavers": {
+        "sineShare": [0.4, 0.5, 0.6, 0.7]
+      }
+    },
+    "fleets": {
+      "standard": {},
+      "short-handed": {
+        "fleetRepairOfMissing": 0.35
+      },
+      "thin-hulls": {
+        "fleetCycleDamageCap": 55
+      }
+    }
   }
 }

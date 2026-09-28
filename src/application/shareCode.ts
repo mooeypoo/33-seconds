@@ -1,7 +1,7 @@
 import type { TierId } from '../domain/balance/profile';
 import { cardDefinition, isCardId, maxStacksFor, type CardId } from '../domain/progression/catalog';
 import { CHALLENGE_ID_PATTERN } from '../balance/challenges';
-import { VERDICT_ID_PATTERN, type ChallengeTag } from './challenges';
+import { VERDICT_ID_PATTERN, weekOfKey, type ChallengeTag } from './challenges';
 import { ENDING_ID_PATTERN } from './endings';
 import { openLink, sealLink } from './linkSeal';
 import type { RunResult } from './runResult';
@@ -118,7 +118,8 @@ function cards(value: string | undefined): RunResult['cards'] {
  */
 function challengeTag(key: string | undefined, verdictId: string | undefined): ChallengeTag | null {
   if (key === undefined && verdictId === undefined) return null;
-  if (key === undefined || !CHALLENGE_ID_PATTERN.test(key)) throw new Rejected();
+  // A set challenge's id, or a real week (`weekly:2026-W40`; not week 53 of a 52-week year).
+  if (key === undefined || !(CHALLENGE_ID_PATTERN.test(key) || weekOfKey(key) !== null)) throw new Rejected();
   if (verdictId === undefined || !VERDICT_ID_PATTERN.test(verdictId)) throw new Rejected();
   return { key, verdictId };
 }

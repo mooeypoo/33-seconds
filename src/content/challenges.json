@@ -55,5 +55,44 @@
         }
       ]
     }
+  },
+  "weekly": {
+    "_readme": "The weekly challenge (PRD 11.1). `name` is short, because it sits beside the outcome on the end screen and the share image; {week} is the week's number. Every swarm and fleet variant in src/balance/challenges.json needs a `name` (up to 24 characters) and a `line` (up to 90) saying what it does. The first of each list is the tier's own numbers: its line shows only when the week pairs it with a change. Verdicts work as for set challenges.",
+    "name": "Week {week}",
+    "blurb": "A new mix every Monday, 00:00 UTC. Everyone flies the same rules this week.",
+    "swarms": {
+      "steady": { "name": "Steady skies", "line": "The usual swarm." },
+      "swarm": { "name": "A bigger swarm", "line": "More Raiders, sooner, and more of them shooting." },
+      "heavies": { "name": "Heavy traffic", "line": "Heavy Raiders from the first cycle, four at a time." },
+      "weavers": { "name": "Weavers", "line": "Most Raiders weave instead of diving straight." }
+    },
+    "fleets": {
+      "standard": { "name": "Tyrol on shift", "line": "The usual repairs." },
+      "short-handed": { "name": "Short-handed deck", "line": "Less fleet repair at each jump." },
+      "thin-hulls": { "name": "Thin hulls", "line": "The fleet can lose more in a single cycle." }
+    },
+    "verdicts": [
+      {
+        "atLeast": 0,
+        "lines": [
+          { "id": "w-low-1", "text": "PLACEHOLDER: This week happened to you. Next week might go the other way." },
+          { "id": "w-low-2", "text": "PLACEHOLDER: The fleet has filed this week under 'lessons'." }
+        ]
+      },
+      {
+        "atLeast": 800,
+        "lines": [
+          { "id": "w-mid-1", "text": "PLACEHOLDER: A solid week. CIC is cautiously optimistic, which is new." },
+          { "id": "w-mid-2", "text": "PLACEHOLDER: {cycles} jumps. The week's paperwork is nearly bearable." }
+        ]
+      },
+      {
+        "atLeast": 1600,
+        "lines": [
+          { "id": "w-high-1", "text": "PLACEHOLDER: {score} points. Put it on the board in the hangar." },
+          { "id": "w-high-2", "text": "PLACEHOLDER: Best week the fleet's had in a while. Don't tell the Cylons." }
+        ]
+      }
+    ]
   }
 }

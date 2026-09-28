@@ -1,8 +1,9 @@
 import contentRaw from '../content/challenges.json';
-import { CHALLENGE_PRESETS, challengePreset } from '../balance/challenges';
+import { CHALLENGE_PRESETS, challengePreset, WEEKLY_POOL, weeklyPairKey, type WeeklyPool } from '../balance/challenges';
 import type { CycleProfile, TierId } from '../domain/balance/profile';
-import type { RandomStream } from '../domain/shared/random';
+import { createRandomStream, type RandomStream } from '../domain/shared/random';
 import { fillEnding } from './endings';
+import { formatIsoWeek, isoWeekOf, parseIsoWeek } from './isoWeek';
 
 /**
  * Challenges as the player sees them (PRD 11.1, ADR-0004): the numbers from
@@ -13,6 +14,8 @@ export interface ChallengeInfo {
   readonly key: string;
   readonly name: string;
   readonly blurb: string;
+  /** What this week changes, one line per change (`Heavy traffic: ...`). Empty for a set challenge. */
+  readonly details: readonly string[];
 }
 
 /** What a session needs to launch one. */
@@ -107,7 +110,7 @@ export function parseChallengeWords(key: string, raw: unknown): { words: Challen
     else bands.push({ atLeast, lines });
   });
   if (bands.length === 0) problems.push(`${key}.verdicts needs at least one band, starting at 0`);
-  const words = name && blurb && bands.length > 0 ? { key, name, blurb, verdicts: bands } : null;
+  const words = name && blurb && bands.length > 0 ? { key, name, blurb, details: [], verdicts: bands } : null;
   return { words, problems };
 }
 
@@ -123,20 +126,161 @@ function loadWords(): ReadonlyMap<string, ChallengeWords> {
 
 const WORDS = loadWords();
 
-/** The challenges the title offers, in the order `balance/challenges.json` lists them. */
-export function listChallenges(): readonly ChallengeInfo[] {
-  return [...WORDS.values()].map(({ key, name, blurb }) => ({ key, name, blurb }));
+// ---------- The weekly challenge ----------
+
+export const WEEKLY_KEY_PREFIX = 'weekly:';
+export const VARIANT_NAME_MAX_CHARACTERS = 24;
+export const VARIANT_LINE_MAX_CHARACTERS = 90;
+
+interface VariantWords {
+  readonly name: string;
+  readonly line: string;
 }
 
-/** Null for a key this version cannot play: unknown, or missing its words. */
+interface WeeklyWords {
+  /** With `{week}` for the week's number. */
+  readonly name: string;
+  readonly blurb: string;
+  readonly verdicts: readonly VerdictBand[];
+  readonly swarms: ReadonlyMap<string, VariantWords>;
+  readonly fleets: ReadonlyMap<string, VariantWords>;
+}
+
+function parseVariantWords(
+  where: 'swarms' | 'fleets',
+  raw: unknown,
+  ids: readonly string[],
+  problems: string[],
+): Map<string, VariantWords> {
+  const entries = record(raw);
+  const parsed = new Map<string, VariantWords>();
+  for (const id of ids) {
+    const entry = record(entries[id]);
+    const name = text(entry.name, VARIANT_NAME_MAX_CHARACTERS);
+    const line = text(entry.line, VARIANT_LINE_MAX_CHARACTERS);
+    if (!name || !line) {
+      problems.push(
+        `weekly.${where}.${id} needs a name up to ${String(VARIANT_NAME_MAX_CHARACTERS)} characters and a line up to ${String(VARIANT_LINE_MAX_CHARACTERS)}`,
+      );
+    } else parsed.set(id, { name, line });
+  }
+  for (const id of Object.keys(entries)) {
+    if (!ids.includes(id)) problems.push(`weekly.${where}.${id} has no numbers in balance/challenges.json`);
+  }
+  return parsed;
+}
+
+/**
+ * The weekly challenge's words, and what was wrong with them. The runtime offers no weekly
+ * challenge unless every variant the pool can pick has words; the content check fails on any problem.
+ */
+export function parseWeeklyWords(raw: unknown, pool: WeeklyPool = WEEKLY_POOL): { words: WeeklyWords | null; problems: string[] } {
+  const entry = record(raw);
+  const { words: common, problems } = parseChallengeWords('weekly', entry);
+  const swarms = parseVariantWords('swarms', entry.swarms, pool.swarms, problems);
+  const fleets = parseVariantWords('fleets', entry.fleets, pool.fleets, problems);
+  const complete = swarms.size === pool.swarms.length && fleets.size === pool.fleets.length;
+  const words = common && complete ? { name: common.name, blurb: common.blurb, verdicts: common.verdicts, swarms, fleets } : null;
+  return { words, problems };
+}
+
+const WEEKLY_WORDS = parseWeeklyWords(record(contentRaw).weekly).words;
+
+/** Every pair a week may get, in a fixed order. The two firsts together are Story mode, so not a week. */
+function weeklyPairs(pool: WeeklyPool): readonly [string, string][] {
+  const pairs: [string, string][] = [];
+  pool.swarms.forEach((swarm, swarmIndex) => {
+    pool.fleets.forEach((fleet, fleetIndex) => {
+      if (swarmIndex > 0 || fleetIndex > 0) pairs.push([swarm, fleet]);
+    });
+  });
+  return pairs;
+}
+
+/** FNV-1a, 32 bits: turns a week's key into a seed. Not a security measure. */
+function seedOf(key: string): number {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < key.length; i++) {
+    hash ^= key.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash;
+}
+
+/** The key for the week `now` falls in (UTC), such as `weekly:2026-W40`. */
+export function weeklyKeyFor(now: Date): string {
+  return `${WEEKLY_KEY_PREFIX}${formatIsoWeek(isoWeekOf(now))}`;
+}
+
+/** The week a weekly key names, or null for anything else, including a week that does not exist. */
+export function weekOfKey(key: string): { year: number; week: number } | null {
+  return key.startsWith(WEEKLY_KEY_PREFIX) ? parseIsoWeek(key.slice(WEEKLY_KEY_PREFIX.length)) : null;
+}
+
+/**
+ * The swarm and fleet variants a week gets: the same for everyone, from the week's key alone. A
+ * change to the pool changes past weeks too; the game version on a shared result says so.
+ */
+export function weeklyPair(key: string, pool: WeeklyPool = WEEKLY_POOL): { swarm: string; fleet: string } | null {
+  if (!weekOfKey(key)) return null;
+  const pairs = weeklyPairs(pool);
+  const pair = pairs[createRandomStream(seedOf(key)).index(pairs.length)];
+  return pair ? { swarm: pair[0], fleet: pair[1] } : null;
+}
+
+function weeklyWordsFor(key: string): ChallengeWords | null {
+  const week = weekOfKey(key);
+  const pair = weeklyPair(key);
+  if (!week || !pair || !WEEKLY_WORDS) return null;
+  const parts = [WEEKLY_WORDS.swarms.get(pair.swarm), WEEKLY_WORDS.fleets.get(pair.fleet)];
+  // The tier's own numbers go unmentioned, unless both are (which never happens).
+  const changed = [pair.swarm !== WEEKLY_POOL.swarms[0] ? parts[0] : undefined, pair.fleet !== WEEKLY_POOL.fleets[0] ? parts[1] : undefined];
+  return {
+    key,
+    name: WEEKLY_WORDS.name.replace('{week}', String(week.week)),
+    blurb: WEEKLY_WORDS.blurb,
+    details: changed.filter((part): part is VariantWords => part !== undefined).map((part) => `${part.name}: ${part.line}`),
+    verdicts: WEEKLY_WORDS.verdicts,
+  };
+}
+
+function wordsFor(key: string): ChallengeWords | null {
+  return WORDS.get(key) ?? weeklyWordsFor(key);
+}
+
+// ---------- What the title and the end screen ask ----------
+
+/** The set challenges the title offers, in the order `balance/challenges.json` lists them. */
+export function listChallenges(): readonly ChallengeInfo[] {
+  return [...WORDS.values()].map(({ key, name, blurb, details }) => ({ key, name, blurb, details }));
+}
+
+/** This week's challenge, or null if its words are missing (the content check names them). */
+export function weeklyChallenge(now: Date): ChallengeInfo | null {
+  const words = weeklyWordsFor(weeklyKeyFor(now));
+  return words ? { key: words.key, name: words.name, blurb: words.blurb, details: words.details } : null;
+}
+
+/**
+ * Null for a key this version cannot play: unknown, or missing its words. Any real week plays,
+ * past or future, so a link keeps its week's rules after the week is over.
+ */
 export function challengeLaunch(key: string): ChallengeLaunch | null {
+  if (!wordsFor(key)) return null;
   const preset = challengePreset(key);
-  if (!preset || !WORDS.has(key)) return null;
-  return { key, tier: preset.tier, profile: preset.profile };
+  if (preset) return { key, tier: preset.tier, profile: preset.profile };
+  const pair = weeklyPair(key);
+  const profile = pair ? WEEKLY_POOL.profiles[weeklyPairKey(pair.swarm, pair.fleet)] : undefined;
+  return profile ? { key, tier: WEEKLY_POOL.tier, profile } : null;
 }
 
 export function challengeName(key: string): string {
-  return WORDS.get(key)?.name ?? RETIRED_NAME;
+  return wordsFor(key)?.name ?? RETIRED_NAME;
+}
+
+/** What a weekly challenge changes, for the end screen. Empty for a set or retired challenge. */
+export function challengeDetails(key: string): readonly string[] {
+  return wordsFor(key)?.details ?? [];
 }
 
 function bandFor(bands: readonly VerdictBand[], score: number): VerdictBand | undefined {
@@ -147,7 +291,7 @@ function bandFor(bands: readonly VerdictBand[], score: number): VerdictBand | un
 
 /** A verdict for a run that just ended, from the band its score reached. Empty if the challenge has none. */
 export function pickVerdict(key: string, score: number, random: RandomStream): string {
-  const band = bandFor(WORDS.get(key)?.verdicts ?? [], score);
+  const band = bandFor(wordsFor(key)?.verdicts ?? [], score);
   if (!band) return '';
   return band.lines[random.index(band.lines.length)]?.id ?? '';
 }
@@ -157,7 +301,7 @@ export function pickVerdict(key: string, score: number, random: RandomStream): s
  * an unknown id shows the first line of the band the score reached. Null for a retired challenge.
  */
 export function verdictText(tag: ChallengeTag, score: number, cycles: number): string | null {
-  const bands = WORDS.get(tag.key)?.verdicts;
+  const bands = wordsFor(tag.key)?.verdicts;
   if (!bands) return null;
   const line = bands.flatMap((band) => band.lines).find((candidate) => candidate.id === tag.verdictId) ?? bandFor(bands, score)?.lines[0];
   return line ? fillEnding(line.text, { score, cycles }) : null;

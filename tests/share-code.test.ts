@@ -182,11 +182,18 @@ describe('a share link', () => {
       payload.replace('&j=s-mid-2', ''),
       payload.replace('x=swarm&', ''),
       payload.replace('x=swarm', 'x=Swarm'),
-      payload.replace('x=swarm', 'x=weekly:2026-W40'),
+      // 2025 has 52 weeks.
+      payload.replace('x=swarm', 'x=weekly:2025-W53'),
+      payload.replace('x=swarm', 'x=weekly:2026-W00'),
       payload.replace('j=s-mid-2', 'j=<i>'),
     ]) {
       expect(decodeSharedRun(`#${sealLink(broken)}`), broken).toBeNull();
     }
+  });
+
+  it('carries a weekly challenge by its week', () => {
+    const weekly: SharedRun = { ...SHARED, result: { ...LOSS, challenge: { key: 'weekly:2026-W53', verdictId: 'w-mid-1' } } };
+    expect(decodeSharedRun(link(weekly))).toEqual(weekly);
   });
 
   it('opens a challenge this version does not know, so the page can call it retired', () => {

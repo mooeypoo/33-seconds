@@ -10,8 +10,8 @@ import trainingRaw from '../../src/content/training.json';
 import trainingPresetRaw from '../../src/balance/training.json';
 import challengesRaw from '../../src/balance/challenges.json';
 import challengeWordsRaw from '../../src/content/challenges.json';
-import { parseChallenges } from '../../src/balance/challenges';
-import { parseChallengeWords } from '../../src/application/challenges';
+import { parseChallenges, parseWeeklyPool } from '../../src/balance/challenges';
+import { parseChallengeWords, parseWeeklyWords } from '../../src/application/challenges';
 import { parseTrainingPreset } from '../../src/balance/training';
 import {
   isPlainText,
@@ -329,8 +329,9 @@ describe('end-screen lines', () => {
 describe('challenges', () => {
   const known = new Set<string>(['score', 'cycles']);
 
-  it('has valid numbers in balance/challenges.json', () => {
+  it('has valid numbers in balance/challenges.json, for the set challenges and every weekly pair', () => {
     expect(() => parseChallenges(challengesRaw)).not.toThrow();
+    expect(() => parseWeeklyPool(challengesRaw)).not.toThrow();
   });
 
   it('has words for every challenge and no words for a challenge that does not exist', () => {
@@ -350,14 +351,25 @@ describe('challenges', () => {
     expect(problems).toEqual([]);
   });
 
+  it('has words for every weekly variant, and none for a variant that does not exist', () => {
+    expect(parseWeeklyWords(record(challengeWordsRaw).weekly).problems.map((problem) => `content/challenges.json ${problem}`)).toEqual([]);
+  });
+
   it('keeps every name, blurb, and verdict plain text with known placeholders', () => {
     const problems: string[] = [];
-    for (const [id, raw] of Object.entries(record(record(challengeWordsRaw).challenges))) {
+    const weekly = record(record(challengeWordsRaw).weekly);
+    const entries: [string, unknown][] = [...Object.entries(record(record(challengeWordsRaw).challenges)), ['weekly', weekly]];
+    for (const [id, raw] of entries) {
       const entry = record(raw);
       const texts: [string, unknown][] = [
         [`${id}.name`, entry.name],
         [`${id}.blurb`, entry.blurb],
       ];
+      for (const list of ['swarms', 'fleets']) {
+        for (const [variant, words] of Object.entries(record(entry[list]))) {
+          texts.push([`${id}.${list}.${variant}.name`, record(words).name], [`${id}.${list}.${variant}.line`, record(words).line]);
+        }
+      }
       const bands: unknown[] = Array.isArray(entry.verdicts) ? entry.verdicts : [];
       bands.forEach((band, bandIndex) => {
         const lines: unknown[] = Array.isArray(record(band).lines) ? (record(band).lines as unknown[]) : [];
@@ -366,8 +378,10 @@ describe('challenges', () => {
       for (const [where, text] of texts) {
         if (typeof text !== 'string') continue;
         if (MARKUP.test(text) || EMOJI.test(text)) problems.push(`content/challenges.json ${where} has markup or emoji`);
+        // The weekly name alone is filled with its week's number.
+        const fills = where === 'weekly.name' ? new Set(['week']) : known;
         for (const [, name] of text.matchAll(/\{(\w+)\}/g)) {
-          if (!known.has(name ?? '')) problems.push(`content/challenges.json ${where} uses {${String(name)}}, which nothing fills`);
+          if (!fills.has(name ?? '')) problems.push(`content/challenges.json ${where} uses {${String(name)}}, which nothing fills`);
         }
       }
     }

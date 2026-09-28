@@ -37,7 +37,7 @@ describe('balance fingerprint', () => {
    * failure prints what to paste. Rule changes in code are not covered: bump for those by hand.
    */
   it('matches the tier, score, and challenge numbers, as of the current game version', () => {
-    const current = { version: __GAME_VERSION__, balance: fnv1a(canonical({ challenges: challengesRaw.challenges, scoring: scoringRaw, tiers: tiersRaw })) };
+    const current = { version: __GAME_VERSION__, balance: fnv1a(canonical({ challenges: challengesRaw.challenges, weekly: { ...challengesRaw.weekly, _readme: null }, scoring: scoringRaw, tiers: tiersRaw })) };
     const recorded = fingerprintRaw as { version: unknown; balance: unknown };
     const paste = `"version": "${current.version}", "balance": "${current.balance}"`;
     if (recorded.balance !== current.balance && recorded.version === current.version) {

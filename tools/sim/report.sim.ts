@@ -1,5 +1,5 @@
 import { it } from 'vitest';
-import { CHALLENGE_PRESETS } from '../../src/balance/challenges';
+import { CHALLENGE_PRESETS, WEEKLY_POOL, weeklyPairKey } from '../../src/balance/challenges';
 import { TIER_PROFILES } from '../../src/balance/tiers';
 import type { CycleProfile, TierId } from '../../src/domain/balance/profile';
 import { BOTS } from './bots';
@@ -26,7 +26,7 @@ function score(value: number | null): string {
 
 function row(tier: string, bot: string, summary: Summary): string {
   return [
-    tier.padEnd(18),
+    tier.padEnd(24),
     bot.padEnd(7),
     percent(summary.winRate).padStart(5),
     percent(summary.lossRate).padStart(5),
@@ -45,7 +45,7 @@ function row(tier: string, bot: string, summary: Summary): string {
 
 it(`balance report (${String(RUNS)} runs per row, up to ${String(MAX_CYCLES)} cycles)`, () => {
   const header = [
-    'tier / challenge'.padEnd(18),
+    'tier / challenge'.padEnd(24),
     'bot'.padEnd(7),
     'won'.padStart(5),
     'lost'.padStart(5),
@@ -73,6 +73,18 @@ it(`balance report (${String(RUNS)} runs per row, up to ${String(MAX_CYCLES)} cy
       );
       lines.push(row(label, name, summarize(results)));
     }
+  }
+  // Every pair the weekly challenge can get (PRD 11.1), against the hunter only: the bot that plays
+  // to win is the one a too-hard week shows up in. The pool says to keep it winning a quarter of runs.
+  lines.push('', 'weekly pairs (swarm+fleet), hunter bot only:');
+  const hunter = BOTS.hunter;
+  if (!hunter) throw new Error('the weekly rows need the hunter bot');
+  for (const [pair, profile] of Object.entries(WEEKLY_POOL.profiles)) {
+    if (pair === weeklyPairKey(WEEKLY_POOL.swarms[0] ?? '', WEEKLY_POOL.fleets[0] ?? '')) continue;
+    const results = Array.from({ length: RUNS }, (_, index) =>
+      simulateRun({ seed: index + 1, profile, bot: hunter, maxCycles: MAX_CYCLES }),
+    );
+    lines.push(row(pair, 'hunter', summarize(results)));
   }
   lines.push('', `minutes = combat time plus ~10 s per Recovering pick. Scores are medians; "lost" includes timeouts. ${((performance.now() - started) / 1000).toFixed(1)} s to simulate.`);
   // eslint-disable-next-line no-console -- printing the table is this report's whole job

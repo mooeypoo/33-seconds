@@ -83,6 +83,105 @@ export function parseChallenges(input: unknown, tiers: unknown = tiersRaw): Read
 
 export const CHALLENGE_PRESETS: Readonly<Record<string, ChallengePreset>> = parseChallenges(raw);
 
+/**
+ * The weekly challenge's pool (PRD 11.1): a base tier and two lists of variants. A week is one of
+ * each, picked from its key by the application. The first variant of each list is the tier's own
+ * numbers, and a week never pairs the two firsts, because that pair is Story mode.
+ */
+export interface WeeklyPool {
+  readonly tier: TierId;
+  /** Variant ids, in file order. */
+  readonly swarms: readonly string[];
+  readonly fleets: readonly string[];
+  /** Every pair's whole profile, by `${swarm}+${fleet}`, checked when the file loads. */
+  readonly profiles: Readonly<Record<string, CycleProfile>>;
+}
+
+/** What each list may touch, so a pair can never set the same field twice. */
+const SWARM_VARIANT_FIELDS = new Set([
+  'directorCap',
+  'swarmFloor',
+  'sineShare',
+  'attackTokens',
+  'strafeTokens',
+  'downloadJitterSeconds',
+  'heavyFromCycle',
+  'heavyPerCycle',
+  'heavyMax',
+]);
+const FLEET_VARIANT_FIELDS = new Set(['fleetCycleDamageCap', 'fleetRepairOfMissing']);
+
+export const VARIANT_ID_PATTERN = /^[a-z0-9-]{1,20}$/;
+
+function parseVariants(
+  where: string,
+  value: unknown,
+  allowed: ReadonlySet<string>,
+  problems: string[],
+): [string, Record<string, unknown>][] {
+  const list = record(value);
+  if (!list || Object.keys(list).length < 2) {
+    problems.push(`weekly.${where} needs the tier's own numbers first and at least one variant`);
+    return [];
+  }
+  const variants: [string, Record<string, unknown>][] = [];
+  for (const [id, entry] of Object.entries(list)) {
+    const patch = record(entry);
+    if (!VARIANT_ID_PATTERN.test(id)) problems.push(`weekly.${where}: id ${id} must be up to 20 lowercase letters, digits, and dashes`);
+    else if (!patch) problems.push(`weekly.${where}.${id} must be an object of tier settings`);
+    else {
+      for (const key of Object.keys(patch)) {
+        if (!allowed.has(key)) problems.push(`weekly.${where}.${id}.${key} is not a ${where === 'swarms' ? 'swarm' : 'fleet'} setting`);
+      }
+      variants.push([id, patch]);
+    }
+  }
+  const first = variants[0];
+  if (first && Object.keys(first[1]).length > 0) problems.push(`weekly.${where}.${first[0]} comes first, so it must be {} (the tier's own numbers)`);
+  return variants;
+}
+
+export function weeklyPairKey(swarm: string, fleet: string): string {
+  return `${swarm}+${fleet}`;
+}
+
+/** Names every problem at once, including any pair whose merged numbers are out of bounds. */
+export function parseWeeklyPool(input: unknown, tiers: unknown = tiersRaw): WeeklyPool {
+  const problems: string[] = [];
+  const weekly = record(record(input)?.weekly) ?? {};
+  for (const key of Object.keys(weekly)) {
+    if (!['_readme', 'tier', 'swarms', 'fleets'].includes(key)) problems.push(`weekly.${key} is not a known setting`);
+  }
+  const tier = weekly.tier;
+  if (typeof tier !== 'string' || !isTierId(tier)) problems.push('weekly.tier must be a known tier id');
+  const swarms = parseVariants('swarms', weekly.swarms, SWARM_VARIANT_FIELDS, problems);
+  const fleets = parseVariants('fleets', weekly.fleets, FLEET_VARIANT_FIELDS, problems);
+  const profiles: Record<string, CycleProfile> = {};
+  if (problems.length === 0 && typeof tier === 'string' && isTierId(tier)) {
+    const base = record(record(tiers)?.[tier]) ?? {};
+    for (const [swarmId, swarm] of swarms) {
+      for (const [fleetId, fleet] of fleets) {
+        const pair = weeklyPairKey(swarmId, fleetId);
+        try {
+          profiles[pair] = parseTierProfile(tier, { ...base, ...swarm, ...fleet });
+        } catch (error) {
+          if (!(error instanceof TierProfileError)) throw error;
+          problems.push(...error.problems.map((problem) => `weekly ${pair}: ${problem.replace(`${tier}.`, '')}`));
+        }
+      }
+    }
+  }
+  if (problems.length > 0) throw new ChallengePresetError(problems);
+  return {
+    tier: tier as TierId,
+    swarms: swarms.map(([id]) => id),
+    fleets: fleets.map(([id]) => id),
+    profiles,
+  };
+}
+
+export const WEEKLY_POOL: WeeklyPool = parseWeeklyPool(raw);
+
 export function challengePreset(id: string): ChallengePreset | null {
   return Object.hasOwn(CHALLENGE_PRESETS, id) ? (CHALLENGE_PRESETS[id] ?? null) : null;
 }
