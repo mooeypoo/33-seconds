@@ -59,7 +59,8 @@ win.
   for the full fight. New pilots can take a short **Training Run** with Chief Tyrol first.
 - **Challenges.** Beside the normal run (**Story mode**) there are challenges that bend it:
   **Swarm** (more Raiders, sooner), **Tyrol overwhelmed** (much less repair at each jump), and
-  **Endless** (no resurrection ship, so how many jumps can the fleet hold while Tyrol tires?). A
+  **Endless** (no resurrection ship, so how many jumps can the fleet hold while Tyrol tires?), and
+  **Baltar's FTL upgrade** (the jump drive is twice as reliable and twice as slow: 66 seconds). A
   **weekly challenge** mixes a new set of rules every Monday, the same for everyone. Every
   challenge result ends with a verdict on how you did, and a shared link lets a friend try to
   beat your score.

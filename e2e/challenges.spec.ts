@@ -49,6 +49,17 @@ test.describe('challenges', () => {
     await expect(page.getByTestId('status-repair').first()).toHaveText('Repair 60%');
   });
 
+  test("Baltar's FTL upgrade counts down from 66, not 33", async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('open-challenges').click();
+    await page.getByTestId('launch-slow-ftl').click();
+    await expect(page.getByTestId('viper-x')).toBeAttached();
+    // A few seconds may pass before the read; any story cycle would already be under 34.
+    await expect
+      .poll(async () => Number(await page.getByTestId('seconds-remaining').first().textContent()))
+      .toBeGreaterThan(55);
+  });
+
   test('a shared challenge result offers Beat this, which plays the same challenge', async ({ page, context }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Simulate challenge' }).click();

@@ -1,7 +1,7 @@
 # ADR-0004: Challenges, the weekly challenge, and how they are shared
 
-**Status:** Accepted (2026-09-28). Being built in four slices on one branch; each slice ticks its
-box below when it lands.
+**Status:** Accepted and built (2026-09-28), in four slices on one branch; see the ticked boxes
+below. Endless was revised while it was built.
 **Date:** 2026-09-28
 **Deciders:** Moriel (owner)
 **Related:** [PRD](../PRD.md) 5.1, 5.4, 11, 17, 19; [ADR-0001](0001-architecture.md) D3 and D9;
@@ -77,8 +77,14 @@ rule holds. Each one is typed as narrowly as it can be. Two to start:
 
 **Story mode and the Training Run are always 33 seconds.** Only a challenge that names the
 `slow-ftl` mutator changes the clock, and the HUD says so. The per-cycle damage cap and the repair
-are per cycle, so a 66-second cycle needs its own fleet numbers in its challenge entry; `sim`
-checks them.
+are per cycle, so we expected a 66-second cycle to need its own fleet numbers. *Built 2026-09-28:*
+it does not. The cap bounds what any cycle can take, and a long cycle reaches it anyway, so a
+higher cap only made it harder; Viper Pilot's own numbers give the hunter bot 57% (87% at 33 s).
+
+How it is built: `JumpCycle` takes the length (`CycleSeconds`, `33 | 66`) and derives the spool's
+start from `SPOOL_SECONDS` (8), so arriving and the spool are the same length in both. The cycle
+view carries `combatSeconds`, and the HUD's bar fills across it. `GameOptions.cycleSeconds` is the
+run option; `mutatorOptions` sets it for `slow-ftl`.
 
 ### The weekly challenge shares rules, not spawns
 
@@ -127,7 +133,8 @@ Each slice ends playable, with typecheck, lint, tests, `check:arch`, and `check:
    (2026-09-28: no ship, a falling repair ramp, the `held` outcome and headlines, `jumpHeld` in
    `scoring.json`, the `Repair N%` status chip; version 0.2.0. The sim runs Endless rows to 40
    cycles: median 10 to 12 jumps.)
-4. [ ] **Slow FTL** (`slow-ftl` mutator, 66 seconds).
+4. [x] **Slow FTL** (`slow-ftl` mutator, 66 seconds). (2026-09-28: shown as *Baltar's FTL
+   upgrade*; Viper Pilot's fleet numbers; the sim reports it with the other challenges.)
 
 ## Not doing
 
