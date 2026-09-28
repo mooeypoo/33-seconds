@@ -109,7 +109,10 @@ export interface CivilianShipView {
   readonly x: number;
   readonly y: number;
   readonly galactica: boolean;
+  /** False shows the dented picture. */
   readonly healthy: boolean;
+  /** Shows the X. A civilian is disabled as soon as it is dented; Galactica only at zero. */
+  readonly disabled: boolean;
   readonly justHit: boolean;
 }
 

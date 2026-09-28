@@ -131,6 +131,26 @@ describe('Fleet Integrity', () => {
     expect(fleet.view.lastHitShipId).toBeNull();
     expect(fleet.view.ships.every((ship) => !ship.justHit)).toBe(true);
   });
+
+  it('keeps Galactica up until every civilian is disabled, dents it under 5, and marks it only at zero', () => {
+    const galactica = (integrity: number) => new Fleet(integrity).view.ships[GALACTICA_SHIP_INDEX];
+
+    const lastHullLeft = new Fleet(FLEET_INTEGRITY_MAX / CIVILIAN_SHIP_COUNT).view.ships;
+    expect(lastHullLeft.filter((ship) => !ship.galactica).every((ship) => ship.disabled)).toBe(true);
+    expect(galactica(FLEET_INTEGRITY_MAX / CIVILIAN_SHIP_COUNT)).toMatchObject({ healthy: true, disabled: false });
+
+    expect(galactica(5)).toMatchObject({ healthy: true, disabled: false });
+    expect(galactica(4.9)).toMatchObject({ healthy: false, disabled: false });
+    expect(galactica(0.1)).toMatchObject({ healthy: false, disabled: false });
+    expect(galactica(0)).toMatchObject({ healthy: false, disabled: true });
+  });
+
+  it('shows exactly as many dented hulls as the pips, at every integrity', () => {
+    for (let integrity = 0; integrity <= FLEET_INTEGRITY_MAX; integrity++) {
+      const healthy = new Fleet(integrity).view.ships.filter((ship) => ship.healthy).length;
+      expect(healthy).toBe(Math.round((integrity / FLEET_INTEGRITY_MAX) * CIVILIAN_SHIP_COUNT));
+    }
+  });
 });
 
 describe('a stray crossing the fleet line', () => {

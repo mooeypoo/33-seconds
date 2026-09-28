@@ -76,6 +76,17 @@ export function nearestCivilianShipIndex(x: number, worldWidth: number = WORLD_W
 }
 
 /**
+ * When a hull shows as dented as integrity falls: 0 goes first. The civilians go from the right
+ * end of the line, and Galactica goes last. Each hull is one pip (10 integrity) and the line rounds
+ * to the nearest pip, so Galactica dents below 5, half of its own pip. Its X waits for zero.
+ */
+function disableOrder(index: number): number {
+  if (index === GALACTICA_SHIP_INDEX) return CIVILIAN_SHIP_COUNT - 1;
+  const fromRight = CIVILIAN_SHIP_COUNT - 1 - index;
+  return index > GALACTICA_SHIP_INDEX ? fromRight : fromRight - 1;
+}
+
+/**
  * Fleet Integrity. Partial repair at the jump. A per-cycle cap so one bad 33 cannot end the run.
  * ASSUMPTION: Galactica's flak waits behind *Flak Enthusiast*. Without that card every stray that
  * crosses the line hits, so the first play of the pool stays readable and deterministic.
@@ -94,15 +105,18 @@ export class Fleet {
   }
 
   get view(): FleetView {
-    const healthyCount = Math.round((this.integrity / FLEET_INTEGRITY_MAX) * CIVILIAN_SHIP_COUNT);
+    const disabledCount = CIVILIAN_SHIP_COUNT - Math.round((this.integrity / FLEET_INTEGRITY_MAX) * CIVILIAN_SHIP_COUNT);
     const ships: CivilianShipView[] = [];
     for (let id = 0; id < CIVILIAN_SHIP_COUNT; id++) {
+      const healthy = disableOrder(id) >= disabledCount;
+      const galactica = id === GALACTICA_SHIP_INDEX;
       ships.push({
         id,
         x: civilianShipX(id, this.worldWidth),
         y: FLEET_LINE_Y_UNITS,
-        galactica: id === GALACTICA_SHIP_INDEX,
-        healthy: id < healthyCount,
+        galactica,
+        healthy,
+        disabled: galactica ? this.integrity <= 0 : !healthy,
         justHit: this.lastHitShipId === id,
       });
     }

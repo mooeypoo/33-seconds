@@ -111,7 +111,7 @@ export class FleetPresenter implements Presenter {
       this.marks.set(ship.id, mark);
     }
     mark.setPosition(ship.x, markY(ship));
-    mark.setVisible(!ship.healthy);
+    mark.setVisible(ship.disabled);
   }
 
   private addMark(ship: CivilianShipView): Phaser.GameObjects.Graphics {
