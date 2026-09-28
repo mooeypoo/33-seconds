@@ -3,6 +3,7 @@ import { computed, nextTick, useTemplateRef, ref } from 'vue';
 import titleCopy from '../../content/title.json';
 import viperNeutral from '../../../assets/ships/viper_neutral.png';
 import type { TierId } from '../../domain/balance/profile';
+import { listChallenges } from '../../application/challenges';
 import { titleQuote } from '../titleQuote';
 import MuteControl from './MuteControl.vue';
 import { settingsStore } from '../stores/settingsStore';
@@ -11,12 +12,15 @@ import { settingsStore } from '../stores/settingsStore';
  * quote and the disclaimer (ADR-0002 Phase 2). Otherwise it is the whole screen, as on a phone.
  */
 defineProps<{ inLane?: boolean }>();
-const emit = defineEmits<{ start: [tier: TierId]; training: [] }>();
+const emit = defineEmits<{ start: [tier: TierId]; training: []; challenge: [key: string] }>();
+
+/** The set challenges (PRD 11.1), each launched from its own row on the Challenges sheet. */
+const challenges = listChallenges();
 
 /** New players see the Training Run first; after one, it stays on offer but steps aside (PRD 5.5). */
 const trainingDone = computed(() => settingsStore.state.snapshot.trainingCompleted);
 
-type Sheet = 'manual' | 'credits';
+type Sheet = 'manual' | 'credits' | 'challenges';
 type ManualTab = 'controls' | 'fight';
 
 const quote = titleQuote();
@@ -27,6 +31,7 @@ const manualTab = ref<ManualTab>('controls');
 const backButton = useTemplateRef<HTMLButtonElement>('backButton');
 const manualButton = useTemplateRef<HTMLButtonElement>('manualButton');
 const creditsButton = useTemplateRef<HTMLButtonElement>('creditsButton');
+const challengesButton = useTemplateRef<HTMLButtonElement>('challengesButton');
 const sheetRoot = useTemplateRef<HTMLElement>('sheetRoot');
 
 function openSheet(which: Sheet): void {
@@ -41,7 +46,8 @@ function closeSheet(): void {
   const which = sheet.value;
   sheet.value = null;
   void nextTick(() => {
-    (which === 'credits' ? creditsButton.value : manualButton.value)?.focus();
+    const returnTo = { manual: manualButton, credits: creditsButton, challenges: challengesButton };
+    if (which) returnTo[which].value?.focus();
   });
 }
 
@@ -95,6 +101,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
       <!-- The playfield is empty until a run starts, so Launch sits on it, first and largest. -->
       <div class="well">
         <div class="launch-box">
+          <p class="kicker story">{{ titleCopy.story.kicker }}</p>
           <button class="launch" type="button" @click="emit('start', 'viper-pilot')">Launch — Viper Pilot</button>
           <p class="tier-note">{{ titleCopy.tiers.viperPilot }}</p>
         </div>
@@ -102,6 +109,18 @@ function onSheetKeydown(event: KeyboardEvent): void {
           <p class="kicker">{{ titleCopy.training.kicker }}</p>
           <button class="training" type="button" @click="emit('training')">{{ titleCopy.training.button }}</button>
           <p class="tier-note">{{ titleCopy.training.note }}</p>
+        </div>
+        <div v-if="challenges.length > 0" class="challenge-box">
+          <button
+            ref="challengesButton"
+            class="challenges"
+            type="button"
+            data-testid="open-challenges"
+            @click="openSheet('challenges')"
+          >
+            {{ titleCopy.challenges.button }}
+          </button>
+          <p class="tier-note">{{ titleCopy.challenges.note }}</p>
         </div>
       </div>
 
@@ -143,7 +162,7 @@ function onSheetKeydown(event: KeyboardEvent): void {
       class="sheet-layer"
       role="dialog"
       aria-modal="true"
-      :aria-labelledby="sheet === 'credits' ? 'credits-title' : 'manual-title'"
+      :aria-labelledby="`${sheet}-title`"
       @keydown="onSheetKeydown"
       @pointerdown.self="closeSheet"
     >
@@ -188,6 +207,26 @@ function onSheetKeydown(event: KeyboardEvent): void {
               <p>{{ block.text }}</p>
             </div>
           </div>
+        </template>
+
+        <template v-else-if="sheet === 'challenges'">
+          <h2 id="challenges-title" class="sheet-title">{{ titleCopy.challenges.title }}</h2>
+          <p class="lead">{{ titleCopy.challenges.lead }}</p>
+          <ul class="challenge-list">
+            <li v-for="challenge in challenges" :key="challenge.key" class="challenge">
+              <h3 class="block-heading">{{ challenge.name }}</h3>
+              <p class="challenge-blurb">{{ challenge.blurb }}</p>
+              <button
+                class="challenge-launch"
+                type="button"
+                :data-testid="`launch-${challenge.key}`"
+                :aria-label="`${titleCopy.challenges.launch} ${challenge.name}`"
+                @click="emit('challenge', challenge.key)"
+              >
+                {{ titleCopy.challenges.launch }}
+              </button>
+            </li>
+          </ul>
         </template>
 
         <template v-else>
@@ -290,7 +329,8 @@ function onSheetKeydown(event: KeyboardEvent): void {
 }
 
 .well .launch-box,
-.well .training-box {
+.well .training-box,
+.well .challenge-box {
   width: min(320px, 100%);
   box-sizing: border-box;
   background: rgb(var(--rgb-space) / 92%);
@@ -322,6 +362,67 @@ function onSheetKeydown(event: KeyboardEvent): void {
   color: var(--color-amber);
   background: transparent;
   border: 1px solid var(--color-amber);
+}
+
+.challenge-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border: 1px solid var(--color-dradis-deep);
+}
+
+.challenges,
+.challenge-launch {
+  font: inherit;
+  cursor: pointer;
+  min-height: 44px;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 16px;
+  color: var(--color-dradis-pale);
+  background: transparent;
+  border: 1px solid var(--color-dradis);
+}
+
+.challenges:focus-visible,
+.challenge-launch:focus-visible {
+  outline: 2px solid var(--color-dradis-pale);
+  outline-offset: 3px;
+}
+
+.challenge-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.challenge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding-top: 16px;
+  margin-top: 16px;
+  border-top: 1px solid var(--color-dradis-deep);
+}
+
+.challenge-blurb {
+  margin: 0;
+  max-width: 36em;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--color-text-strong);
+}
+
+.challenge-launch {
+  min-width: 120px;
+  color: var(--color-dradis-night);
+  background: var(--color-dradis);
+}
+
+.kicker.story {
+  color: var(--color-dradis-pale);
 }
 
 .training.quiet {

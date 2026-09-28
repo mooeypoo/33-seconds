@@ -5,7 +5,7 @@ import type { ObjectiveId } from '../../application/HudViewModel';
 import { hudStore } from '../stores/hudStore';
 
 /** On a phone the objective rides at the front of this row, to give the lane its height back. */
-const props = defineProps<{ withObjective?: boolean; training?: boolean; drill?: string | null }>();
+const props = defineProps<{ withObjective?: boolean; training?: boolean; drill?: string | null; challenge?: string | null }>();
 const SHORT_OBJECTIVES: Record<ObjectiveId, string> = copy.objectivesShort;
 
 /**
@@ -26,6 +26,8 @@ const items = computed<StatusItem[]>(() => {
   const list: StatusItem[] = [];
   // Training says so in words, so nobody mistakes the sim for a real run, and names the drill (PRD 5.5).
   if (props.training) list.push({ key: 'sim', text: props.drill ? `Sim · ${props.drill}` : 'Sim' });
+  // A challenge says which, so its harder numbers are never a surprise (PRD 11.1).
+  if (props.challenge) list.push({ key: 'challenge', text: props.challenge });
   if (props.withObjective) list.push({ key: 'objective', text: SHORT_OBJECTIVES[hud.objective], objective: true });
 
   list.push(

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from 'vue';
+import type { RivalComparison } from '../../application/challenges';
 import type { RunResult } from '../../application/runResult';
 import { summarizeRun } from '../share/runSummary';
 import { shareImage, shareLink, shareUrl, type ShareOutcome } from '../share/shareActions';
@@ -7,10 +8,28 @@ import { shareImage, shareLink, shareUrl, type ShareOutcome } from '../share/sha
 /**
  * The end of a run, won or lost, and the page a share link opens (PRD 5.4, 17). One screen for
  * both outcomes: the kicker and the headline say which, so colour is never the only cue. No timer.
- * `shared` is someone else's run: it offers a game instead of sharing it on.
+ * `shared` is someone else's run: it offers a game instead of sharing it on, and for a challenge
+ * this version can play, Beat this (PRD 11.1). `rival` is the run you were trying to beat.
  */
-const props = defineProps<{ result: RunResult; gameVersion: string; shared?: boolean }>();
-const emit = defineEmits<{ continue: [] }>();
+const props = defineProps<{
+  result: RunResult;
+  gameVersion: string;
+  shared?: boolean;
+  canBeat?: boolean;
+  rival?: RivalComparison | null;
+}>();
+const emit = defineEmits<{ continue: []; beat: [] }>();
+
+/** Words first, so the colour of the run is never the only way to tell who won (PRD 15). */
+const RIVAL_WORDS: Record<RivalComparison['outcome'], string> = {
+  beat: 'You beat it.',
+  tied: 'Dead even.',
+  short: 'Not this time.',
+};
+
+function points(value: number): string {
+  return value.toLocaleString('en-US');
+}
 
 const summary = computed(() => summarizeRun(props.result));
 const won = computed(() => props.result.outcome === 'won');
@@ -79,6 +98,12 @@ onMounted(() => {
       </p>
       <h2 id="run-summary-headline">{{ summary.headline }}</h2>
       <p class="line">{{ summary.text }}</p>
+      <p v-if="summary.verdict" class="verdict" data-testid="verdict">{{ summary.verdict }}</p>
+
+      <p v-if="rival" class="rival" data-testid="rival">
+        <span class="rival-verdict">{{ RIVAL_WORDS[rival.outcome] }}</span>
+        <span>You {{ points(rival.yours) }} · Them {{ points(rival.theirs) }}</span>
+      </p>
 
       <p class="score">
         <span class="score-label">Score</span>
@@ -102,7 +127,14 @@ onMounted(() => {
       </div>
 
       <div class="actions">
+        <template v-if="shared && canBeat">
+          <button ref="primary" data-ui type="button" class="primary" data-testid="beat-this" @click="emit('beat')">
+            Beat this
+          </button>
+          <button data-ui type="button" data-testid="play-from-share" @click="emit('continue')">Title</button>
+        </template>
         <button
+          v-else
           ref="primary"
           data-ui
           type="button"
@@ -188,6 +220,35 @@ h2 {
   font-size: 15px;
   line-height: 1.4;
   color: var(--color-text-muted);
+}
+
+.verdict {
+  margin: -6px 0 14px;
+  padding-left: 10px;
+  border-left: 3px solid var(--accent);
+  font-size: 16px;
+  line-height: 1.4;
+  color: var(--color-text-strong);
+}
+
+.rival {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin: 0 0 12px;
+  padding: 6px 10px;
+  border: 1px solid var(--edge);
+  font-size: 15px;
+  color: var(--color-text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.rival-verdict {
+  font-family: var(--font-display);
+  font-size-adjust: var(--display-size-adjust);
+  letter-spacing: 0.06em;
+  color: var(--accent-soft);
 }
 
 .score {

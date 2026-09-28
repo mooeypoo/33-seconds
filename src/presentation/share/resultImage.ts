@@ -119,7 +119,8 @@ export async function renderResultImage(result: RunResult, gameVersion: string, 
   context.fillStyle = colors.muted;
   context.font = `26px ${font.body}`;
   y += 4;
-  for (const line of wrap(context, summary.text, leftWidth, 3)) {
+  // A challenge's verdict is the line worth sharing, so it takes the place of the headline's line.
+  for (const line of wrap(context, summary.verdict ?? summary.text, leftWidth, 3)) {
     context.fillText(line, MARGIN, y);
     y += 34;
   }

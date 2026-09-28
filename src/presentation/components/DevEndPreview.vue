@@ -2,6 +2,8 @@
 import { SCORE_WEIGHTS } from '../../balance/scoring';
 import { endingLines, reactionCount, type RunOutcome } from '../../application/endings';
 import type { RunResult } from '../../application/runResult';
+import { listChallenges, pickVerdict } from '../../application/challenges';
+import { createRandomStream } from '../../domain/shared/random';
 import { maxStacksFor, STARTER_CARDS } from '../../domain/progression/catalog';
 import { scoreRun, type RunFacts } from '../../domain/scoring/score';
 
@@ -16,12 +18,14 @@ const emit = defineEmits<{ preview: [result: RunResult] }>();
 
 const nextLine: Record<RunOutcome, number> = { won: 0, lost: 0 };
 let nextReaction = 0;
+let nextChallenge = 0;
 
 function roll(max: number): number {
   return Math.floor(Math.random() * (max + 1));
 }
 
-function simulate(outcome: RunOutcome): void {
+/** With `challenge`, the result is the next set challenge's, with a verdict from its score's band. */
+function simulate(outcome: RunOutcome, challenge = false): void {
   const won = outcome === 'won';
   const cycle = won ? 5 + roll(4) : 2 + roll(6);
   const shipPercent = won ? 100 : roll(99);
@@ -44,10 +48,13 @@ function simulate(outcome: RunOutcome): void {
     id: card.id,
     stacks: 1 + roll(maxStacksFor(card.rarity) - 1),
   }));
+  const score = scoreRun(facts, SCORE_WEIGHTS);
+  const challenges = listChallenges();
+  const played = challenge ? challenges[nextChallenge++ % Math.max(1, challenges.length)] : undefined;
   emit('preview', {
     outcome,
     tier: Math.random() < 0.7 ? 'viper-pilot' : 'civilian-ship',
-    score: scoreRun(facts, SCORE_WEIGHTS),
+    score,
     cycle,
     raiderKills: facts.raiderKills,
     heavyKills: facts.heavyKills,
@@ -57,6 +64,9 @@ function simulate(outcome: RunOutcome): void {
     mostKilled: facts.mostKilled ? { ...facts.mostKilled, reaction: nextReaction++ % Math.max(1, reactionCount()) } : null,
     cards,
     headlineId: line?.id ?? `${outcome}-01`,
+    challenge: played
+      ? { key: played.key, verdictId: pickVerdict(played.key, score, createRandomStream(roll(1_000_000))) }
+      : null,
   });
 }
 </script>
@@ -66,6 +76,7 @@ function simulate(outcome: RunOutcome): void {
     <span class="tag">dev</span>
     <button data-ui type="button" @click="simulate('won')">Simulate win</button>
     <button data-ui type="button" @click="simulate('lost')">Simulate lose</button>
+    <button data-ui type="button" @click="simulate(Math.random() < 0.5 ? 'won' : 'lost', true)">Simulate challenge</button>
   </div>
 </template>
 

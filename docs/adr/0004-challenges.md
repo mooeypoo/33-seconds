@@ -102,8 +102,11 @@ checks them.
 Each slice ends playable, with typecheck, lint, tests, `check:arch`, and `check:content` green,
 `sim` covering the new challenges, and a journal entry.
 
-1. [ ] **Framework and two number-only challenges** (*Swarm*, *Tyrol overwhelmed*): the preset,
-   the title's Story mode and Challenges split, `v=2` links, verdicts, Beat this.
+1. [x] **Framework and two number-only challenges** (*Swarm*, *Tyrol overwhelmed*): the preset,
+   the title's Story mode and Challenges split, `v=2` links, verdicts, Beat this. (2026-09-28:
+   `balance/challenges.ts` merges and checks the preset, `application/challenges.ts` joins it to
+   the words and owns verdicts and the rival comparison, `GameSession.startChallenge` launches it.
+   `challenges.json`'s numbers joined the balance fingerprint.)
 2. [ ] **Weekly challenge.**
 3. [ ] **Endless** (`endless` mutator). The score changes, so the game version is bumped.
 4. [ ] **Slow FTL** (`slow-ftl` mutator, 66 seconds).

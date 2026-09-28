@@ -26,7 +26,9 @@ export async function shareLink(result: RunResult, gameVersion: string): Promise
   const summary = summarizeRun(result);
   if (prefersShareSheet() && typeof navigator.share === 'function') {
     try {
-      await navigator.share({ title: '33 Seconds', text: `${summary.headline} ${summary.score} points.`, url });
+      await navigator.share({ title: '33 Seconds', text: result.challenge
+          ? `${summary.tier}: ${summary.score} points. Beat this.`
+          : `${summary.headline} ${summary.score} points.`, url });
       return 'shared';
     } catch (error) {
       if (isAbort(error)) return 'cancelled';

@@ -16,6 +16,7 @@ import type { SessionStatus } from '../application/GameSession';
 import type { RunResult } from '../application/runResult';
 import { lessonFocusBoxes } from '../application/training/lessonFocus';
 import { decodeSharedRun, type SharedRun } from '../application/shareCode';
+import { challengeLaunch, challengeName, compareWithRival, type RivalComparison } from '../application/challenges';
 import { NARROW_LAYOUT_MAX_PX, playfieldForLane, playfieldForWindow } from '../application/playfield';
 import type { Playfield } from '../domain/shared/world';
 import type { TierId } from '../domain/balance/profile';
@@ -96,21 +97,43 @@ const aboutOpen = ref(false);
 const shared = ref<SharedRun | null>(decodeSharedRun(window.location.hash));
 /** A made-up run from the dev buttons. Never set in a production build. */
 const devPreview = ref<RunResult | null>(null);
+/**
+ * The shared run this one is trying to beat (PRD 11.1). Held in memory for one run: nothing about
+ * it is stored, and any other Launch forgets it.
+ */
+const rival = ref<RunResult | null>(null);
+/** The status row names a challenge while it is played. */
+const challengeLabel = computed(() => (status.value.challenge ? challengeName(status.value.challenge) : null));
+
+interface EndScreen {
+  readonly result: RunResult;
+  readonly gameVersion: string;
+  readonly shared: boolean;
+  /** A shared challenge this version can play, so it offers Beat this. */
+  readonly canBeat: boolean;
+  readonly rival: RivalComparison | null;
+}
 
 /** What the end screen shows, if anything: this run, a dev preview, or a shared run. */
-const endScreen = computed<{ result: RunResult; gameVersion: string; shared: boolean } | null>(() => {
+const endScreen = computed<EndScreen | null>(() => {
   const phase = status.value.phase;
   if ((phase === 'won' || phase === 'lost') && status.value.result) {
-    return { result: status.value.result, gameVersion: GAME_VERSION, shared: false };
+    const result = status.value.result;
+    const comparison = rival.value ? compareWithRival(result, rival.value) : null;
+    return { result, gameVersion: GAME_VERSION, shared: false, canBeat: false, rival: comparison };
   }
   if (phase !== 'title') return null;
-  if (devPreview.value) return { result: devPreview.value, gameVersion: GAME_VERSION, shared: false };
-  if (shared.value) return { ...shared.value, shared: true };
+  if (devPreview.value) return { result: devPreview.value, gameVersion: GAME_VERSION, shared: false, canBeat: false, rival: null };
+  if (shared.value) {
+    const key = shared.value.result.challenge?.key;
+    return { ...shared.value, shared: true, canBeat: key !== undefined && challengeLaunch(key) !== null, rival: null };
+  }
   return null;
 });
 
 function leaveEndScreen(): void {
   if (status.value.phase === 'won' || status.value.phase === 'lost') {
+    rival.value = null;
     session?.returnToTitle();
     return;
   }
@@ -118,9 +141,22 @@ function leaveEndScreen(): void {
     devPreview.value = null;
     return;
   }
-  // Leaving a shared run drops its hash, so a reload shows the title and not the run again.
+  dropSharedRun();
+}
+
+/** Leaving a shared run drops its hash, so a reload shows the title and not the run again. */
+function dropSharedRun(): void {
   shared.value = null;
   window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+}
+
+/** Beat this: the shared run's challenge, with the shared run held to compare at the end. */
+function beatSharedRun(): void {
+  const run = shared.value?.result;
+  const key = run?.challenge?.key;
+  if (!run || key === undefined) return;
+  dropSharedRun();
+  void beginChallenge(key, run);
 }
 
 function onHashChange(): void {
@@ -143,14 +179,25 @@ async function playfieldForLaunch(): Promise<Playfield> {
 
 async function beginRun(tier: TierId): Promise<void> {
   if (launching.value) return;
+  rival.value = null;
   const playfield = await playfieldForLaunch();
   session?.start(tier, playfield);
+  resizePlayfield?.(playfield.width);
+}
+
+/** A challenge (PRD 11.1), with the run it is trying to beat when it came from Beat this. */
+async function beginChallenge(key: string, beat: RunResult | null = null): Promise<void> {
+  if (launching.value) return;
+  rival.value = beat;
+  const playfield = await playfieldForLaunch();
+  session?.startChallenge(key, playfield);
   resizePlayfield?.(playfield.width);
 }
 
 /** A Training Run: the same lane, with lessons (PRD 5.5). */
 async function beginTraining(): Promise<void> {
   if (launching.value) return;
+  rival.value = null;
   const playfield = await playfieldForLaunch();
   session?.startTraining(playfield);
   resizePlayfield?.(playfield.width);
@@ -252,7 +299,7 @@ onUnmounted(() => {
         </div>
         <div v-if="showFleet" class="detail-row">
           <!-- The row keeps one chip's height when empty, so the lane measured at Launch holds. -->
-          <StatusRow with-objective :training="status.training" :drill="status.drill" />
+          <StatusRow with-objective :training="status.training" :drill="status.drill" :challenge="challengeLabel" />
           <LatestUpgrade />
         </div>
         <!-- Above the lane, not under it: under it, the thumbs flying the Viper covered the line. -->
@@ -263,13 +310,19 @@ onUnmounted(() => {
       </header>
       <div v-if="cic" class="lane-head">
         <span class="stencil">Dradis</span>
-        <StatusRow v-if="showFleet" :training="status.training" :drill="status.drill" />
+        <StatusRow v-if="showFleet" :training="status.training" :drill="status.drill" :challenge="challengeLabel" />
       </div>
       <div class="play">
         <div ref="canvasHost" class="canvas-host" aria-hidden="true" />
         <RecoveringOverlay v-if="status.choosingUpgrade" :wide="cic" :comms="status.comms" />
         <DragHint v-if="inCombat" />
-        <TitleOverlay v-if="cic && status.phase === 'title' && !endScreen" in-lane @start="beginRun" @training="beginTraining" />
+        <TitleOverlay
+          v-if="cic && status.phase === 'title' && !endScreen"
+          in-lane
+          @start="beginRun"
+          @training="beginTraining"
+          @challenge="beginChallenge"
+        />
         <LessonCard
           v-if="status.lesson"
           :lesson="status.lesson"
@@ -311,7 +364,10 @@ onUnmounted(() => {
     :result="endScreen.result"
     :game-version="endScreen.gameVersion"
     :shared="endScreen.shared"
+    :can-beat="endScreen.canBeat"
+    :rival="endScreen.rival"
     @continue="leaveEndScreen"
+    @beat="beatSharedRun"
   />
 
   <TrainingDebrief
@@ -321,7 +377,12 @@ onUnmounted(() => {
     @title="session.returnToTitle()"
   />
 
-  <TitleOverlay v-else-if="!cic && status.phase === 'title'" @start="beginRun" @training="beginTraining" />
+  <TitleOverlay
+    v-else-if="!cic && status.phase === 'title'"
+    @start="beginRun"
+    @training="beginTraining"
+    @challenge="beginChallenge"
+  />
 
   <JumpFade v-else-if="status.phase === 'running' && cyclePhase === 'jumping'" />
 

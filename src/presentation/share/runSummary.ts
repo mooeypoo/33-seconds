@@ -1,3 +1,4 @@
+import { challengeName, verdictText } from '../../application/challenges';
 import { endingFor, fillEnding, mostKilledLine } from '../../application/endings';
 import type { RunResult } from '../../application/runResult';
 import type { TierId } from '../../domain/balance/profile';
@@ -9,6 +10,7 @@ import { cardTitle } from '../cardTitles';
  */
 export interface RunSummaryText {
   readonly kicker: string;
+  /** The tier for Story mode, or the challenge's name. */
   readonly tier: string;
   readonly headline: string;
   readonly text: string;
@@ -17,6 +19,8 @@ export interface RunSummaryText {
   readonly cards: readonly string[];
   /** The joke stat, or null when no Raider died twice. */
   readonly mostKilled: string | null;
+  /** A challenge's one-line judgment of the run (PRD 11.1), or null for Story mode. */
+  readonly verdict: string | null;
 }
 
 const TIER_NAMES: Record<TierId, string> = { 'civilian-ship': 'Civilian Run', 'viper-pilot': 'Viper Pilot' };
@@ -44,7 +48,7 @@ export function summarizeRun(result: RunResult): RunSummaryText {
   if (result.heavyKills > 0) stats.splice(2, 0, { label: 'Heavy Raiders', value: count(result.heavyKills) });
   return {
     kicker: result.outcome === 'won' ? 'Fleet saved' : 'Fleet lost',
-    tier: TIER_NAMES[result.tier],
+    tier: result.challenge ? challengeName(result.challenge.key) : TIER_NAMES[result.tier],
     headline: fillEnding(ending.headline, values),
     text: fillEnding(ending.text, values),
     score: count(result.score),
@@ -53,5 +57,6 @@ export function summarizeRun(result: RunResult): RunSummaryText {
     mostKilled: result.mostKilled
       ? mostKilledLine(result.mostKilled.identityId, result.mostKilled.kills, result.mostKilled.reaction)
       : null,
+    verdict: result.challenge ? verdictText(result.challenge, result.score, result.cycle) : null,
   };
 }
