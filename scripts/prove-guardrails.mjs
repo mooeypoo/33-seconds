@@ -198,8 +198,8 @@ const SABOTAGE = [
   {
     what: 'the 33-second cycle never jumps',
     file: 'src/domain/cycle/jumpCycle.ts',
-    find: '    if (this.combatElapsedTicks >= CYCLE_COMBAT_TICKS) {',
-    replace: '    if (this.combatElapsedTicks >= CYCLE_COMBAT_TICKS * 10) {',
+    find: '    if (this.combatElapsedTicks >= this.combatTicks) {',
+    replace: '    if (this.combatElapsedTicks >= this.combatTicks * 10) {',
     mustFail: 'npm run test',
   },
   {
@@ -485,8 +485,8 @@ const SABOTAGE = [
   {
     what: 'the balance harness reaches into the session',
     file: 'tools/sim/runSim.ts',
-    find: "import { createGame, type GameOptions } from '../../src/domain/game';",
-    replace: "import { createGame, type GameOptions } from '../../src/domain/game';\nimport '../../src/application/GameSession';",
+    find: "import { createGame } from '../../src/domain/game';",
+    replace: "import { createGame } from '../../src/domain/game';\nimport '../../src/application/GameSession';",
     mustFail: 'npm run check:arch',
   },
   {

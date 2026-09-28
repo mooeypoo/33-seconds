@@ -1,5 +1,6 @@
 import type { CycleProfile } from '../../src/domain/balance/profile';
-import { createGame, type GameOptions } from '../../src/domain/game';
+import { createGame } from '../../src/domain/game';
+import type { ChallengeRules } from '../../src/balance/challenges';
 import { SCORE_WEIGHTS } from '../../src/balance/scoring';
 import { RunTally, scoreEndlessRun, scoreRun } from '../../src/domain/scoring/score';
 import { PHONE_PLAYFIELD, type Playfield } from '../../src/domain/shared/world';
@@ -30,7 +31,7 @@ export interface RunOptions {
   readonly maxCycles?: number;
   readonly playfield?: Playfield;
   /** A challenge's rule options (its mutators). With `resurrectionShip: false`, scored as Endless. */
-  readonly rules?: Pick<GameOptions, 'resurrectionShip'>;
+  readonly rules?: ChallengeRules;
 }
 
 const TICKS_PER_SECOND = 60;

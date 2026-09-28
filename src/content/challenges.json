@@ -81,6 +81,33 @@
           ]
         }
       ]
+    },
+    "slow-ftl": {
+      "name": "Baltar's FTL upgrade",
+      "blurb": "Dr. Baltar improved the jump drive. Twice as reliable, he says. It also takes twice as long: 66 seconds between jumps.",
+      "verdicts": [
+        {
+          "atLeast": 0,
+          "lines": [
+            { "id": "f-low-1", "text": "PLACEHOLDER: Baltar has prepared a statement. It blames the pilot." },
+            { "id": "f-low-2", "text": "PLACEHOLDER: Sixty-six seconds is a long time to be wrong." }
+          ]
+        },
+        {
+          "atLeast": 800,
+          "lines": [
+            { "id": "f-mid-1", "text": "PLACEHOLDER: The upgrade worked. Baltar would like that noted. Loudly." },
+            { "id": "f-mid-2", "text": "PLACEHOLDER: Twice the wait, most of the fleet. Gaeta wants the old drive back." }
+          ]
+        },
+        {
+          "atLeast": 1600,
+          "lines": [
+            { "id": "f-high-1", "text": "PLACEHOLDER: {score} points. Baltar is taking full credit. Of course he is." },
+            { "id": "f-high-2", "text": "PLACEHOLDER: The slowest jumps in the fleet, and the best flying. Coincidence, says Baltar." }
+          ]
+        }
+      ]
     }
   },
   "weekly": {

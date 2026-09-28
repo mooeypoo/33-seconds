@@ -201,6 +201,18 @@ describe('a challenge run', () => {
     expect(result?.cycle).toBeGreaterThan(1);
   });
 
+  it('Slow FTL flies 66-second cycles, and Story mode after it is back to 33', () => {
+    const session = quietSession();
+    session.startChallenge('slow-ftl');
+    session.advance(TICK_SECONDS);
+    expect(session.view.cycle).toMatchObject({ combatSeconds: 66, secondsRemaining: 66 });
+    playUntilOver(session);
+    session.returnToTitle();
+    session.start();
+    session.advance(TICK_SECONDS);
+    expect(session.view.cycle).toMatchObject({ combatSeconds: 33, secondsRemaining: 33 });
+  });
+
   it('does not leave the title for a challenge this version does not have', () => {
     const session = quietSession();
     session.startChallenge('gone-now');

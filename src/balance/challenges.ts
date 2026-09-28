@@ -20,13 +20,20 @@ export interface ChallengePreset {
 /**
  * Rule variants a challenge may name (ADR-0004). Each is a finished rule chosen for a whole run.
  * `endless`: no resurrection ship; the run is scored by the jumps the fleet held (PRD 11.1).
+ * `slow-ftl`: 66-second cycles, the one exception to the 33-second clock (PRD 5.1, 11.1).
  */
-export const MUTATORS = ['endless'] as const;
+export const MUTATORS = ['endless', 'slow-ftl'] as const;
+
+/** What mutators can set. Every challenge rule reaches the game through these fields. */
+export type ChallengeRules = Pick<GameOptions, 'resurrectionShip' | 'cycleSeconds'>;
 export type Mutator = (typeof MUTATORS)[number];
 
 /** The run options a challenge's mutators set: the one place a mutator's name becomes a rule. */
-export function mutatorOptions(mutators: readonly Mutator[]): Pick<GameOptions, 'resurrectionShip'> {
-  return mutators.includes('endless') ? { resurrectionShip: false } : {};
+export function mutatorOptions(mutators: readonly Mutator[]): ChallengeRules {
+  return {
+    ...(mutators.includes('endless') ? { resurrectionShip: false } : {}),
+    ...(mutators.includes('slow-ftl') ? { cycleSeconds: 66 as const } : {}),
+  };
 }
 
 function isMutator(value: unknown): value is Mutator {

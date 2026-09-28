@@ -1,7 +1,6 @@
 import contentRaw from '../content/challenges.json';
-import { CHALLENGE_PRESETS, challengePreset, mutatorOptions, WEEKLY_POOL, weeklyPairKey, type WeeklyPool } from '../balance/challenges';
+import { CHALLENGE_PRESETS, challengePreset, mutatorOptions, WEEKLY_POOL, type ChallengeRules, weeklyPairKey, type WeeklyPool } from '../balance/challenges';
 import type { CycleProfile, TierId } from '../domain/balance/profile';
-import type { GameOptions } from '../domain/game';
 import { createRandomStream, type RandomStream } from '../domain/shared/random';
 import { fillEnding } from './endings';
 import { formatIsoWeek, isoWeekOf, parseIsoWeek } from './isoWeek';
@@ -28,7 +27,7 @@ export interface ChallengeLaunch {
   readonly tier: TierId;
   readonly profile: CycleProfile;
   /** The run options its mutators set (ADR-0004). */
-  readonly rules: Pick<GameOptions, 'resurrectionShip'>;
+  readonly rules: ChallengeRules;
   /** Endless is scored by the jumps the fleet held, and ends as `held` (PRD 11.1). */
   readonly scoring: RunScoring;
 }

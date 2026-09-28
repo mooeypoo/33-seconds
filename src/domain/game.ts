@@ -1,5 +1,5 @@
 import { damageBand, type DamageBand } from './cycle/damageBand';
-import { JumpCycle } from './cycle/jumpCycle';
+import { CYCLE_COMBAT_SECONDS, JumpCycle, type CycleSeconds } from './cycle/jumpCycle';
 import { Viper, VIPER_HALF_HEIGHT_UNITS } from './combat/viper';
 import { MAX_CYLON_SHOTS, MAX_PLAYER_SHOTS, RAIDER_SHOT_SPEED_UNITS_PER_SECOND } from './combat/projectile';
 import { MISSILE_CAPACITY, RESURRECTION_SHIP_LOCK_ID } from './combat/missile';
@@ -59,6 +59,11 @@ export interface GameOptions {
    */
   readonly resurrectionShip?: boolean;
   /**
+   * 66 for the Slow FTL challenge (PRD 11.1): the one exception to the 33-second clock. Arriving
+   * stays 5 seconds and the spool the last 8. Play otherwise always runs 33.
+   */
+  readonly cycleSeconds?: CycleSeconds;
+  /**
    * First cycle the shield is down and HP can be chipped. Play uses 4 (PRD 5.2). If this is
    * earlier than the arrive cycle, the ship arrives already exposed.
    */
@@ -114,7 +119,7 @@ export class Game {
   private readonly resurrectionShipVulnerableCycle: number;
   private readonly resurrectionShipHitPoints: number;
   private readonly resurrectionShipComes: boolean;
-  private readonly cycle = new JumpCycle();
+  private readonly cycle: JumpCycle;
   private readonly playfield: Playfield;
   private readonly fleet: Fleet;
   private readonly profile: CycleProfile;
@@ -159,6 +164,7 @@ export class Game {
     this.resurrectionShipVulnerableCycle = Math.max(this.resurrectionShipArrivesCycle, vulnerable);
     this.resurrectionShipHitPoints = options.resurrectionShipHitPoints ?? RESURRECTION_SHIP_HIT_POINTS;
     this.resurrectionShipComes = options.resurrectionShip ?? true;
+    this.cycle = new JumpCycle(options.cycleSeconds ?? CYCLE_COMBAT_SECONDS);
     this.profile = options.tierProfile ?? DEFAULT_CYCLE_PROFILE;
     this.playfield = options.playfield ?? PHONE_PLAYFIELD;
     this.loadout = new Loadout(options.startingCards ?? [], this.profile.fleetCycleDamageCap);

@@ -9,19 +9,20 @@ export const CYCLE_COMBAT_SECONDS = 33;
 export const ARRIVING_SECONDS = 5;
 export const SPOOLING_START_SECONDS = 25;
 export const JUMPING_SECONDS = 1;
+/** The spool is the last 8 seconds of any cycle, so its tell and its comms calls mean the same. */
+export const SPOOL_SECONDS = CYCLE_COMBAT_SECONDS - SPOOLING_START_SECONDS;
 
-export const CYCLE_COMBAT_TICKS = CYCLE_COMBAT_SECONDS * TICKS_PER_SECOND;
+/**
+ * The only cycle lengths there are. 66 is the Slow FTL challenge's, the one exception to 5.1
+ * (PRD 11.1, ADR-0004). A union, not a number, so the clock never becomes a tuning knob.
+ */
+export type CycleSeconds = typeof CYCLE_COMBAT_SECONDS | 66;
+
 export const ARRIVING_TICKS = ARRIVING_SECONDS * TICKS_PER_SECOND;
-export const SPOOLING_START_TICKS = SPOOLING_START_SECONDS * TICKS_PER_SECOND;
 export const JUMPING_TICKS = JUMPING_SECONDS * TICKS_PER_SECOND;
 
 export type CyclePhase = 'arriving' | 'building' | 'spooling' | 'jumping' | 'recovering';
 
-export function phaseAtCombatTick(tick: number): Exclude<CyclePhase, 'jumping' | 'recovering'> {
-  if (tick < ARRIVING_TICKS) return 'arriving';
-  if (tick < SPOOLING_START_TICKS) return 'building';
-  return 'spooling';
-}
 
 /**
  * The jump cycle. Combat time accumulates only in arriving / building / spooling. Jumping lasts a
@@ -30,21 +31,30 @@ export function phaseAtCombatTick(tick: number): Exclude<CyclePhase, 'jumping' |
  * pick until the Recovering scene has finished.
  */
 export class JumpCycle {
+  private readonly combatTicks: number;
+  private readonly spoolStartTicks: number;
   private phase: CyclePhase = 'arriving';
   private cycleIndex = 1;
   private combatElapsedTicks = 0;
   private jumpingElapsedTicks = 0;
 
+  constructor(private readonly combatSeconds: CycleSeconds = CYCLE_COMBAT_SECONDS) {
+    this.combatTicks = combatSeconds * TICKS_PER_SECOND;
+    this.spoolStartTicks = (combatSeconds - SPOOL_SECONDS) * TICKS_PER_SECOND;
+  }
+
   get view(): {
     readonly phase: CyclePhase;
     readonly cycleIndex: number;
+    /** 33, or 66 for Slow FTL. The HUD's bar fills across it. */
+    readonly combatSeconds: CycleSeconds;
     readonly combatElapsedSeconds: number;
     readonly secondsRemaining: number;
     readonly spoolProgress: number;
   } {
-    const remainingTicks = Math.max(0, CYCLE_COMBAT_TICKS - this.combatElapsedTicks);
-    const spoolingTicks = this.combatElapsedTicks - SPOOLING_START_TICKS;
-    const spoolLength = CYCLE_COMBAT_TICKS - SPOOLING_START_TICKS;
+    const remainingTicks = Math.max(0, this.combatTicks - this.combatElapsedTicks);
+    const spoolingTicks = this.combatElapsedTicks - this.spoolStartTicks;
+    const spoolLength = this.combatTicks - this.spoolStartTicks;
     let spoolProgress = 0;
     if (this.phase === 'spooling') {
       spoolProgress = Math.min(1, Math.max(0, spoolingTicks / spoolLength));
@@ -55,6 +65,7 @@ export class JumpCycle {
     return {
       phase: this.phase,
       cycleIndex: this.cycleIndex,
+      combatSeconds: this.combatSeconds,
       combatElapsedSeconds: this.combatElapsedTicks / TICKS_PER_SECOND,
       secondsRemaining: this.phase === 'jumping' || this.phase === 'recovering' ? 0 : Math.ceil(remainingTicks / TICKS_PER_SECOND),
       spoolProgress,
@@ -92,16 +103,22 @@ export class JumpCycle {
     const previous = this.phase;
     this.combatElapsedTicks += 1;
 
-    if (this.combatElapsedTicks >= CYCLE_COMBAT_TICKS) {
-      this.combatElapsedTicks = CYCLE_COMBAT_TICKS;
+    if (this.combatElapsedTicks >= this.combatTicks) {
+      this.combatElapsedTicks = this.combatTicks;
       this.phase = 'jumping';
       this.jumpingElapsedTicks = 0;
       return { type: 'CyclePhaseChanged', phase: 'jumping', cycleIndex: this.cycleIndex };
     }
 
-    this.phase = phaseAtCombatTick(this.combatElapsedTicks);
+    this.phase = this.phaseAt(this.combatElapsedTicks);
     if (this.phase === previous) return null;
     return { type: 'CyclePhaseChanged', phase: this.phase, cycleIndex: this.cycleIndex };
+  }
+
+  private phaseAt(tick: number): Exclude<CyclePhase, 'jumping' | 'recovering'> {
+    if (tick < ARRIVING_TICKS) return 'arriving';
+    if (tick < this.spoolStartTicks) return 'building';
+    return 'spooling';
   }
 
   /**

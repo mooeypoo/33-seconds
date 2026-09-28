@@ -1,4 +1,3 @@
-import { CYCLE_COMBAT_SECONDS } from '../domain/cycle/jumpCycle';
 import { cardDefinition, type CardRarity } from '../domain/progression/catalog';
 import type { GameView } from '../domain/views';
 
@@ -110,7 +109,7 @@ export function buildHudViewModel(view: GameView): HudViewModel {
     cycleIndex: view.cycle.cycleIndex,
     secondsRemaining: view.cycle.secondsRemaining,
     spoolProgress: view.cycle.spoolProgress,
-    cycleProgress: inCombat ? Math.min(1, view.cycle.combatElapsedSeconds / CYCLE_COMBAT_SECONDS) : 1,
+    cycleProgress: inCombat ? Math.min(1, view.cycle.combatElapsedSeconds / view.cycle.combatSeconds) : 1,
     fleetIntegrity: Math.round(view.fleet.integrity),
     fleetIntegrityMax: view.fleet.integrityMax,
     missiles: view.missileAmmo,

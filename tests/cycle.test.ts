@@ -81,3 +81,46 @@ describe('the 33-second cycle', () => {
     expect(game.view.cycle.phase).toBe('arriving');
   });
 });
+
+describe('the Slow FTL cycle (66 seconds, PRD 11.1)', () => {
+  /** The tick on which each phase change lands, over one whole cycle and its jump. */
+  function phaseChanges(game: Game): Record<string, number> {
+    const at: Record<string, number> = {};
+    for (let tick = 1; tick <= ticksFor(66 + JUMPING_SECONDS + 1); tick++) {
+      for (const event of game.tick(IDLE_INTENT)) {
+        if (event.type === 'CyclePhaseChanged') at[event.phase] ??= tick;
+      }
+    }
+    return at;
+  }
+
+  it('keeps arriving at 5 seconds and the spool at the last 8, and jumps at 66', () => {
+    const slow = phaseChanges(createGame({ cycleSeconds: 66 }));
+    const story = phaseChanges(createGame());
+    expect(slow.building).toBe(story.building);
+    expect(slow.spooling).toBe(ticksFor(66 - 8));
+    expect(slow.jumping).toBe(ticksFor(66));
+    // The spool lasts as long as it always has: only the building phase is longer.
+    expect((slow.jumping ?? 0) - (slow.spooling ?? 0)).toBe((story.jumping ?? 0) - (story.spooling ?? 0));
+    expect((slow.recovering ?? 0) - (slow.jumping ?? 0)).toBe((story.recovering ?? 0) - (story.jumping ?? 0));
+  });
+
+  it('counts down from 66, and the spool fills over its last 8 seconds', () => {
+    const game = createGame({ cycleSeconds: 66 });
+    game.tick(IDLE_INTENT);
+    expect(game.view.cycle).toMatchObject({ combatSeconds: 66, secondsRemaining: 66, spoolProgress: 0 });
+    run(game, ticksFor(62) - 1);
+    expect(game.view.cycle.phase).toBe('spooling');
+    expect(game.view.cycle.secondsRemaining).toBe(4);
+    expect(game.view.cycle.spoolProgress).toBeCloseTo(0.5);
+  });
+
+  it('is 66 in every cycle, not only the first', () => {
+    const game = createGame({ cycleSeconds: 66, raidersFire: false });
+    run(game, ticksFor(66 + JUMPING_SECONDS));
+    expect(game.view.cycle.phase).toBe('recovering');
+    game.continueFromJump();
+    run(game, ticksFor(40));
+    expect(game.view.cycle).toMatchObject({ cycleIndex: 2, phase: 'building', secondsRemaining: 26 });
+  });
+});

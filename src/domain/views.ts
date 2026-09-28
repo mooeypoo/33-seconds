@@ -97,8 +97,10 @@ export interface GhostView {
 export interface CycleView {
   readonly phase: 'arriving' | 'building' | 'spooling' | 'jumping' | 'recovering';
   readonly cycleIndex: number;
+  /** The cycle's length: 33, or 66 in the Slow FTL challenge (PRD 11.1). */
+  readonly combatSeconds: 33 | 66;
   readonly combatElapsedSeconds: number;
-  /** Whole seconds still on the 33, or 0 once the fleet is jumping or recovering. */
+  /** Whole seconds still on the clock, or 0 once the fleet is jumping or recovering. */
   readonly secondsRemaining: number;
   /** 0..1 of the FTL spool. Zero before spooling, one from the jump onward. */
   readonly spoolProgress: number;
