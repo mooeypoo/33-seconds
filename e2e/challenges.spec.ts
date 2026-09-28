@@ -40,6 +40,15 @@ test.describe('challenges', () => {
     await expect(page.getByTestId('status-challenge').first()).toHaveText(name);
   });
 
+  test('Endless flies with no ship and shows the repair Tyrol can still manage', async ({ page }) => {
+    await page.goto('/');
+    await page.getByTestId('open-challenges').click();
+    await page.getByTestId('launch-endless').click();
+    await expect(page.getByTestId('viper-x')).toBeAttached();
+    await expect(page.getByTestId('status-challenge').first()).toHaveText('Endless');
+    await expect(page.getByTestId('status-repair').first()).toHaveText('Repair 60%');
+  });
+
   test('a shared challenge result offers Beat this, which plays the same challenge', async ({ page, context }) => {
     await page.goto('/');
     await page.getByRole('button', { name: 'Simulate challenge' }).click();

@@ -37,19 +37,31 @@ function shipLine(result: RunResult): string {
   return `${String(result.resurrectionShipPercent)}% down`;
 }
 
+const KICKERS: Record<RunResult['outcome'], string> = { won: 'Fleet saved', lost: 'Fleet lost', held: 'Fleet held' };
+
 export function summarizeRun(result: RunResult): RunSummaryText {
   const ending = endingFor(result.outcome, result.headlineId);
-  const values = { score: result.score, cycles: result.cycle };
-  const stats = [
-    { label: 'Reached cycle', value: count(result.cycle) },
-    { label: 'Raiders destroyed', value: count(result.raiderKills) },
-    { label: 'Resurrection ship', value: shipLine(result) },
-    { label: 'Fleet left', value: `${String(result.fleetLeftPercent)}%` },
-    { label: 'Ejects', value: count(result.ejects) },
-  ];
+  const jumps = Math.max(0, result.cycle - 1);
+  const values = { score: result.score, cycles: result.cycle, jumps };
+  // Endless (PRD 11.1): how long the fleet held is the result. There is no ship, and the fleet
+  // always ends at zero, so neither is a stat.
+  const stats =
+    result.outcome === 'held'
+      ? [
+          { label: 'Jumps held', value: count(jumps) },
+          { label: 'Raiders destroyed', value: count(result.raiderKills) },
+          { label: 'Ejects', value: count(result.ejects) },
+        ]
+      : [
+          { label: 'Reached cycle', value: count(result.cycle) },
+          { label: 'Raiders destroyed', value: count(result.raiderKills) },
+          { label: 'Resurrection ship', value: shipLine(result) },
+          { label: 'Fleet left', value: `${String(result.fleetLeftPercent)}%` },
+          { label: 'Ejects', value: count(result.ejects) },
+        ];
   if (result.heavyKills > 0) stats.splice(2, 0, { label: 'Heavy Raiders', value: count(result.heavyKills) });
   return {
-    kicker: result.outcome === 'won' ? 'Fleet saved' : 'Fleet lost',
+    kicker: KICKERS[result.outcome],
     tier: result.challenge ? challengeName(result.challenge.key) : TIER_NAMES[result.tier],
     headline: fillEnding(ending.headline, values),
     text: fillEnding(ending.text, values),

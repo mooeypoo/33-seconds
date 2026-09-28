@@ -32,7 +32,8 @@ function points(value: number): string {
 }
 
 const summary = computed(() => summarizeRun(props.result));
-const won = computed(() => props.result.outcome === 'won');
+/** Held is Endless's ending (PRD 11.1): no win, but a result to celebrate, so it looks like one. */
+const won = computed(() => props.result.outcome !== 'lost');
 const continueLabel = computed(() => (props.shared ? 'Play 33 Seconds' : won.value ? 'Continue' : 'Retry'));
 
 const primary = useTemplateRef<HTMLButtonElement>('primary');

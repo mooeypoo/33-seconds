@@ -30,7 +30,7 @@ too easy.
 - **Have an idea?** [Suggest an idea or a change](https://github.com/mooeypoo/33-seconds/issues/new?template=3-idea.yml),
   such as a new card, a balance tweak, or a joke.
 - **Finished a run?** The end screen has a **Share link** button. Add your link to the form so we
-  can see the run.
+  can see the run. A challenge link gives whoever opens it a **Beat this** button.
 
 No GitHub account? Tell us in the community chat instead.
 
@@ -57,6 +57,12 @@ win.
   over comms.
 - **A run takes about 6 to 8 minutes.** Pick **Civilian Run** for an easier fleet or **Viper Pilot**
   for the full fight. New pilots can take a short **Training Run** with Chief Tyrol first.
+- **Challenges.** Beside the normal run (**Story mode**) there are challenges that bend it:
+  **Swarm** (more Raiders, sooner), **Tyrol overwhelmed** (much less repair at each jump), and
+  **Endless** (no resurrection ship, so how many jumps can the fleet hold while Tyrol tires?). A
+  **weekly challenge** mixes a new set of rules every Monday, the same for everyone. Every
+  challenge result ends with a verdict on how you did, and a shared link lets a friend try to
+  beat your score.
 
 <table>
 <tr>
@@ -120,7 +126,10 @@ Want to look closer, run it locally, or contribute? Read **[DEVELOPERS.md](DEVEL
 The game collects nothing. There are no accounts, analytics, cookies, third-party scripts or fonts,
 and no free-text input. Your browser's local storage keeps only your settings and a few "already
 seen" flags, and the game works without it. A shared run link carries the run's result in the part
-of the URL that never reaches a server, and it names no one.
+of the URL that never reaches a server, and it names no one. Challenges, the weekly challenge, and
+Beat this work the same way: the week is read from your device's clock, and nothing is sent or
+stored. A shared leaderboard is designed but deliberately not built
+([ADR-0003](docs/adr/0003-community-server-deferred.md)).
 
 ## Credits
 

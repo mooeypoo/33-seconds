@@ -38,6 +38,8 @@ const items = computed<StatusItem[]>(() => {
   if (hud.cylonEye) list.push({ key: 'eye', text: 'Two transponders' });
   if (hud.lucky) list.push({ key: 'lucky', text: 'Lucky' });
   list.push({ key: 'loop', text: hud.resurrectionsActive ? 'Loop on' : 'Loop offline' });
+  // Endless: Tyrol tires, so the jump's repair is worth watching (PRD 11.1).
+  if (hud.repairPercent !== null) list.push({ key: 'repair', text: `Repair ${String(hud.repairPercent)}%`, alert: hud.repairPercent <= 20 });
 
   if (hud.shipStatus === 'shielded') list.push({ key: 'ship', text: 'Ship shielded' });
   if (hud.shipStatus === 'exposed') {
