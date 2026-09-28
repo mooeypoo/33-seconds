@@ -3,9 +3,9 @@
 | | |
 |---|---|
 | **Status** | Living document (see below) |
-| **Last changed** | 2026-09-27 (see the changelog at the end) |
+| **Last changed** | 2026-09-28 (see the changelog at the end) |
 | **Owner** | Moriel |
-| **Related** | [Architecture guidelines (ADR-0001)](adr/0001-architecture.md), [AGENTS.md](../AGENTS.md) |
+| **Related** | [Architecture guidelines (ADR-0001)](adr/0001-architecture.md), [Challenges (ADR-0004)](adr/0004-challenges.md), [AGENTS.md](../AGENTS.md) |
 
 ---
 
@@ -42,6 +42,7 @@ Read this every session. The rest of the document is detail.
 - **Comms portraits and jokes** are data written later. Use clearly labeled placeholders first.
 - A **Training Run** (5.5) from the title: a short simulator run where Tyrol explains each thing the first time it happens, with the clock held while you read. The title points new players at it until they finish it once. It is not a difficulty tier.
 - Two difficulty tiers: **Civilian Run** (easier fleet math, same fight) and **Viper Pilot** (the default Launch). Ignoring the fleet on Viper Pilot can lose the run.
+- **Challenges** (11.1, being built): beside **Story mode** (the normal run), set challenges and a weekly one change the numbers and, for a few, one rule. Their results share with a verdict line and a **Beat this** for the friend who opens the link. Only a challenge may change the 33-second clock.
 
 ---
 
@@ -97,6 +98,8 @@ The game plays in a browser on desktop and phone, is free, and is a fan project.
 
 The cycle length is a constant. It is the identity of the game. Difficulty varies everything *around* it.
 
+**The one exception** (decided 2026-09-28): the *slow FTL* challenge (11.1) runs 66-second cycles, and says so. Story mode, the Training Run, and every other challenge are always 33 seconds.
+
 The countdown sits in the top HUD band beside fleet health, outside the playfield, so it is visible while flying and never under the Viper. It shows whole seconds and a bar that fills across the cycle. Spooling turns the number and the bar amber and the caption says Spooling, so colour is not the only cue. Between cycles the caption says Jumping or Jumped and the bar stays full, with no number. On a wide window (the CIC shell, 13.2) the same clock is an FTL ring in the FLEET console: it fills across the cycle, and for the spool it turns amber, the panel edge thickens, and the caption says Spooling. **Live now:** both placements. Gaeta and Dualla already call the spool in comms.
 
 **Late-cycle border tell `[Later]`.** When about 10 or 5 seconds remain, paint the play-area border in a stronger FTL colour (red or blue), quietly, not a flash and not a full-screen wash. First play of the quiet 33 was easy to miss; this is the "spool is real" cue without shouting. Comfort still forbids rapid flashing.
@@ -132,6 +135,7 @@ A run is 8-10 cycles, or roughly 6-8 minutes including the Recovering scenes.
 
 - **Win:** destroy the resurrection ship, then clear the remaining Raiders. The end screen (5.4) says so; Continue returns to the title and Launch starts a new run.
 - **Lose:** Fleet Integrity reaches zero. (Your Viper cannot end the run. Being destroyed costs time, not the game. See 8.1.) The end screen (5.4) says so; Retry returns to the title. Retry-from-last-jump waits. **Live now:** Civilian Run still cannot reach zero (cap 35, repair 60%). Viper Pilot (the Launch default) can: cap 45, repair 40%, lost on the fifth full-cap cycle. HUD says `Pilot` or `Civilian`.
+- **The Endless challenge** (11.1) has no win: the resurrection ship cannot be destroyed, and the fleet falling ends the run as a result to celebrate (jumps held), not as a loss.
 - On loss, a short epilogue scene plays, then retry. On Civilian Run, retry offers "from the last jump."
 
 ### 5.4 Score and the end screen `[Tunable]`
@@ -398,11 +402,27 @@ Named tiers, with a mutator system planned for later.
 | Civilian Run | Easier fleet numbers, same fight. Marker-only Returned Raiders, retry from last jump | Yes |
 | Viper Pilot | Default | Yes |
 | Starbuck | Reckless, one trait per returned Raider | Later |
-| All of This Has Happened Before | Endless, up to 3 traits, no win | Later |
+| All of This Has Happened Before | Endless, no win. Built first as the *endless* challenge (11.1), without traits | Challenge |
 
 **Mutators (later):** No Dradis, Silent Space, Everyone's a Cylon, Adama's Watching, Sleepless (no calm between jumps).
 
 Tiers change numbers in one typed profile (see ADR-0001, D9), never rules. **Live now:** one JSON object per difficulty in `src/balance/tiers.json`, validated on load and in CI: fleet cap, repair, and per-cycle ramps for the Director cap and the attack and strafe tokens (a ramp's last value holds for later cycles). The two tiers still differ only in fleet numbers. `npm run sim` reports how each tier plays against simple bots. **Later:** after a win, invite a return on a harder profile without making Civilian Run feel like practice.
+
+### 11.1 Challenges `[Tunable]`
+
+Decided 2026-09-28, being built (ADR-0004). **Story mode** is the normal run and does not change. The title adds a **Challenges** sheet. A challenge is a base tier plus different numbers and, for a few, one rule change (a *mutator*). Every run still draws a fresh seed.
+
+| Challenge | What changes | Mutator |
+|---|---|---|
+| Swarm | More Raiders, more of them firing and diving | none |
+| Tyrol overwhelmed | Much less fleet repair at each jump | none |
+| Endless | The resurrection ship jumps away at low hull instead of dying and comes back later. No win: the run ends when the fleet falls, and the end screen celebrates how many jumps you held (not "Fleet lost"). The fleet is more forgiving so a run can go long. Score and numbers are settled when that slice starts. | `endless` |
+| Slow FTL | 66-second cycles: arriving 5 s, spool the last 8 s. The reason is a joke (placeholder: Baltar's FTL upgrade works better, just slower). Its own fleet numbers, since cap and repair are per cycle. | `slow-ftl` |
+
+- **The weekly challenge** is combined automatically from a pool of swarm and fleet variants and, sometimes, one mutator, picked from the ISO week (`2026-W40`). Everyone plays the same rules that week, not the same spawns (decision 9 stands). Hand-picked weeks may come later.
+- **A verdict** judges the run in one line, drawn by score band (by jumps held for Endless) from the challenge's pool in `src/content/challenges.json`. Placeholder lines until the content pass. It shows on the end screen and the share image, and travels in the share link.
+- **Beat this.** A shared challenge result offers Beat this instead of Play: it starts the same challenge, and your end screen compares your run with theirs. Nothing is stored.
+- Names, blurbs, and verdicts are content; the numbers are in `src/balance/challenges.json`; `npm run sim` reports every challenge.
 
 **Player-facing names:** Civilian Run (easier fleet, same fight, not a tutorial). Viper Pilot (default Launch). Code ids stay `civilian-ship` / `viper-pilot`.
 
@@ -455,6 +475,8 @@ Not built. The player is the only Viper until this is promoted. Two choices stay
 - **Squad.** A few other pilots fly with you at the start of a run. They shoot little or not at all, wander on a seeded path, and block bullets. They are guards, not a second player. Each jump brings only some of them back, so the run gets harder as the guard thins out. Comms can name those pilots, not only Starbuck.
 
 Do not add the ships, and do not rewrite the name-calling lines, until one of these is chosen.
+
+**Idea (2026-09-28), not decided:** a *wingman link*. A share link could carry the sender's callsign from a curated list, and the friend's next run gets a Squad pilot by that name. Needs Squad first.
 
 ### 12.6 Where the line sits on a wide window
 
@@ -587,8 +609,8 @@ Later: remappable keys, left-handed layout, gamepad.
 
 - No accounts, no free-text input, no cookies, no third-party scripts or fonts, no analytics.
 - Local storage holds only: settings (volume, comms duration, reduced effects, readable font), best scores per tier, and the "seen" state for scenes and hints. It is versioned, validated when read, and treated as untrusted because a user can edit it.
-- **Leaderboard (later):** no free-text names. Players get a **generated callsign** or pick from a curated list. That removes both privacy risk and moderation burden. Stored: callsign, score, tier, game version, timestamp. No accounts, so no personal data to delete. Server-side plausibility checks on scores. The leaderboard is for fun, not cheat-proof (see open questions).
-- **Share a finished run.** After a win or a loss, a link back to this site shows that run's points and details and offers another game. **Live now:** the link carries the result itself in the URL fragment, which never reaches a server: numbers, card ids, a headline id, the tier, and the game version. The link is sealed (`#r=kX9...`): a checksum, a fixed scramble, and base64url, so the numbers are not readable in it and editing any character opens the title instead. It is a seal, not encryption: anyone who reads the source can forge one. No account, no free text, no seed, nothing stored, nothing that identifies a person. Reading a link is strict (malformed or out of range and it opens the title instead); a card the game no longer has is dropped, and a headline that was cut falls back to the first one. Links can be forged, and only fool the person reading them. On a phone Share link opens the system share sheet; elsewhere it copies the link. **Copy image** draws a 1200×630 PNG in the browser (plain Canvas 2D, the game's own fonts and Viper, no network) and puts it on the clipboard, or shares or downloads it where the clipboard cannot take an image. A server-side share id still needs the leaderboard design note before any server code.
+- **Leaderboard (later):** no free-text names. Players get a **generated callsign** or pick from a curated list. That removes both privacy risk and moderation burden. Stored: callsign, score, challenge, tier, game version, and the ISO week (not a timestamp). No accounts, so no personal data to delete. Server-side plausibility checks on scores. The leaderboard is for fun, not cheat-proof (see open questions). The design, and an anonymous weekly tally that would come before it, are written up and deferred in [ADR-0003](adr/0003-community-server-deferred.md).
+- **Share a finished run.** After a win or a loss, a link back to this site shows that run's points and details and offers another game. **Live now:** the link carries the result itself in the URL fragment, which never reaches a server: numbers, card ids, a headline id, the tier, and the game version. The link is sealed (`#r=kX9...`): a checksum, a fixed scramble, and base64url, so the numbers are not readable in it and editing any character opens the title instead. It is a seal, not encryption: anyone who reads the source can forge one. No account, no free text, no seed, nothing stored, nothing that identifies a person. Reading a link is strict (malformed or out of range and it opens the title instead); a card the game no longer has is dropped, and a headline that was cut falls back to the first one. Links can be forged, and only fool the person reading them. **Challenges (11.1, being built):** the link format moves to version 2, adding the challenge and a verdict id; version 1 links still open as Story mode results. On a phone Share link opens the system share sheet; elsewhere it copies the link. **Copy image** draws a 1200×630 PNG in the browser (plain Canvas 2D, the game's own fonts and Viper, no network) and puts it on the clipboard, or shares or downloads it where the clipboard cannot take an image. A server-side share id still needs the leaderboard design note before any server code.
 - If analytics are ever added: aggregate, cookieless, and disclosed on the title screen. Requires an ADR first.
 - The community may include minors, so the design assumes it does.
 
@@ -634,9 +656,9 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 4 | Special recharge | The Speech recharges every 3rd jump. |
 | 5 | *Imaginary Six* balance | Weak beam at about half your gun's damage. Check how it stacks with flak and the Raptor in playtests. |
 | 6 | Playable pilot | Starbuck only (cosmetic). A wingman squad that blocks bullets, and lines that name those pilots, wait together (12.5). |
-| 7 | Endless tier | `[Later]` |
-| 8 | Leaderboard integrity | `[Later]`. Needs a short design note before any server code. Assume client scores can be forged. |
-| 9 | Seeds and a daily challenge | Every run is random. Seeds exist so tests can repeat a run; they promise nothing to players (ADR-0001 D3). A daily challenge or a "try my run" link is `[Later]` and would need a scenario discipline added back. |
+| 7 | Endless tier | Built first as the *endless* challenge (11.1, 2026-09-28): the ship jumps away instead of dying, and the run is scored by jumps held. Traits stay `[Later]`. |
+| 8 | Leaderboard integrity | `[Later]`, deferred with its design in ADR-0003: an opt-in anonymous weekly tally first, a callsign board only if players ask. Assume client scores can be forged. |
+| 9 | Seeds and a daily challenge | Every run is random. Seeds exist so tests can repeat a run; they promise nothing to players (ADR-0001 D3). A shared scenario (a daily seed or a "try my run" link) is `[Later]` and would need a scenario discipline added back. The weekly challenge (11.1) shares rules, not spawns, so it needs none. |
 | 10 | Analytics | None. |
 | 11 | Languages | English. All text is data, so translation stays possible. |
 | 12 | Community heads-up | The owner does this before going public. |
@@ -646,7 +668,7 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 16 | Visual construction | Hybrid: hand-drawn sprites for ships, and code and filters for the background and effects (ADR-0001, D4b). |
 | 17 | A first-run tutorial | **Built 2026-09-25 as the Training Run (5.5).** A button on the title, pushed until the player finishes it once, repeatable any time. Separate from Civilian Run, which stays the same fight with an easier fleet. Tyrol teaches, Starbuck flies. No player callsign. |
 
-**Still open (ask before deciding):** the license, the leaderboard and seeded-challenge design, and PWA scope.
+**Still open (ask before deciding):** the license, when to promote ADR-0003 (tally, leaderboard), and PWA scope.
 
 ---
 
@@ -752,6 +774,7 @@ Each milestone ends with something you can play in a browser and on a phone. Aft
 | 2026-09-27 | Three playtester cards (from Enrica.Manes): *The Fleet's Water Filter* (Uncommon: jump repair bonus per stack, Viper hull -1 per stack), *Starbuck's Lucky Streak* (Uncommon: 0.5 s of cover per kill per stack, banked to 1.5 s; rounds pass through to the fleet while covered; HUD `Lucky`), and *Gaius' Lab* (Questionable: shield drops a cycle early; dealt only while that moves the drop; Baltar takes the credit). Placeholder advice and lines. | Playtester suggestions. Each got a tradeoff (10.1 rule 2). The suggested "reveal the resurrection ship" does nothing, since it is always on screen, so the lab opens it sooner. The suggested gas-giant joke is a season 3 spoiler, so the Starbuck card is a lucky streak. |
 | 2026-09-27 | *The Fleet's Water Filter*: the +10% per stack is whole only after a cycle under half the damage cap, fades evenly to nothing at the cap, and a cycle at the cap repairs at the tier's rate. Added to 7.3: cards that add repair keep the worst case. | A forced-card sim on Viper Pilot (60 seeds, no other cards): with a flat +10%, one copy took every bot from losing (idle 60/60, hunter 47/60, guard 60/60) to never losing. A bonus fading across the whole cap closed that and did next to nothing (hunter 45 to 48 lost). The half-cap fade keeps the worst case and rewards defending: hunter wins went from 13 to 21, and the idle and guard bots still lose. Owner chose the half-cap fade. |
 | 2026-09-27 | A phone's world is no longer fixed at 270 x 480. When a run starts it is as wide as the lane's shape allows, between 270 and 324 (the desktop's width), and stays that width for the run. | With comms on top, the lane is squatter than 9:16, and a 270-wide world left empty bands at its sides. 270 and 324 are both played, so anything between is familiar ground. Wider than 324 for small phones waits for a balance run. |
+| 2026-09-28 | Challenges decided (11.1, ADR-0004), not built yet: Story mode plus a Challenges sheet; set challenges Swarm, Tyrol overwhelmed, Endless (the ship jumps away; scored by jumps held), and Slow FTL (66-second cycles, the one exception to 5.1); a weekly challenge combined from a pool by ISO week; a verdict line and Beat this on shared results (link format 2). The tally and leaderboard are written up and deferred (ADR-0003); a stored leaderboard entry would keep the week, not a timestamp. Wingman link noted as an idea. | Owner: more communal play without a server for now. |
 | 2026-09-28 | Galactica is the last hull on the line to show as disabled: civilians go first, from the right end. Galactica dents below half its own pip (fleet under 5%) and gets the X only at 0%. Dented hulls still match the pips. | Owner: Galactica looking lost while civilians were still up read wrong. |
 | 2026-09-25 | Training Run builds up in drills inside the 33-second cycles: one harmless drone, then live fire after the first kill, then the full sim from cycle 2. Two opening cards instead of five. One stop on the first stray round, a moment from the fleet, with the round and fleet health outlined; it is the only lesson allowed inside the 3-second gap. The fleet's row of ships and the strafer can be outlined in the playfield, and such a card docks at the top. The status row names the drill. The damage cap is no longer taught. Missiles and the Speech move to cycle 2. | Players missed how the fleet gets hurt (the fleet lesson pointed at the health bar, not the ships, and came seconds after the hit) and found the fight arrived all at once. The cycle stays 33 seconds. |
 | 2026-09-24 | Score and end screen (5.4): one screen for win and loss with the score, the run's numbers, the cards, a most-killed Raider joke stat, and an excited or sad placeholder headline. Weights in `src/balance/scoring.json`. Share link carries the result in the URL fragment; Copy image makes a PNG. Game version 0.1.0 shown on shared results. Dev-only Simulate win / lose. | ADR-0002 5.2, owner decision 4. The first weights (eject −50, fleet −5 per percent) scored every simulated loss 0, so both penalties were softened before shipping. |

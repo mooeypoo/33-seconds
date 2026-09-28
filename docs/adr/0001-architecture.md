@@ -6,7 +6,7 @@ D4 (sustained frame rate, integer scaling, iOS audio, 2D lighting cost) are stil
 phone.
 **Date:** 2026-09-19 (last revised 2026-09-20)
 **Deciders:** Moriel (owner)
-**Related:** [PRD](../PRD.md), [AGENTS.md](../../AGENTS.md), [ADR-0002: review follow-up roadmap](0002-review-roadmap.md)
+**Related:** [PRD](../PRD.md), [AGENTS.md](../../AGENTS.md), [ADR-0002: review follow-up roadmap](0002-review-roadmap.md), [ADR-0003: community server (deferred)](0003-community-server-deferred.md), [ADR-0004: challenges](0004-challenges.md)
 
 ---
 
@@ -311,7 +311,7 @@ export interface CycleProfile {
 
 **Live now (2026-09-24, ADR-0002 Phase 3):** the tiers are data in `src/balance/tiers.json`, one object per difficulty, checked by `parseTierProfile` on load and by `check:content` in CI, which names every bad value. `CycleProfile` has eleven fields: the fleet cap and repair; five **ramps** (`directorCap`, `swarmFloor`, `attackTokens`, `strafeTokens`, `sineShare`), lists by cycle whose last value repeats; download jitter; and three heavy-Raider numbers (`heavyFromCycle`, `heavyPerCycle`, `heavyMax`). A ramp counts as one knob, so the profile is at eleven of its twelve. The next knob (the resurrection ship's HP or shield timing is the likely one) needs a case, or a knob out. Tests that pass no profile get `DEFAULT_CYCLE_PROFILE`, built from the domain constants. Adding a difficulty is a JSON object plus its id in `TierId` and a title-screen button.
 
-**Swarm override (2026-09-25):** `Game.setSwarmOverride(override | null)` replaces the swarm ramps (`directorCap`, `swarmFloor`, `sineShare`, `attackTokens`, `strafeTokens`) from the next tick until it is cleared, in the middle of a cycle if need be. Fields left out keep following their ramps, and null hands the swarm back to them. Raiders already alive stay when the cap drops. It is an input like an intent or a card pick: the application sets it between ticks, so a run still repeats from its seed and inputs, and the domain never learns why it changed. It is not a profile field, so it does not spend the knob budget, and it is not a feature flag: the rules are the same, only the numbers move. The Training Run's drills are the first use (PRD 5.5), declared in `src/balance/training.json` and checked by `parseTrainingPreset`. The likely next use is a harder tier that alternates swarms (say, one that fires at the usual rate and one at double); that would put a schedule of overrides in the tier data, and needs a case like any knob. The 33-second cycle is still not configurable.
+**Swarm override (2026-09-25):** `Game.setSwarmOverride(override | null)` replaces the swarm ramps (`directorCap`, `swarmFloor`, `sineShare`, `attackTokens`, `strafeTokens`) from the next tick until it is cleared, in the middle of a cycle if need be. Fields left out keep following their ramps, and null hands the swarm back to them. Raiders already alive stay when the cap drops. It is an input like an intent or a card pick: the application sets it between ticks, so a run still repeats from its seed and inputs, and the domain never learns why it changed. It is not a profile field, so it does not spend the knob budget, and it is not a feature flag: the rules are the same, only the numbers move. The Training Run's drills are the first use (PRD 5.5), declared in `src/balance/training.json` and checked by `parseTrainingPreset`. The likely next use is a harder tier that alternates swarms (say, one that fires at the usual rate and one at double); that would put a schedule of overrides in the tier data, and needs a case like any knob. The 33-second cycle is still not configurable, with one exception: the *slow FTL* challenge's `slow-ftl` mutator, typed `33 | 66` (ADR-0004). Challenges are presets over the profile and `GameOptions`, and spend no knob (ADR-0004).
 
 **Score weights (2026-09-24, ADR-0002 5.2):** the same for every tier, so they are not in `CycleProfile` and do not spend its budget. They live in `src/balance/scoring.json` (eight weights), checked by `parseScoreWeights` on load and in `check:content`. The domain owns the arithmetic (`domain/scoring/score.ts`: `RunTally` reads events, `scoreRun` applies the weights) and takes the weights as an argument; the session and the simulation harness pass them in. A per-tier weight would move into the profile, with a case.
 
@@ -333,7 +333,7 @@ export interface CycleProfile {
 
 **Shared results (2026-09-24, PRD 17):** no storage and no server. `application/shareCode.ts` writes a finished `RunResult` into the URL fragment and reads it back as untrusted input, exactly like storage: versioned (`v=1`), every field bounded, and anything off rejects the whole link. `application/linkSeal.ts` wraps that payload (2026-09-25): an FNV-1a checksum, XOR with a fixed seeded keystream, base64url, and a re-encode check so no edit hides in base64's spare bits. It stops casual edits, not forgery, and needs no key management or server. Changing its seed or salt breaks every shared link. The page shows `package.json`'s version (a Vite `define`, read in presentation) beside a shared result. `src/balance/fingerprint.json` records a hash of `tiers.json` and `scoring.json` as of a version, and `check:content` fails until it is updated after either changes: the reminder to bump the version. The image is drawn by presentation with Canvas 2D; the clipboard, share sheet, and download are presentation's business too, since none of it is a game rule. The development-only end-screen buttons load through a dynamic import behind a build-time constant, and `scripts/check-dev-tools-stripped.mjs` fails `npm run build` if they reach a production bundle.
 
-**Leaderboard (later, separate ADR before building):**
+**Leaderboard (later):** written up and deferred in [ADR-0003](0003-community-server-deferred.md), which supersedes the sketch below where they differ (it stores the ISO week, not a timestamp).
 - Netlify Functions with Netlify Blobs (or Supabase if more is needed).
 - **No free-text names.** Generated callsigns or a curated list.
 - Server validates with a schema, checks score plausibility bounds, and applies rate limiting (confirm what the platform provides, or implement it).
@@ -411,7 +411,7 @@ export interface CycleProfile {
 - The renderer choice after the platform check.
 - Typed arrays for the swarm, if profiling demands.
 - Whether Pinia is needed or plain reactive composables are enough.
-- Leaderboard design, in its own ADR.
+- Leaderboard design: ADR-0003, deferred.
 
 ## Risks and mitigations
 
@@ -436,7 +436,7 @@ export interface CycleProfile {
 4. [x] Add `dependency-cruiser` and the domain lint bans to CI, and prove they fail on a violation (`npm run check:guardrails`). (2026-09-20)
 5. [ ] `netlify.toml` has the D11 headers, and `vite preview` mirrors them so the end-to-end tests boot under the real CSP. Still to do: check an actual deploy preview.
 6. [x] (2026-09-24) Build the balance simulation harness in M2, when the first tunable numbers exist (this supersedes the earlier "alongside the first domain code", which contradicted D13). The seam it needs exists from the first slice: the domain is constructed headlessly and driven only by `tick(intent)`, and the harness will use the same scenario helpers the engine tests use. It lives in `tools/sim/` and may import only `domain` and `balance`, enforced by the boundary check.
-7. [ ] Write a leaderboard ADR (the next free number; 0002 is the review roadmap) before building any server code.
+7. [x] Write a leaderboard ADR before building any server code. (2026-09-28: ADR-0003, proposed and deferred.)
 8. [ ] Choose a reference phone and record the performance budget against it.
 
 ## Open technical questions
