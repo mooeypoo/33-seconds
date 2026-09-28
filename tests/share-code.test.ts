@@ -22,6 +22,7 @@ const LOSS: RunResult = {
     { id: 'accidentally-wide', stacks: 1 },
   ],
   headlineId: 'lost-02',
+  challenge: null,
 };
 
 const SHARED: SharedRun = { result: LOSS, gameVersion: '0.1.0' };
@@ -70,6 +71,7 @@ describe('a share link', () => {
         mostKilled: random.next() < 0.5 ? null : { identityId: pick(50), kills: 2 + pick(30), reaction: pick(20) },
         cards,
         headlineId: lines[random.index(lines.length)]?.id ?? 'x',
+        challenge: random.next() < 0.5 ? null : { key: 'swarm', verdictId: `v-${String(pick(9))}` },
       };
       const shared: SharedRun = { result, gameVersion: `${String(pick(3))}.${String(pick(40))}.${String(pick(9))}` };
 
@@ -82,7 +84,7 @@ describe('a share link', () => {
     expect(fragment).toMatch(/^r=[A-Za-z0-9_-]+$/);
     // Not in the link, and not one base64 decode away either.
     const decoded = atob(fragment.slice('r='.length).replace(/-/g, '+').replace(/_/g, '/'));
-    for (const plain of ['s=466', '466', 'lost', 'pilot', 'spoilers', 'v=1']) {
+    for (const plain of ['s=466', '466', 'lost', 'pilot', 'spoilers', 'v=2']) {
       expect(fragment).not.toContain(plain);
       expect(decoded).not.toContain(plain);
     }
@@ -123,7 +125,7 @@ describe('a share link', () => {
 
   it('is rejected whole when a field is missing, malformed, or out of range', () => {
     const bad: [string, string | null][] = [
-      ['v', '2'],
+      ['v', '3'],
       ['g', 'latest'],
       ['g', null],
       ['o', 'draw'],
@@ -170,6 +172,33 @@ describe('a share link', () => {
 
   it('ignores a field it does not know, so a later version can add one', () => {
     expect(decodeSharedRun(`#${sealLink(`${sharePayload(SHARED)}&z=1`)}`)).toEqual(SHARED);
+  });
+
+  it('carries the challenge and its verdict, together or not at all', () => {
+    const challenged: SharedRun = { ...SHARED, result: { ...LOSS, challenge: { key: 'swarm', verdictId: 's-mid-2' } } };
+    expect(decodeSharedRun(link(challenged))).toEqual(challenged);
+    const payload = sharePayload(challenged);
+    for (const broken of [
+      payload.replace('&j=s-mid-2', ''),
+      payload.replace('x=swarm&', ''),
+      payload.replace('x=swarm', 'x=Swarm'),
+      payload.replace('x=swarm', 'x=weekly:2026-W40'),
+      payload.replace('j=s-mid-2', 'j=<i>'),
+    ]) {
+      expect(decodeSharedRun(`#${sealLink(broken)}`), broken).toBeNull();
+    }
+  });
+
+  it('opens a challenge this version does not know, so the page can call it retired', () => {
+    const retired: SharedRun = { ...SHARED, result: { ...LOSS, challenge: { key: 'gone-now', verdictId: 'x-1' } } };
+    expect(decodeSharedRun(link(retired))).toEqual(retired);
+  });
+
+  it('still opens a version 1 link, as a Story mode result', () => {
+    const v1 = sharePayload(SHARED).replace('v=2', 'v=1');
+    expect(decodeSharedRun(`#${sealLink(v1)}`)).toEqual(SHARED);
+    // Version 1 had no challenges, so one that names a challenge was not written by the game.
+    expect(decodeSharedRun(`#${sealLink(`${v1}&x=swarm&j=s-low-1`)}`)).toBeNull();
   });
 
   it('checks stacks against the card, not a global limit', () => {

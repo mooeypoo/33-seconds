@@ -1,5 +1,5 @@
 {
-  "_readme": "The version reminder (PRD 5.4). check:content fails when tiers.json or scoring.json change and this file does not. Bump package.json's version if the change moves scores, then paste the line the check prints. Do not edit by hand.",
+  "_readme": "The version reminder (PRD 5.4). check:content fails when tiers.json, scoring.json, or the numbers in challenges.json change and this file does not. Bump package.json's version if the change moves scores, then paste the line the check prints. Do not edit by hand.",
   "version": "0.1.0",
-  "balance": "f6409ab9"
+  "balance": "8b536e2a"
 }

@@ -1,0 +1,59 @@
+{
+  "_readme": "Challenge names, blurbs, and verdicts (PRD 11.1). Ids match src/balance/challenges.json. Name up to 32 characters, blurb up to 140. A verdict judges the run in one line (up to 100 characters): the game takes the band with the highest `atLeast` that the score reaches, and draws one of its lines on the cosmetic stream. The first band must start at 0. A verdict's id rides in the share link, so keep ids stable and unique inside a challenge: a link whose id is gone shows the band's first line. {score} and {cycles} are filled in. Every line here is a PLACEHOLDER by the engineer, waiting for the owner's content pass.",
+  "challenges": {
+    "swarm": {
+      "name": "Swarm",
+      "blurb": "More Raiders, sooner, and more of them shooting. The fleet is the same size. So are you.",
+      "verdicts": [
+        {
+          "atLeast": 0,
+          "lines": [
+            { "id": "s-low-1", "text": "PLACEHOLDER: The swarm would like to thank you for your participation." },
+            { "id": "s-low-2", "text": "PLACEHOLDER: Dradis ran out of dots. You ran out of fleet." }
+          ]
+        },
+        {
+          "atLeast": 800,
+          "lines": [
+            { "id": "s-mid-1", "text": "PLACEHOLDER: Respectable. The Raiders are filing a complaint." },
+            { "id": "s-mid-2", "text": "PLACEHOLDER: {cycles} cycles in a hornet's nest. Tyrol is impressed. Quietly." }
+          ]
+        },
+        {
+          "atLeast": 1600,
+          "lines": [
+            { "id": "s-high-1", "text": "PLACEHOLDER: {score} points. The swarm is going to need a bigger swarm." },
+            { "id": "s-high-2", "text": "PLACEHOLDER: Somewhere a Cylon is redrawing the attack plan. Again." }
+          ]
+        }
+      ]
+    },
+    "tyrol-overwhelmed": {
+      "name": "Tyrol overwhelmed",
+      "blurb": "The deck crew is three people and a roll of tape. The fleet gets much less repair at each jump.",
+      "verdicts": [
+        {
+          "atLeast": 0,
+          "lines": [
+            { "id": "t-low-1", "text": "PLACEHOLDER: Tyrol has asked you to stop bringing him things to fix." },
+            { "id": "t-low-2", "text": "PLACEHOLDER: The tape ran out on cycle {cycles}. So did the fleet." }
+          ]
+        },
+        {
+          "atLeast": 800,
+          "lines": [
+            { "id": "t-mid-1", "text": "PLACEHOLDER: Held together with tape and optimism. Mostly tape." },
+            { "id": "t-mid-2", "text": "PLACEHOLDER: The deck crew slept four minutes. They thank you for all four." }
+          ]
+        },
+        {
+          "atLeast": 1600,
+          "lines": [
+            { "id": "t-high-1", "text": "PLACEHOLDER: {score} points and barely a scratch. Tyrol suspects witchcraft." },
+            { "id": "t-high-2", "text": "PLACEHOLDER: Nothing to fix. Tyrol doesn't know what to do with his hands." }
+          ]
+        }
+      ]
+    }
+  }
+}

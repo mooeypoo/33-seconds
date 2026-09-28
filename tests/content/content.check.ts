@@ -8,6 +8,10 @@ import scoringRaw from '../../src/balance/scoring.json';
 import endingsRaw from '../../src/content/endings.json';
 import trainingRaw from '../../src/content/training.json';
 import trainingPresetRaw from '../../src/balance/training.json';
+import challengesRaw from '../../src/balance/challenges.json';
+import challengeWordsRaw from '../../src/content/challenges.json';
+import { parseChallenges } from '../../src/balance/challenges';
+import { parseChallengeWords } from '../../src/application/challenges';
 import { parseTrainingPreset } from '../../src/balance/training';
 import {
   isPlainText,
@@ -318,6 +322,55 @@ describe('end-screen lines', () => {
     reactions.forEach((reaction, index) => {
       problems.push(...textProblems(`endings.json mostKilled.reactions[${String(index)}]`, reaction, REACTION_MAX_CHARACTERS));
     });
+    expect(problems).toEqual([]);
+  });
+});
+
+describe('challenges', () => {
+  const known = new Set<string>(['score', 'cycles']);
+
+  it('has valid numbers in balance/challenges.json', () => {
+    expect(() => parseChallenges(challengesRaw)).not.toThrow();
+  });
+
+  it('has words for every challenge and no words for a challenge that does not exist', () => {
+    const numbers = Object.keys(record(record(challengesRaw).challenges));
+    const words = record(record(challengeWordsRaw).challenges);
+    const problems: string[] = [];
+    for (const id of numbers) {
+      if (!(id in words)) {
+        problems.push(`content/challenges.json: no entry for ${id}, so the title will not offer it`);
+        continue;
+      }
+      problems.push(...parseChallengeWords(id, words[id]).problems.map((problem) => `content/challenges.json ${problem}`));
+    }
+    for (const id of Object.keys(words)) {
+      if (!numbers.includes(id)) problems.push(`content/challenges.json: ${id} has no numbers in balance/challenges.json`);
+    }
+    expect(problems).toEqual([]);
+  });
+
+  it('keeps every name, blurb, and verdict plain text with known placeholders', () => {
+    const problems: string[] = [];
+    for (const [id, raw] of Object.entries(record(record(challengeWordsRaw).challenges))) {
+      const entry = record(raw);
+      const texts: [string, unknown][] = [
+        [`${id}.name`, entry.name],
+        [`${id}.blurb`, entry.blurb],
+      ];
+      const bands: unknown[] = Array.isArray(entry.verdicts) ? entry.verdicts : [];
+      bands.forEach((band, bandIndex) => {
+        const lines: unknown[] = Array.isArray(record(band).lines) ? (record(band).lines as unknown[]) : [];
+        lines.forEach((line, lineIndex) => texts.push([`${id}.verdicts[${String(bandIndex)}].lines[${String(lineIndex)}]`, record(line).text]));
+      });
+      for (const [where, text] of texts) {
+        if (typeof text !== 'string') continue;
+        if (MARKUP.test(text) || EMOJI.test(text)) problems.push(`content/challenges.json ${where} has markup or emoji`);
+        for (const [, name] of text.matchAll(/\{(\w+)\}/g)) {
+          if (!known.has(name ?? '')) problems.push(`content/challenges.json ${where} uses {${String(name)}}, which nothing fills`);
+        }
+      }
+    }
     expect(problems).toEqual([]);
   });
 });

@@ -1,0 +1,20 @@
+{
+  "_readme": "Challenge numbers (PRD 11.1, ADR-0004). Each challenge names a base tier from tiers.json and replaces some of its fields under `profile`, with the same names and bounds as tiers.json. Names, blurbs, and verdicts live in src/content/challenges.json under the same id. Keep ids stable: share links carry them. `npm run sim` reports every challenge.",
+  "challenges": {
+    "swarm": {
+      "tier": "viper-pilot",
+      "profile": {
+        "directorCap": [4, 5, 6, 6, 7, 7, 8, 8],
+        "swarmFloor": [4, 4, 4, 5, 5, 5, 6, 6],
+        "attackTokens": [1, 2, 2, 2, 3, 3, 3, 3],
+        "strafeTokens": [1, 1, 1, 2, 2, 2, 2, 2]
+      }
+    },
+    "tyrol-overwhelmed": {
+      "tier": "viper-pilot",
+      "profile": {
+        "fleetRepairOfMissing": 0.3
+      }
+    }
+  }
+}

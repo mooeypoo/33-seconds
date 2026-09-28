@@ -2,6 +2,7 @@ import type { TierId } from '../domain/balance/profile';
 import type { CardId } from '../domain/progression/catalog';
 import { scoreRun, type RunFacts, type ScoreWeights } from '../domain/scoring/score';
 import type { GameView } from '../domain/views';
+import type { ChallengeTag } from './challenges';
 import type { RunOutcome } from './endings';
 
 /**
@@ -26,6 +27,8 @@ export interface RunResult {
   /** Cards held at the end, in the order they were last taken, with their stacks. */
   readonly cards: readonly { readonly id: CardId; readonly stacks: number }[];
   readonly headlineId: string;
+  /** The challenge played and its verdict (PRD 11.1), or null for Story mode. */
+  readonly challenge: ChallengeTag | null;
 }
 
 /** The result of the run in `view`, which should be the view on the tick it ended. */
@@ -35,6 +38,7 @@ export function buildRunResult(
   weights: ScoreWeights,
   headlineId: string,
   reaction: number,
+  challenge: ChallengeTag | null = null,
 ): RunResult {
   const ship = view.resurrectionShip;
   const shipPercent = facts.resurrectionShipDestroyed
@@ -56,5 +60,6 @@ export function buildRunResult(
     mostKilled: facts.mostKilled ? { ...facts.mostKilled, reaction } : null,
     cards: view.upgradeOrder.map((id) => ({ id, stacks: stacksOf.get(id) ?? 1 })),
     headlineId,
+    challenge,
   };
 }
