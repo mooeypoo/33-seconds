@@ -54,6 +54,33 @@
           ]
         }
       ]
+    },
+    "endless": {
+      "name": "Endless",
+      "blurb": "No resurrection ship. Every Raider comes back, and Tyrol mends a little less at every jump. How long can the fleet hold?",
+      "verdicts": [
+        {
+          "atLeast": 0,
+          "lines": [
+            { "id": "e-low-1", "text": "PLACEHOLDER: All of this has happened before. Quickly, this time." },
+            { "id": "e-low-2", "text": "PLACEHOLDER: The Raiders barely got warmed up." }
+          ]
+        },
+        {
+          "atLeast": 1500,
+          "lines": [
+            { "id": "e-mid-1", "text": "PLACEHOLDER: A respectable stretch. Tyrol wants a nap about it." },
+            { "id": "e-mid-2", "text": "PLACEHOLDER: The Raiders have started taking this personally." }
+          ]
+        },
+        {
+          "atLeast": 3000,
+          "lines": [
+            { "id": "e-high-1", "text": "PLACEHOLDER: {score} points. The fleet will tell stories about this. Short ones. They are tired." },
+            { "id": "e-high-2", "text": "PLACEHOLDER: At this point the Raiders are the ones asking when it ends." }
+          ]
+        }
+      ]
     }
   },
   "weekly": {

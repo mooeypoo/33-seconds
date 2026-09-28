@@ -53,6 +53,12 @@ export interface GameOptions {
    */
   readonly resurrectionShipArrivesCycle?: number;
   /**
+   * False for the Endless challenge (PRD 11.1): no resurrection ship ever arrives, so every Raider
+   * destroyed comes back, the run cannot be won, and it ends only when the fleet falls. A rule
+   * variant chosen for the whole run, not a feature flag (ADR-0004). Play leaves it on.
+   */
+  readonly resurrectionShip?: boolean;
+  /**
    * First cycle the shield is down and HP can be chipped. Play uses 4 (PRD 5.2). If this is
    * earlier than the arrive cycle, the ship arrives already exposed.
    */
@@ -107,6 +113,7 @@ export class Game {
   private readonly resurrectionShipArrivesCycle: number;
   private readonly resurrectionShipVulnerableCycle: number;
   private readonly resurrectionShipHitPoints: number;
+  private readonly resurrectionShipComes: boolean;
   private readonly cycle = new JumpCycle();
   private readonly playfield: Playfield;
   private readonly fleet: Fleet;
@@ -151,6 +158,7 @@ export class Game {
     const vulnerable = options.resurrectionShipVulnerableCycle ?? RESURRECTION_SHIP_VULNERABLE_CYCLE;
     this.resurrectionShipVulnerableCycle = Math.max(this.resurrectionShipArrivesCycle, vulnerable);
     this.resurrectionShipHitPoints = options.resurrectionShipHitPoints ?? RESURRECTION_SHIP_HIT_POINTS;
+    this.resurrectionShipComes = options.resurrectionShip ?? true;
     this.profile = options.tierProfile ?? DEFAULT_CYCLE_PROFILE;
     this.playfield = options.playfield ?? PHONE_PLAYFIELD;
     this.loadout = new Loadout(options.startingCards ?? [], this.profile.fleetCycleDamageCap);
@@ -178,7 +186,11 @@ export class Game {
         this.clearTheSky(events);
         this.viper.resetAtJump(this.loadout.viperHullMax);
         this.fleet.repairAtJump(
-          this.loadout.repairOfMissing(this.profile.fleetRepairOfMissing, this.fleet.view.damageThisCycle),
+          // The cycle that just ended picks the repair: the Endless challenge's Tyrol tires (PRD 11.1).
+          this.loadout.repairOfMissing(
+            rampAt(this.profile.fleetRepairOfMissing, this.cycle.view.cycleIndex),
+            this.fleet.view.damageThisCycle,
+          ),
         );
         this.recoveryBand = damageBand(this.fleet.view.lastCycleDamage, this.viper.scarHullLost, this.viper.scarEjected);
         this.speech.onJump();
@@ -356,6 +368,10 @@ export class Game {
       imaginarySix: this.six?.isPresent ? this.six.toView() : null,
       resurrectionShip: this.resurrectionShip?.toView() ?? null,
       resurrectionsActive: this.resurrectionShip?.isDestroyed !== true,
+      fleetRepair: {
+        share: rampAt(this.profile.fleetRepairOfMissing, this.cycle.view.cycleIndex),
+        changes: new Set(this.profile.fleetRepairOfMissing).size > 1,
+      },
       speechActive: this.speech.isActive,
       speechReady: this.speech.isReady,
       speechRemainingSeconds: this.speech.remaining,
@@ -418,7 +434,8 @@ export class Game {
     const nextCycle = this.cycle.view.cycleIndex + 1;
     const base = this.resurrectionShipVulnerableCycle;
     const withLab = Math.max(this.resurrectionShipArrivesCycle, base - GAIUS_LAB_CYCLES_EARLIER);
-    const labMatters = nextCycle < base && withLab < base;
+    // Without a resurrection ship there is no shield for the lab to drop.
+    const labMatters = this.resurrectionShipComes && nextCycle < base && withLab < base;
     return labMatters ? [] : ['gaius-lab'];
   }
 
@@ -683,7 +700,7 @@ export class Game {
   }
 
   private maybeArriveShip(events: DomainEvent[]): void {
-    if (this.resurrectionShip) return;
+    if (this.resurrectionShip || !this.resurrectionShipComes) return;
     if (this.cycle.view.cycleIndex < this.resurrectionShipArrivesCycle) return;
     const shielded = this.cycle.view.cycleIndex < this.shieldDropCycle();
     this.resurrectionShip = new ResurrectionShip(this.resurrectionShipHitPoints, shielded, this.playfield.width);

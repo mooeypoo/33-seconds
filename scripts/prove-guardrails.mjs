@@ -485,8 +485,8 @@ const SABOTAGE = [
   {
     what: 'the balance harness reaches into the session',
     file: 'tools/sim/runSim.ts',
-    find: "import { createGame } from '../../src/domain/game';",
-    replace: "import { createGame } from '../../src/domain/game';\nimport '../../src/application/GameSession';",
+    find: "import { createGame, type GameOptions } from '../../src/domain/game';",
+    replace: "import { createGame, type GameOptions } from '../../src/domain/game';\nimport '../../src/application/GameSession';",
     mustFail: 'npm run check:arch',
   },
   {

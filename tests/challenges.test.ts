@@ -33,7 +33,8 @@ describe('a challenge preset', () => {
     });
     const harder = presets.harder;
     expect(harder?.tier).toBe('viper-pilot');
-    expect(harder?.profile).toEqual({ ...TIERS['viper-pilot'], id: 'viper-pilot', fleetRepairOfMissing: 0.1, directorCap: [9] });
+    expect(harder?.profile).toEqual({ ...TIERS['viper-pilot'], id: 'viper-pilot', fleetRepairOfMissing: [0.1], directorCap: [9] });
+    expect(harder?.mutators).toEqual([]);
   });
 
   it('names every bad entry at once, by challenge', () => {
@@ -43,7 +44,9 @@ describe('a challenge preset', () => {
         wild: { tier: 'viper-pilot', profile: { fleetRepairOfMissing: 3 } },
         nobody: { tier: 'admiral' },
         'Bad Id': { tier: 'viper-pilot' },
-        extra: { tier: 'viper-pilot', mutators: ['endless'] },
+        extra: { tier: 'viper-pilot', rules: ['endless'] },
+        twice: { tier: 'viper-pilot', mutators: ['endless', 'endless'] },
+        unknown: { tier: 'viper-pilot', mutators: ['zero-g'] },
       },
     });
     expect(problems).toEqual([
@@ -51,7 +54,9 @@ describe('a challenge preset', () => {
       expect.stringContaining('wild.profile: fleetRepairOfMissing must be a number from 0 to 1'),
       expect.stringContaining('nobody.tier'),
       expect.stringContaining('challenge id Bad Id'),
-      expect.stringContaining('extra.mutators is not a known setting'),
+      expect.stringContaining('extra.rules is not a known setting'),
+      expect.stringContaining('twice.mutators must list known mutators'),
+      expect.stringContaining('unknown.mutators must list known mutators'),
     ]);
     expect(problemsOf({ challenges: {} })).toEqual(['challenges must name at least one challenge']);
   });
@@ -176,6 +181,24 @@ describe('a challenge run', () => {
     session.start();
     playUntilOver(session);
     expect(session.status.result?.challenge).toBeNull();
+  });
+
+  it('Endless flies without the ship and ends as held, scored by its own rules', () => {
+    const session = new GameSession(IDLE_INPUT, { seed: 2, raidersFire: false, viperFires: false, fleetStartingIntegrity: 60 });
+    session.startChallenge('endless');
+    // Through every jump, taking no card, until the fleet falls.
+    for (let i = 0; i < TICKS_PER_SECOND * 60 * 20 && session.status.phase !== 'lost'; i++) {
+      if (session.status.choosingUpgrade) session.continueFromJump();
+      session.advance(TICK_SECONDS);
+    }
+    const result = session.status.result;
+    expect(result?.outcome).toBe('held');
+    expect(result?.headlineId).toMatch(/^held-/);
+    expect(result?.resurrectionShipPercent).toBe(0);
+    // A gun held quiet kills nothing, so the score is the jumps alone: 100 a jump, as shipped.
+    expect(result?.raiderKills).toBe(0);
+    expect(result?.score).toBe((Math.max(1, result?.cycle ?? 1) - 1) * 100 - (result?.ejects ?? 0) * 20);
+    expect(result?.cycle).toBeGreaterThan(1);
   });
 
   it('does not leave the title for a challenge this version does not have', () => {

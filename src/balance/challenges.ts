@@ -1,17 +1,36 @@
 import raw from './challenges.json';
 import tiersRaw from './tiers.json';
 import { isTierId, type CycleProfile, type TierId } from '../domain/balance/profile';
+import type { GameOptions } from '../domain/game';
 import { parseTierProfile, TierProfileError } from './profileSchema';
 
 /**
  * Challenge numbers (PRD 11.1, ADR-0004): a base tier with some of its profile replaced. The result
  * is a whole profile checked by the same schema as `tiers.json`, so a challenge moves numbers that
- * already exist and spends no knob. It reaches the game as an ordinary `tierProfile`.
+ * already exist and spends no knob. It reaches the game as an ordinary `tierProfile`, plus the run
+ * options its mutators name.
  */
 export interface ChallengePreset {
   readonly id: string;
   readonly tier: TierId;
   readonly profile: CycleProfile;
+  readonly mutators: readonly Mutator[];
+}
+
+/**
+ * Rule variants a challenge may name (ADR-0004). Each is a finished rule chosen for a whole run.
+ * `endless`: no resurrection ship; the run is scored by the jumps the fleet held (PRD 11.1).
+ */
+export const MUTATORS = ['endless'] as const;
+export type Mutator = (typeof MUTATORS)[number];
+
+/** The run options a challenge's mutators set: the one place a mutator's name becomes a rule. */
+export function mutatorOptions(mutators: readonly Mutator[]): Pick<GameOptions, 'resurrectionShip'> {
+  return mutators.includes('endless') ? { resurrectionShip: false } : {};
+}
+
+function isMutator(value: unknown): value is Mutator {
+  return typeof value === 'string' && (MUTATORS as readonly string[]).includes(value);
 }
 
 export class ChallengePresetError extends Error {
@@ -39,7 +58,12 @@ function parseOne(
     return null;
   }
   for (const key of Object.keys(entry)) {
-    if (key !== 'tier' && key !== 'profile') problems.push(`${id}.${key} is not a known setting`);
+    if (key !== 'tier' && key !== 'profile' && key !== 'mutators') problems.push(`${id}.${key} is not a known setting`);
+  }
+  const rawMutators: unknown[] = entry.mutators === undefined ? [] : Array.isArray(entry.mutators) ? entry.mutators : [null];
+  const mutators = rawMutators.filter(isMutator);
+  if (mutators.length !== rawMutators.length || new Set(mutators).size !== mutators.length) {
+    problems.push(`${id}.mutators must list known mutators (${MUTATORS.join(', ')}), each once`);
   }
   const tier = entry.tier;
   if (typeof tier !== 'string' || !isTierId(tier)) {
@@ -53,7 +77,7 @@ function parseOne(
   }
   try {
     const merged = { ...record(tiers[tier]), ...patch };
-    return { id, tier, profile: parseTierProfile(tier, merged) };
+    return { id, tier, profile: parseTierProfile(tier, merged), mutators };
   } catch (error) {
     if (!(error instanceof TierProfileError)) throw error;
     // The schema names the base tier; the writer is editing the challenge.

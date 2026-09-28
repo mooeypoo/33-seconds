@@ -303,7 +303,7 @@ describe('end-screen lines', () => {
   it('has lines for both outcomes, with unique stable ids, short plain text, and known placeholders', () => {
     const problems: string[] = [];
     const ids = new Set<string>();
-    for (const outcome of ['won', 'lost'] as const) {
+    for (const outcome of ['won', 'lost', 'held'] as const) {
       const lines: unknown[] = Array.isArray(endingsRaw[outcome]) ? endingsRaw[outcome] : [];
       if (lines.length === 0) problems.push(`endings.json: no ${outcome} lines`);
       lines.forEach((raw, index) => {

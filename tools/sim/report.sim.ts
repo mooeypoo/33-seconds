@@ -1,5 +1,5 @@
 import { it } from 'vitest';
-import { CHALLENGE_PRESETS, WEEKLY_POOL, weeklyPairKey } from '../../src/balance/challenges';
+import { CHALLENGE_PRESETS, mutatorOptions, WEEKLY_POOL, weeklyPairKey } from '../../src/balance/challenges';
 import { TIER_PROFILES } from '../../src/balance/tiers';
 import type { CycleProfile, TierId } from '../../src/domain/balance/profile';
 import { BOTS } from './bots';
@@ -15,6 +15,8 @@ declare const process: { readonly env: Readonly<Record<string, string | undefine
 
 const RUNS = Number(process.env.SIM_RUNS ?? 60);
 const MAX_CYCLES = Number(process.env.SIM_CYCLES ?? 12);
+/** Endless has no win, so its runs need room to end on their own. */
+const ENDLESS_MAX_CYCLES = Number(process.env.SIM_ENDLESS_CYCLES ?? 40);
 
 function percent(value: number): string {
   return `${String(Math.round(value * 100))}%`;
@@ -62,14 +64,16 @@ it(`balance report (${String(RUNS)} runs per row, up to ${String(MAX_CYCLES)} cy
   ].join(' ');
   const lines = [header, '-'.repeat(header.length)];
   const started = performance.now();
-  const rows: [string, CycleProfile][] = [
-    ...(Object.keys(TIER_PROFILES) as TierId[]).map((tier): [string, CycleProfile] => [tier, TIER_PROFILES[tier]]),
-    ...Object.values(CHALLENGE_PRESETS).map((challenge): [string, CycleProfile] => [challenge.id, challenge.profile]),
+  type Row = [string, CycleProfile, ReturnType<typeof mutatorOptions>];
+  const rows: Row[] = [
+    ...(Object.keys(TIER_PROFILES) as TierId[]).map((tier): Row => [tier, TIER_PROFILES[tier], {}]),
+    ...Object.values(CHALLENGE_PRESETS).map((challenge): Row => [challenge.id, challenge.profile, mutatorOptions(challenge.mutators)]),
   ];
-  for (const [label, profile] of rows) {
+  for (const [label, profile, rules] of rows) {
+    const maxCycles = rules.resurrectionShip === false ? ENDLESS_MAX_CYCLES : MAX_CYCLES;
     for (const [name, bot] of Object.entries(BOTS)) {
       const results = Array.from({ length: RUNS }, (_, index) =>
-        simulateRun({ seed: index + 1, profile, bot, maxCycles: MAX_CYCLES }),
+        simulateRun({ seed: index + 1, profile, bot, maxCycles, rules }),
       );
       lines.push(row(label, name, summarize(results)));
     }

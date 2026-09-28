@@ -15,8 +15,11 @@ export interface CycleProfile {
   readonly id: TierId;
   /** Per-cycle fleet damage cap (integrity points). */
   readonly fleetCycleDamageCap: number;
-  /** Fraction of missing Fleet Integrity restored at the jump. */
-  readonly fleetRepairOfMissing: number;
+  /**
+   * Fraction of missing Fleet Integrity restored at the jump, by the cycle that just ended. The tiers
+   * hold one value; the Endless challenge lets it fall, so every run ends (PRD 11.1).
+   */
+  readonly fleetRepairOfMissing: Ramp;
   /** Most Raiders alive at once, by cycle (PRD 9). Returns refill up to it and never past it. */
   readonly directorCap: Ramp;
   /**

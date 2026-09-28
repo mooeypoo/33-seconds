@@ -184,6 +184,11 @@ export interface GameView {
    * wave is finite. Presenters and the HUD use this as the loop-on / loop-off tell (PRD 6).
    */
   readonly resurrectionsActive: boolean;
+  /**
+   * The share of missing Fleet Integrity this cycle's jump will mend, before cards, and whether it
+   * changes from cycle to cycle. Only the Endless challenge's does: Tyrol tires (PRD 11.1).
+   */
+  readonly fleetRepair: { readonly share: number; readonly changes: boolean };
   readonly speechActive: boolean;
   readonly speechReady: boolean;
   readonly speechRemainingSeconds: number;

@@ -1,5 +1,5 @@
 {
-  "_readme": "Challenge numbers (PRD 11.1, ADR-0004). Each challenge names a base tier from tiers.json and replaces some of its fields under `profile`, with the same names and bounds as tiers.json. Names, blurbs, and verdicts live in src/content/challenges.json under the same id. Keep ids stable: share links carry them. `npm run sim` reports every challenge.",
+  "_readme": "Challenge numbers (PRD 11.1, ADR-0004). Each challenge names a base tier from tiers.json and replaces some of its fields under `profile`, with the same names and bounds as tiers.json. `mutators` names rule variants: `endless` means no resurrection ship, and the run is scored by the jumps the fleet held. `fleetRepairOfMissing` may be a list by cycle, like the swarm ramps: Endless uses it so Tyrol tires and every run ends. Names, blurbs, and verdicts live in src/content/challenges.json under the same id. Keep ids stable: share links carry them. `npm run sim` reports every challenge.",
   "challenges": {
     "swarm": {
       "tier": "viper-pilot",
@@ -14,6 +14,14 @@
       "tier": "viper-pilot",
       "profile": {
         "fleetRepairOfMissing": 0.3
+      }
+    },
+    "endless": {
+      "tier": "viper-pilot",
+      "mutators": ["endless"],
+      "profile": {
+        "fleetCycleDamageCap": 40,
+        "fleetRepairOfMissing": [0.6, 0.56, 0.52, 0.48, 0.44, 0.4, 0.36, 0.32, 0.28, 0.24, 0.2, 0.16, 0.12, 0.08, 0.04, 0]
       }
     }
   },

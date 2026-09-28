@@ -59,6 +59,8 @@ export interface HudViewModel {
   readonly lucky: boolean;
   /** True while kills still download: the loop is on (PRD 6). */
   readonly resurrectionsActive: boolean;
+  /** This cycle's jump repair in whole percent, only when it changes by cycle (Endless); else null. */
+  readonly repairPercent: number | null;
   readonly shipStatus: ShipStatus;
   readonly shipHp: number;
   readonly shipHpMax: number;
@@ -125,6 +127,7 @@ export function buildHudViewModel(view: GameView): HudViewModel {
     cylonEye: view.viper.cylonEye,
     lucky: view.viper.lucky,
     resurrectionsActive: view.resurrectionsActive,
+    repairPercent: view.fleetRepair.changes ? Math.round(view.fleetRepair.share * 100) : null,
     shipStatus,
     shipHp: ship === null ? 0 : Math.ceil(ship.hp),
     shipHpMax: ship?.hpMax ?? 0,

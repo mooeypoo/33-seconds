@@ -48,6 +48,11 @@ function ramp(field: Field, key: string, min: number, share = false): Ramp {
   return value as number[];
 }
 
+/** One share for every cycle (the tiers), or a ramp of shares by cycle (the Endless challenge). */
+function shareOrRamp(field: Field, key: string): Ramp {
+  return Array.isArray(field.record[key]) ? ramp(field, key, 0, true) : [number(field, key, 0, 1)];
+}
+
 export function parseTierProfile(id: TierId, raw: unknown): CycleProfile {
   const problems: string[] = [];
   const record = raw !== null && typeof raw === 'object' ? (raw as Record<string, unknown>) : {};
@@ -57,7 +62,7 @@ export function parseTierProfile(id: TierId, raw: unknown): CycleProfile {
   const profile: CycleProfile = {
     id,
     fleetCycleDamageCap: number(field, 'fleetCycleDamageCap', 1, 100),
-    fleetRepairOfMissing: number(field, 'fleetRepairOfMissing', 0, 1),
+    fleetRepairOfMissing: shareOrRamp(field, 'fleetRepairOfMissing'),
     directorCap: ramp(field, 'directorCap', 1),
     swarmFloor: ramp(field, 'swarmFloor', 0),
     downloadJitterSeconds: number(field, 'downloadJitterSeconds', 0, 5),

@@ -5,7 +5,7 @@ import type { RandomStream } from '../domain/shared/random';
  * The end screen's headline lines (PRD 5.4), from `src/content/endings.json`. A malformed line is
  * dropped here and named by `check:content`. Text renders as text, never as HTML.
  */
-export type RunOutcome = 'won' | 'lost';
+export type RunOutcome = 'won' | 'lost' | 'held';
 
 export interface EndingLine {
   readonly id: string;
@@ -20,11 +20,12 @@ export const REACTION_MAX_CHARACTERS = 80;
 export const ENDING_ID_PATTERN = /^[a-z0-9-]{1,40}$/;
 
 /** Placeholders `fillEnding` knows. Anything else in braces is left as written, and flagged by the content check. */
-export const ENDING_PLACEHOLDERS = ['score', 'cycles', 'identity', 'count'] as const;
+export const ENDING_PLACEHOLDERS = ['score', 'cycles', 'jumps', 'identity', 'count'] as const;
 
 const FALLBACK: Record<RunOutcome, EndingLine> = {
   won: { id: 'won-fallback', headline: 'The fleet made it', text: 'The resurrection ship is gone.' },
   lost: { id: 'lost-fallback', headline: 'The fleet did not make it', text: 'Fleet Integrity reached zero.' },
+  held: { id: 'held-fallback', headline: 'The fleet held', text: 'For as long as it could.' },
 };
 
 function record(value: unknown): Record<string, unknown> {
@@ -46,6 +47,7 @@ function parseLines(raw: unknown): EndingLine[] {
 const ENDINGS: Record<RunOutcome, readonly EndingLine[]> = {
   won: parseLines(endingsRaw.won),
   lost: parseLines(endingsRaw.lost),
+  held: parseLines(endingsRaw.held),
 };
 
 const MOST_KILLED_TEXT: string =

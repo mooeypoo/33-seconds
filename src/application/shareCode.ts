@@ -157,7 +157,7 @@ export function decodeSharedRun(hash: string): SharedRun | null {
     const gameVersion = map.get('g');
     if (gameVersion === undefined || !VERSION_PATTERN.test(gameVersion)) return null;
     const outcome = map.get('o');
-    if (outcome !== 'won' && outcome !== 'lost') return null;
+    if (outcome !== 'won' && outcome !== 'lost' && outcome !== 'held') return null;
     const headlineId = map.get('l');
     if (headlineId === undefined || !ENDING_ID_PATTERN.test(headlineId)) return null;
     const result: RunResult = {
@@ -177,6 +177,8 @@ export function decodeSharedRun(hash: string): SharedRun | null {
     };
     // A win without the ship gone is not a run this game can produce.
     if (result.outcome === 'won' && result.resurrectionShipPercent !== 100) return null;
+    // Held is the Endless ending (PRD 11.1): a challenge run, with no ship to have hurt.
+    if (result.outcome === 'held' && (result.challenge === null || result.resurrectionShipPercent !== 0)) return null;
     return { result, gameVersion };
   } catch (error) {
     if (error instanceof Rejected) return null;

@@ -1,6 +1,7 @@
 import contentRaw from '../content/challenges.json';
-import { CHALLENGE_PRESETS, challengePreset, WEEKLY_POOL, weeklyPairKey, type WeeklyPool } from '../balance/challenges';
+import { CHALLENGE_PRESETS, challengePreset, mutatorOptions, WEEKLY_POOL, weeklyPairKey, type WeeklyPool } from '../balance/challenges';
 import type { CycleProfile, TierId } from '../domain/balance/profile';
+import type { GameOptions } from '../domain/game';
 import { createRandomStream, type RandomStream } from '../domain/shared/random';
 import { fillEnding } from './endings';
 import { formatIsoWeek, isoWeekOf, parseIsoWeek } from './isoWeek';
@@ -18,11 +19,18 @@ export interface ChallengeInfo {
   readonly details: readonly string[];
 }
 
+/** How a run is scored and how its end reads. Endless has no win: the fleet falling is `held`. */
+export type RunScoring = 'story' | 'endless';
+
 /** What a session needs to launch one. */
 export interface ChallengeLaunch {
   readonly key: string;
   readonly tier: TierId;
   readonly profile: CycleProfile;
+  /** The run options its mutators set (ADR-0004). */
+  readonly rules: Pick<GameOptions, 'resurrectionShip'>;
+  /** Endless is scored by the jumps the fleet held, and ends as `held` (PRD 11.1). */
+  readonly scoring: RunScoring;
 }
 
 /** What a finished challenge run carries, on the end screen and in a share link. */
@@ -268,10 +276,13 @@ export function weeklyChallenge(now: Date): ChallengeInfo | null {
 export function challengeLaunch(key: string): ChallengeLaunch | null {
   if (!wordsFor(key)) return null;
   const preset = challengePreset(key);
-  if (preset) return { key, tier: preset.tier, profile: preset.profile };
+  if (preset) {
+    const rules = mutatorOptions(preset.mutators);
+    return { key, tier: preset.tier, profile: preset.profile, rules, scoring: rules.resurrectionShip === false ? 'endless' : 'story' };
+  }
   const pair = weeklyPair(key);
   const profile = pair ? WEEKLY_POOL.profiles[weeklyPairKey(pair.swarm, pair.fleet)] : undefined;
-  return profile ? { key, tier: WEEKLY_POOL.tier, profile } : null;
+  return profile ? { key, tier: WEEKLY_POOL.tier, profile, rules: {}, scoring: 'story' } : null;
 }
 
 export function challengeName(key: string): string {

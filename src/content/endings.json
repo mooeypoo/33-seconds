@@ -1,5 +1,5 @@
 {
-  "_readme": "The end screen's headline (PRD 5.4). One line is drawn per run from the cosmetic stream, and its id rides in the share link, so keep ids stable: a link whose id is gone falls back to the first line of its outcome. Headline up to 40 characters, text up to 140. {score} and {cycles} are filled in. mostKilled.text is the fixed part, with {identity} and {count}; one of mostKilled.reactions is drawn per run and follows it. A shared link names its reaction by position, so reordering the list changes which joke an older link shows. Every entry marked PLACEHOLDER is a first pass by the engineer, waiting for the owner's content pass.",
+  "_readme": "The end screen's headline (PRD 5.4). One line is drawn per run from the cosmetic stream, and its id rides in the share link, so keep ids stable: a link whose id is gone falls back to the first line of its outcome. Headline up to 40 characters, text up to 140. {score} and {cycles} are filled in, and {jumps} (the jumps the fleet made). `held` is the Endless challenge's ending (PRD 11.1): there is no win, so the fleet falling is a result to celebrate. mostKilled.text is the fixed part, with {identity} and {count}; one of mostKilled.reactions is drawn per run and follows it. A shared link names its reaction by position, so reordering the list changes which joke an older link shows. Every entry marked PLACEHOLDER is a first pass by the engineer, waiting for the owner's content pass.",
   "won": [
     { "id": "won-01", "note": "", "headline": "The download is offline!", "text": "No more backups. No more do-overs. The toasters have to live with their choices now." },
     { "id": "won-02", "note": "", "headline": "Resurrection ship: resolved.", "text": "{score} points and a fleet that can finally sleep for more than thirty-three seconds." },
@@ -13,6 +13,11 @@
     { "id": "lost-03", "note": "", "headline": "Fleet Integrity: zero.", "text": "The Viper is fine, though. Tyrol will want that noted." },
     { "id": "lost-04", "note": "", "headline": "The civilians have notes.", "text": "They were going to file them, but the filing ship was the first one hit." },
     { "id": "lost-05", "note": "", "headline": "Well. That happened.", "text": "{score} points. The cylons are celebrating somewhere, downloading their victory speech." }
+  ],
+  "held": [
+    { "id": "held-01", "note": "PLACEHOLDER", "headline": "The fleet held for {jumps} jumps.", "text": "Nobody wins an endless fight. Some people just last longer in it." },
+    { "id": "held-02", "note": "PLACEHOLDER", "headline": "{jumps} jumps. Not bad at all.", "text": "Tyrol ran out of tape before you ran out of nerve." },
+    { "id": "held-03", "note": "PLACEHOLDER", "headline": "Held the line: {jumps} jumps.", "text": "The Raiders are still coming. You are, sensibly, not." }
   ],
   "mostKilled": {
     "note": "",

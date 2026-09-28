@@ -92,7 +92,7 @@ describe("The Fleet's Water Filter", () => {
       expect(damage).toBeGreaterThan(0);
       expect(damage).toBeLessThan(cap * (1 - WATER_FILTER_FADE_SHARE_OF_CAP));
       const bonus = stacks * WATER_FILTER_REPAIR_PER_STACK;
-      expect(after).toBeCloseTo(before + (100 - before) * (repair + bonus));
+      expect(after).toBeCloseTo(before + (100 - before) * ((repair[0] ?? 0) + bonus));
     }
   });
 
@@ -101,7 +101,7 @@ describe("The Fleet's Water Filter", () => {
     const game = createGame({ seed: 1, tierProfile, startingCards: ['water-filter', 'water-filter'] });
     const { before, damage, after } = acrossTheJump(game);
     expect(damage).toBeCloseTo(tierProfile.fleetCycleDamageCap);
-    expect(after).toBeCloseTo(before + (100 - before) * tierProfile.fleetRepairOfMissing);
+    expect(after).toBeCloseTo(before + (100 - before) * (tierProfile.fleetRepairOfMissing[0] ?? 0));
   });
 
   it('fades past half the cap, measures the cap after Continuity of Government, and never overfills', () => {

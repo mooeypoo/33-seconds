@@ -17,10 +17,10 @@ import type { InputPort } from './ports/InputPort';
 import type { SeedSource } from './ports/SeedSource';
 import { buildHudViewModel, type HudViewModel } from './HudViewModel';
 import { createRandomStream } from '../domain/shared/random';
-import { RunTally, scoreRun } from '../domain/scoring/score';
+import { RunTally } from '../domain/scoring/score';
 import { challengeLaunch, pickVerdict, type ChallengeLaunch } from './challenges';
 import { pickEnding, pickReaction } from './endings';
-import { buildRunResult, type RunResult } from './runResult';
+import { buildRunResult, outcomeOf, scoreFor, type RunResult } from './runResult';
 import { LessonDirector, type LessonCard } from './training/LessonDirector';
 import { speakBeats, TRAINING_SCRIPT, type SpokenBeat } from './training/trainingScript';
 
@@ -205,7 +205,7 @@ export class GameSession {
   startChallenge(key: string, playfield?: Playfield): void {
     const challenge = challengeLaunch(key);
     if (!challenge) return;
-    this.launch(challenge.tier, playfield, {}, false, challenge);
+    this.launch(challenge.tier, playfield, challenge.rules, false, challenge);
   }
 
   /**
@@ -496,14 +496,15 @@ export class GameSession {
   private finishRun(won: boolean): RunResult {
     const view = this.game.view;
     const random = createRandomStream(endingSeed(this.runSeed));
-    const headline = pickEnding(won ? 'won' : 'lost', random);
+    const headline = pickEnding(outcomeOf(won, this.challenge?.scoring ?? 'story'), random);
     const reaction = pickReaction(random);
     const facts = this.tally.facts(view, won);
     // Drawn after the headline and the reaction, so a Story mode run keeps the lines it always had.
+    const scoring = this.challenge?.scoring ?? 'story';
     const challenge = this.challenge
-      ? { key: this.challenge.key, verdictId: pickVerdict(this.challenge.key, scoreRun(facts, SCORE_WEIGHTS), random) }
+      ? { key: this.challenge.key, verdictId: pickVerdict(this.challenge.key, scoreFor(facts, SCORE_WEIGHTS, scoring), random) }
       : null;
-    return buildRunResult(view, facts, SCORE_WEIGHTS, headline.id, reaction, challenge);
+    return buildRunResult(view, facts, SCORE_WEIGHTS, headline.id, reaction, challenge, scoring);
   }
 
   /** Tyrol's word, a grade from the cosmetic stream, and the lessons that never came up. */

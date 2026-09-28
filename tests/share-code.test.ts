@@ -196,6 +196,19 @@ describe('a share link', () => {
     expect(decodeSharedRun(link(weekly))).toEqual(weekly);
   });
 
+  it('carries an Endless run as held, and only as a challenge with no ship hurt', () => {
+    const held: SharedRun = {
+      ...SHARED,
+      result: { ...LOSS, outcome: 'held', resurrectionShipPercent: 0, headlineId: 'held-01', challenge: { key: 'endless', verdictId: 'e-mid-1' } },
+    };
+    expect(decodeSharedRun(link(held))).toEqual(held);
+    expect(decodeSharedRun(link({ ...held, result: { ...held.result, challenge: null } }))).toBeNull();
+    expect(decodeSharedRun(link({ ...held, result: { ...held.result, resurrectionShipPercent: 12 } }))).toBeNull();
+    // Version 1 had no challenges, so it had no held runs either.
+    const v1 = sharePayload({ ...held, result: { ...held.result, challenge: null } }).replace('v=2', 'v=1');
+    expect(decodeSharedRun(`#${sealLink(v1)}`)).toBeNull();
+  });
+
   it('opens a challenge this version does not know, so the page can call it retired', () => {
     const retired: SharedRun = { ...SHARED, result: { ...LOSS, challenge: { key: 'gone-now', verdictId: 'x-1' } } };
     expect(decodeSharedRun(link(retired))).toEqual(retired);
