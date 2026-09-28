@@ -104,6 +104,9 @@ glance, never text. A card without its file shows an empty slot, so these can la
 - [x] `raptor-escort.png`
 - [x] `spoilers.png`
 - [x] `your-call-is-important-to-us.png`
+- [x] `water-filter.png` (playtester card)
+- [x] `lucky-streak.png` (playtester card)
+- [x] `gaius-lab.png` (playtester card)
 
 ### Portraits (page pictures) → `assets/portraits/`
 

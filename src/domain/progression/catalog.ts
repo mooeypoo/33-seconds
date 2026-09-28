@@ -1,7 +1,9 @@
 /**
  * Starter upgrade set (PRD 10.2). Effects are modifiers, not flags. Text lives in JSON (D8).
  *
- * ASSUMPTION: these twelve are the MVP table. Later cards wait on pickups, traits, and a decoy.
+ * ASSUMPTION: the first twelve are the MVP table. *The Fleet's Water Filter*, *Starbuck's Lucky
+ * Streak*, and *Gaius' Lab* came from playtesters (2026-09-27). Later cards wait on pickups,
+ * traits, and a decoy.
  */
 export type CardId =
   | 'accidentally-wide'
@@ -9,12 +11,15 @@ export type CardId =
   | 'bootleg-hooch'
   | 'continuity-of-government'
   | 'flak-enthusiast'
+  | 'gaius-lab'
   | 'hangar-door-slam'
   | 'imaginary-six'
+  | 'lucky-streak'
   | 'overcompensating-cannon'
   | 'personal-vendetta'
   | 'raptor-escort'
   | 'spoilers'
+  | 'water-filter'
   | 'your-call-is-important-to-us';
 
 export type CardRarity = 'common' | 'uncommon' | 'questionable';
@@ -37,6 +42,9 @@ export const STARTER_CARDS: readonly CardDefinition[] = [
   { id: 'bootleg-hooch', rarity: 'uncommon' },
   { id: 'overcompensating-cannon', rarity: 'uncommon' },
   { id: 'personal-vendetta', rarity: 'uncommon' },
+  { id: 'water-filter', rarity: 'uncommon' },
+  { id: 'lucky-streak', rarity: 'uncommon' },
+  { id: 'gaius-lab', rarity: 'questionable' },
 ];
 
 export function maxStacksFor(rarity: CardRarity): number {
@@ -96,3 +104,28 @@ export const FLAK_INTERCEPT_MAX = 0.85;
 
 /** *Hangar Door Slam*: extra damage to the factory while bays are open, per stack. */
 export const HANGAR_SLAM_DAMAGE_PER_STACK = 0.3;
+
+/**
+ * *The Fleet's Water Filter*: jump repair gains this share of the missing integrity per stack after
+ * a cycle under half the damage cap. Past that the bonus fades, and it is gone after a cycle at the
+ * cap, so the worst case is the tier's own (PRD 7.2). Tyrol's reset gives the Viper this many fewer
+ * hull points per stack. Two stacks leave 3 hull.
+ * ASSUMPTION: +10 points of repair against -1 hull until play says otherwise. The half-cap fade was
+ * chosen from a forced-card sim (journal 0061): a flat bonus made Viper Pilot unloseable, and a
+ * fade across the whole cap left the card doing next to nothing for the bots.
+ */
+export const WATER_FILTER_REPAIR_PER_STACK = 0.1;
+/** The last share of the cap over which the filter's bonus fades to nothing. */
+export const WATER_FILTER_FADE_SHARE_OF_CAP = 0.5;
+export const WATER_FILTER_HULL_PER_STACK = 1;
+
+/**
+ * *Starbuck's Lucky Streak*: each Raider destroyed buys this much cover per stack, banked up to the
+ * cap. Cover is ordinary invulnerability, so Cylon rounds pass through the Viper to the fleet.
+ * ASSUMPTION: 0.5 s a kill and a 1.5 s bank until play says otherwise.
+ */
+export const LUCKY_COVER_SECONDS_PER_KILL_PER_STACK = 0.5;
+export const LUCKY_COVER_MAX_SECONDS = 1.5;
+
+/** *Gaius' Lab*: the resurrection ship's shield drops this many cycles earlier (never before it arrives). */
+export const GAIUS_LAB_CYCLES_EARLIER = 1;

@@ -26,6 +26,11 @@ export interface ViperView {
   readonly scale: number;
   /** Red-eye pixel after a Cylon save. HUD also names it, so colour is not the only cue. */
   readonly cylonEye: boolean;
+  /**
+   * *Starbuck's Lucky Streak* cover is running: rounds pass through to the fleet. The steady cover
+   * ring shows it, and the HUD says "Lucky", so colour is not the only cue.
+   */
+  readonly lucky: boolean;
 }
 
 export interface MissileView {

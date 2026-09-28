@@ -59,6 +59,8 @@ export class Viper {
   private previousPositionX = VIPER_SPAWN_X_UNITS;
   private previousPositionY = VIPER_SPAWN_Y_UNITS;
   private hull = VIPER_HULL_HIT_POINTS;
+  /** Full hull after cards (*The Fleet's Water Filter*). Set by Tyrol at each reset. */
+  private hullMax = VIPER_HULL_HIT_POINTS;
   /** Hits since the last jump, including ones a download put back. The scene reads this. */
   private hullLostSinceJump = 0;
   private ejectedSinceJump = false;
@@ -71,9 +73,11 @@ export class Viper {
   private readonly worldWidth: number;
   private readonly fighterScale: number;
 
-  constructor(worldWidth: number = WORLD_WIDTH_UNITS, fighterScale = 1) {
+  constructor(worldWidth: number = WORLD_WIDTH_UNITS, fighterScale = 1, hullMax = VIPER_HULL_HIT_POINTS) {
     this.worldWidth = worldWidth;
     this.fighterScale = fighterScale;
+    this.hullMax = hullMax;
+    this.hull = hullMax;
     this.positionX = worldWidth / 2;
     this.previousPositionX = this.positionX;
   }
@@ -104,6 +108,25 @@ export class Viper {
 
   get hp(): number {
     return this.hull;
+  }
+
+  get hpMax(): number {
+    return this.hullMax;
+  }
+
+  /** Seconds of cover left, from any source. Rounds pass through the Viper while it lasts. */
+  get coverSeconds(): number {
+    return this.ejected ? 0 : this.invulnerableRemainingSeconds;
+  }
+
+  /**
+   * *Starbuck's Lucky Streak*: adds cover, banked up to `maxSeconds`. Never shortens a longer cover
+   * already running (a download's, say), and an ejected pilot has nothing to cover.
+   */
+  addCover(seconds: number, maxSeconds: number): void {
+    if (this.ejected || seconds <= 0) return;
+    const current = this.invulnerableRemainingSeconds;
+    this.invulnerableRemainingSeconds = Math.max(current, Math.min(maxSeconds, current + seconds));
   }
 
   get missileAmmo(): number {
@@ -215,7 +238,7 @@ export class Viper {
   absorbDownload(invulnerableSeconds: number): void {
     this.ejected = false;
     this.ejectRemainingSeconds = 0;
-    this.hull = VIPER_HULL_HIT_POINTS;
+    this.hull = this.hullMax;
     this.invulnerableRemainingSeconds = invulnerableSeconds;
     this.velocityX = 0;
     this.velocityY = 0;
@@ -225,7 +248,7 @@ export class Viper {
   recoverFromEject(): void {
     this.ejected = false;
     this.ejectRemainingSeconds = 0;
-    this.hull = VIPER_HULL_HIT_POINTS;
+    this.hull = this.hullMax;
     this.invulnerableRemainingSeconds = VIPER_PICKUP_INVULN_SECONDS;
     this.positionX = this.worldWidth / 2;
     this.positionY = VIPER_SPAWN_Y_UNITS;
@@ -235,15 +258,19 @@ export class Viper {
     this.velocityY = 0;
   }
 
-  /** Tyrol at the jump: full hull and a fresh rack of missiles, and a pilot in a Raptor is back. */
-  resetAtJump(): void {
+  /**
+   * Tyrol at the jump: full hull and a fresh rack of missiles, and a pilot in a Raptor is back.
+   * `hullMax` is the hull after cards, so a card picked at Recovering lands on the next reset.
+   */
+  resetAtJump(hullMax: number = this.hullMax): void {
+    this.hullMax = hullMax;
     this.lastHullLost = this.hullLostSinceJump;
     this.lastEjected = this.ejectedSinceJump;
     this.hullLostSinceJump = 0;
     this.ejectedSinceJump = false;
     this.ejected = false;
     this.ejectRemainingSeconds = 0;
-    this.hull = VIPER_HULL_HIT_POINTS;
+    this.hull = this.hullMax;
     this.missiles = MISSILE_CAPACITY;
     this.invulnerableRemainingSeconds = 0;
     this.velocityX = 0;

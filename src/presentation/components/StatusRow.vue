@@ -34,6 +34,7 @@ const items = computed<StatusItem[]>(() => {
       : { key: 'hull', text: `Hull ${String(hud.hull)}/${String(hud.hullMax)}`, alert: hud.hull <= 1 },
   );
   if (hud.cylonEye) list.push({ key: 'eye', text: 'Two transponders' });
+  if (hud.lucky) list.push({ key: 'lucky', text: 'Lucky' });
   list.push({ key: 'loop', text: hud.resurrectionsActive ? 'Loop on' : 'Loop offline' });
 
   if (hud.shipStatus === 'shielded') list.push({ key: 'ship', text: 'Ship shielded' });

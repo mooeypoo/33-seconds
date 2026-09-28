@@ -131,6 +131,33 @@
       "lines": [
         { "id": "roslin-upgrade-offered-12", "text": "Knowing the next move is worth more than another gun." }
       ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "water-filter" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-13", "text": "A calm cycle heals the fleet faster. The pilot pays in hull." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "lucky-streak" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-14", "text": "While the luck holds, what misses you finds the fleet. Mind the line." }
+      ]
+    },
+    {
+      "trigger": "UpgradeOffered",
+      "priority": "normal",
+      "cooldownSeconds": 20,
+      "when": { "upgrade": "gaius-lab" },
+      "lines": [
+        { "id": "roslin-upgrade-offered-15", "text": "A shield down a cycle early is a cycle gained. Whoever gets the credit." }
+      ]
     }
   ]
 }

@@ -110,6 +110,7 @@ The banter service listens for these. Some come straight from domain events, and
 | `FleetLost` | Domain event | Adama | normal |
 | `RunWon` | Domain event | Adama | normal |
 | `ImaginarySixActive` | Derived | Tigh, Adama, Gaeta ("Who are you talking to?") | flavor |
+| `ShieldDroppedEarly` | Derived | Baltar (takes the credit for *Gaius' Lab*) | normal |
 | `CycleRecovering` | Domain event | *Scenes only, see below* | normal |
 
 ## 5. Scene (Recovering)

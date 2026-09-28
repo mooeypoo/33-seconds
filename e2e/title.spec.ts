@@ -10,7 +10,7 @@ const titleCopy = JSON.parse(
   quotes: string[];
   manual: { fight: { heading: string }[] };
   inspired: string;
-  credits: { byline: string; inspiration: string; links: { label: string; href: string }[] };
+  credits: { byline: string; inspiration: string; thanks: string; links: { label: string; href: string }[] };
 };
 
 test.describe('title', () => {
@@ -45,6 +45,7 @@ test.describe('title', () => {
     const credits = page.getByRole('dialog', { name: 'Credits' });
     await expect(credits.getByText(titleCopy.credits.byline)).toBeVisible();
     await expect(credits.getByText(titleCopy.credits.inspiration)).toBeVisible();
+    await expect(credits.getByText(titleCopy.credits.thanks)).toBeVisible();
     for (const link of titleCopy.credits.links) {
       const anchor = credits.getByRole('link', { name: link.label });
       await expect(anchor).toHaveAttribute('href', link.href);
