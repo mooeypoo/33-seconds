@@ -198,8 +198,8 @@ const SABOTAGE = [
   {
     what: 'the 33-second cycle never jumps',
     file: 'src/domain/cycle/jumpCycle.ts',
-    find: '    if (this.combatElapsedTicks >= CYCLE_COMBAT_TICKS) {',
-    replace: '    if (this.combatElapsedTicks >= CYCLE_COMBAT_TICKS * 10) {',
+    find: '    if (this.combatElapsedTicks >= this.combatTicks) {',
+    replace: '    if (this.combatElapsedTicks >= this.combatTicks * 10) {',
     mustFail: 'npm run test',
   },
   {

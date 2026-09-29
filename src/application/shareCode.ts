@@ -1,11 +1,13 @@
 import type { TierId } from '../domain/balance/profile';
 import { cardDefinition, isCardId, maxStacksFor, type CardId } from '../domain/progression/catalog';
+import { CHALLENGE_ID_PATTERN } from '../balance/challenges';
+import { VERDICT_ID_PATTERN, weekOfKey, type ChallengeTag } from './challenges';
 import { ENDING_ID_PATTERN } from './endings';
 import { openLink, sealLink } from './linkSeal';
 import type { RunResult } from './runResult';
 
 /**
- * A finished run as a URL fragment (PRD 17). Inside is a small query, `v=1&g=0.1.0&o=won&...`,
+ * A finished run as a URL fragment (PRD 17). Inside is a small query, `v=2&g=0.1.0&o=won&...`,
  * sealed by `linkSeal` so the link reads `#r=kX9...` and a hand edit breaks it. The fragment never
  * reaches a server, and it carries the result itself, so there is nothing to store and nothing that
  * names a person. The seal can be forged by anyone who reads the source, so reading a payload is
@@ -18,7 +20,12 @@ export interface SharedRun {
   readonly gameVersion: string;
 }
 
-const FORMAT_VERSION = '1';
+/**
+ * Version 2 adds the challenge and its verdict (`x`, `j`, PRD 11.1). Version 1 links were all Story
+ * mode, so they still open, as Story mode results.
+ */
+const FORMAT_VERSION = '2';
+const STORY_ONLY_VERSION = '1';
 /** Far past a real link (about 300 characters sealed); anything longer is not ours. */
 const MAX_LENGTH = 1000;
 const VERSION_PATTERN = /^\d{1,4}\.\d{1,4}\.\d{1,4}$/;
@@ -53,6 +60,9 @@ export function sharePayload({ result, gameVersion }: SharedRun): string {
   }
   if (result.cards.length > 0) {
     fields.push(['u', result.cards.map((card) => `${card.id}:${String(card.stacks)}`).join(',')]);
+  }
+  if (result.challenge) {
+    fields.push(['x', result.challenge.key], ['j', result.challenge.verdictId]);
   }
   return fields.map(([key, value]) => `${key}=${value}`).join('&');
 }
@@ -102,6 +112,24 @@ function cards(value: string | undefined): RunResult['cards'] {
   return held;
 }
 
+/**
+ * A challenge and its verdict come together or not at all. A challenge this version does not know
+ * still opens (the page names it as retired and offers nothing to play), like a retired card.
+ */
+function challengeTag(key: string | undefined, verdictId: string | undefined): ChallengeTag | null {
+  if (key === undefined && verdictId === undefined) return null;
+  // A set challenge's id, or a real week (`weekly:2026-W40`; not week 53 of a 52-week year).
+  if (key === undefined || !(CHALLENGE_ID_PATTERN.test(key) || weekOfKey(key) !== null)) throw new Rejected();
+  if (verdictId === undefined || !VERDICT_ID_PATTERN.test(verdictId)) throw new Rejected();
+  return { key, verdictId };
+}
+
+/** Version 1 could not carry a challenge, so one that claims to is not a link the game wrote. */
+function noChallenge(map: Map<string, string>): null {
+  if (map.has('x') || map.has('j')) throw new Rejected();
+  return null;
+}
+
 function fields(code: string): Map<string, string> {
   const map = new Map<string, string>();
   for (const pair of code.split('&')) {
@@ -124,11 +152,12 @@ export function decodeSharedRun(hash: string): SharedRun | null {
   if (payload === null) return null;
   try {
     const map = fields(payload);
-    if (map.get('v') !== FORMAT_VERSION) return null;
+    const version = map.get('v');
+    if (version !== FORMAT_VERSION && version !== STORY_ONLY_VERSION) return null;
     const gameVersion = map.get('g');
     if (gameVersion === undefined || !VERSION_PATTERN.test(gameVersion)) return null;
     const outcome = map.get('o');
-    if (outcome !== 'won' && outcome !== 'lost') return null;
+    if (outcome !== 'won' && outcome !== 'lost' && outcome !== 'held') return null;
     const headlineId = map.get('l');
     if (headlineId === undefined || !ENDING_ID_PATTERN.test(headlineId)) return null;
     const result: RunResult = {
@@ -144,9 +173,12 @@ export function decodeSharedRun(hash: string): SharedRun | null {
       mostKilled: mostKilled(map.get('m')),
       cards: cards(map.get('u')),
       headlineId,
+      challenge: version === FORMAT_VERSION ? challengeTag(map.get('x'), map.get('j')) : noChallenge(map),
     };
     // A win without the ship gone is not a run this game can produce.
     if (result.outcome === 'won' && result.resurrectionShipPercent !== 100) return null;
+    // Held is the Endless ending (PRD 11.1): a challenge run, with no ship to have hurt.
+    if (result.outcome === 'held' && (result.challenge === null || result.resurrectionShipPercent !== 0)) return null;
     return { result, gameVersion };
   } catch (error) {
     if (error instanceof Rejected) return null;

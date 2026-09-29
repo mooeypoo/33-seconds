@@ -13,6 +13,8 @@ Read this file first, every session. It is short on purpose.
 | `docs/PRD.md` | The game's rules and scope. **A living document**, adjusted as we play. | Read "How to use and change this document" and "MVP at a glance" every session. Read the sections your slice touches. |
 | `docs/adr/0001-architecture.md` | The architecture guidelines and the reasoning. | Read "Guidelines at a glance" every session. Read the decisions your slice touches. |
 | `docs/adr/0002-review-roadmap.md` | The plan that follows the 2026-09-24 review: owner decisions, and phased checklists. | Read "How to pick this up" every session while it has unchecked items. Work the first unfinished phase. |
+| `docs/adr/0003-community-server-deferred.md` | A server-side tally and leaderboard, designed and **deferred**. | Before writing any server code. |
+| `docs/adr/0004-challenges.md` | Challenges, the weekly challenge, and sharing them. | While its slices have unchecked boxes, and when touching challenges. |
 | `docs/review/` | The gameplay and UI/UX reviews behind that roadmap, with open brainstorm lists. | When a roadmap phase points at them. |
 | `docs/journal/` | One entry per slice: what we built, what we measured, what surprised us. Blog-ready. | Skim the latest entry every session. Add one at the end of each slice. |
 | `docs/art/`, `docs/content/` | Notes for the owner's own art and content passes. | Only when asked to work on assets or content. |

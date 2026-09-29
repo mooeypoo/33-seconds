@@ -6,5 +6,6 @@
   "eject": 20,
   "fleetDamagePercent": 2,
   "winBonus": 250,
-  "fleetLeftPercent": 10
+  "fleetLeftPercent": 10,
+  "jumpHeld": 100
 }

@@ -1,7 +1,8 @@
 import type { CycleProfile } from '../../src/domain/balance/profile';
 import { createGame } from '../../src/domain/game';
+import type { ChallengeRules } from '../../src/balance/challenges';
 import { SCORE_WEIGHTS } from '../../src/balance/scoring';
-import { RunTally, scoreRun } from '../../src/domain/scoring/score';
+import { RunTally, scoreEndlessRun, scoreRun } from '../../src/domain/scoring/score';
 import { PHONE_PLAYFIELD, type Playfield } from '../../src/domain/shared/world';
 import type { Bot } from './bots';
 
@@ -29,13 +30,21 @@ export interface RunOptions {
   readonly bot: Bot;
   readonly maxCycles?: number;
   readonly playfield?: Playfield;
+  /** A challenge's rule options (its mutators). With `resurrectionShip: false`, scored as Endless. */
+  readonly rules?: ChallengeRules;
 }
 
 const TICKS_PER_SECOND = 60;
 
 export function simulateRun(options: RunOptions): RunResult {
   const maxCycles = options.maxCycles ?? 12;
-  const game = createGame({ seed: options.seed, tierProfile: options.profile, playfield: options.playfield ?? PHONE_PLAYFIELD });
+  const game = createGame({
+    ...options.rules,
+    seed: options.seed,
+    tierProfile: options.profile,
+    playfield: options.playfield ?? PHONE_PLAYFIELD,
+  });
+  const endless = options.rules?.resurrectionShip === false;
   let fleetLow = game.view.fleet.integrity;
   let combatTicks = 0;
   let raiderTicks = 0;
@@ -80,7 +89,7 @@ export function simulateRun(options: RunOptions): RunResult {
       raidersOnScreen: combatTicks > 0 ? raiderTicks / combatTicks : 0,
       kills: view.kills,
       ejects,
-      score: scoreRun(tally.facts(view, outcome === 'won'), SCORE_WEIGHTS),
+      score: (endless ? scoreEndlessRun : scoreRun)(tally.facts(view, outcome === 'won'), SCORE_WEIGHTS),
     };
   }
 }

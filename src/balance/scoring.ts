@@ -16,6 +16,7 @@ const WEIGHT_KEYS = [
   'fleetDamagePercent',
   'winBonus',
   'fleetLeftPercent',
+  'jumpHeld',
 ] as const satisfies readonly (keyof ScoreWeights)[];
 
 /** Well past any sensible weight; a typo like 50000 should fail loudly. */

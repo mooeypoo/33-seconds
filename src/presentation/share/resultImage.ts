@@ -75,7 +75,8 @@ function wrap(context: CanvasRenderingContext2D, text: string, width: number, ma
 
 export async function renderResultImage(result: RunResult, gameVersion: string, site: string): Promise<Blob> {
   const summary = summarizeRun(result);
-  const colors = palette(result.outcome === 'won');
+  // Held is Endless's good ending, so it reads like a win (PRD 11.1).
+  const colors = palette(result.outcome !== 'lost');
   const font = faces();
   // A canvas draws with a fallback if a face has not loaded yet; ask for both first.
   await Promise.allSettled([document.fonts.load(`64px ${font.display}`), document.fonts.load(`28px ${font.body}`)]);
@@ -119,7 +120,8 @@ export async function renderResultImage(result: RunResult, gameVersion: string, 
   context.fillStyle = colors.muted;
   context.font = `26px ${font.body}`;
   y += 4;
-  for (const line of wrap(context, summary.text, leftWidth, 3)) {
+  // A challenge's verdict is the line worth sharing, so it takes the place of the headline's line.
+  for (const line of wrap(context, summary.verdict ?? summary.text, leftWidth, 3)) {
     context.fillText(line, MARGIN, y);
     y += 34;
   }

@@ -1,11 +1,12 @@
 import { it } from 'vitest';
+import { CHALLENGE_PRESETS, mutatorOptions, WEEKLY_POOL, weeklyPairKey } from '../../src/balance/challenges';
 import { TIER_PROFILES } from '../../src/balance/tiers';
-import type { TierId } from '../../src/domain/balance/profile';
+import type { CycleProfile, TierId } from '../../src/domain/balance/profile';
 import { BOTS } from './bots';
 import { simulateRun, summarize, type Summary } from './runSim';
 
 /**
- * `npm run sim`: every tier against every bot, over seeded runs, as one table (ADR-0001 D13).
+ * `npm run sim`: every tier and every challenge (PRD 11.1) against every bot, over seeded runs, as one table (ADR-0001 D13).
  * SIM_RUNS sets the runs per row (default 60); SIM_CYCLES the cycle limit (default 12).
  * A report, not a test: it always passes, and prints what the numbers do.
  */
@@ -14,6 +15,8 @@ declare const process: { readonly env: Readonly<Record<string, string | undefine
 
 const RUNS = Number(process.env.SIM_RUNS ?? 60);
 const MAX_CYCLES = Number(process.env.SIM_CYCLES ?? 12);
+/** Endless has no win, so its runs need room to end on their own. */
+const ENDLESS_MAX_CYCLES = Number(process.env.SIM_ENDLESS_CYCLES ?? 40);
 
 function percent(value: number): string {
   return `${String(Math.round(value * 100))}%`;
@@ -25,7 +28,7 @@ function score(value: number | null): string {
 
 function row(tier: string, bot: string, summary: Summary): string {
   return [
-    tier.padEnd(14),
+    tier.padEnd(24),
     bot.padEnd(7),
     percent(summary.winRate).padStart(5),
     percent(summary.lossRate).padStart(5),
@@ -44,7 +47,7 @@ function row(tier: string, bot: string, summary: Summary): string {
 
 it(`balance report (${String(RUNS)} runs per row, up to ${String(MAX_CYCLES)} cycles)`, () => {
   const header = [
-    'tier'.padEnd(14),
+    'tier / challenge'.padEnd(24),
     'bot'.padEnd(7),
     'won'.padStart(5),
     'lost'.padStart(5),
@@ -61,13 +64,31 @@ it(`balance report (${String(RUNS)} runs per row, up to ${String(MAX_CYCLES)} cy
   ].join(' ');
   const lines = [header, '-'.repeat(header.length)];
   const started = performance.now();
-  for (const tier of Object.keys(TIER_PROFILES) as TierId[]) {
+  type Row = [string, CycleProfile, ReturnType<typeof mutatorOptions>];
+  const rows: Row[] = [
+    ...(Object.keys(TIER_PROFILES) as TierId[]).map((tier): Row => [tier, TIER_PROFILES[tier], {}]),
+    ...Object.values(CHALLENGE_PRESETS).map((challenge): Row => [challenge.id, challenge.profile, mutatorOptions(challenge.mutators)]),
+  ];
+  for (const [label, profile, rules] of rows) {
+    const maxCycles = rules.resurrectionShip === false ? ENDLESS_MAX_CYCLES : MAX_CYCLES;
     for (const [name, bot] of Object.entries(BOTS)) {
       const results = Array.from({ length: RUNS }, (_, index) =>
-        simulateRun({ seed: index + 1, profile: TIER_PROFILES[tier], bot, maxCycles: MAX_CYCLES }),
+        simulateRun({ seed: index + 1, profile, bot, maxCycles, rules }),
       );
-      lines.push(row(tier, name, summarize(results)));
+      lines.push(row(label, name, summarize(results)));
     }
+  }
+  // Every pair the weekly challenge can get (PRD 11.1), against the hunter only: the bot that plays
+  // to win is the one a too-hard week shows up in. The pool says to keep it winning a quarter of runs.
+  lines.push('', 'weekly pairs (swarm+fleet), hunter bot only:');
+  const hunter = BOTS.hunter;
+  if (!hunter) throw new Error('the weekly rows need the hunter bot');
+  for (const [pair, profile] of Object.entries(WEEKLY_POOL.profiles)) {
+    if (pair === weeklyPairKey(WEEKLY_POOL.swarms[0] ?? '', WEEKLY_POOL.fleets[0] ?? '')) continue;
+    const results = Array.from({ length: RUNS }, (_, index) =>
+      simulateRun({ seed: index + 1, profile, bot: hunter, maxCycles: MAX_CYCLES }),
+    );
+    lines.push(row(pair, 'hunter', summarize(results)));
   }
   lines.push('', `minutes = combat time plus ~10 s per Recovering pick. Scores are medians; "lost" includes timeouts. ${((performance.now() - started) / 1000).toFixed(1)} s to simulate.`);
   // eslint-disable-next-line no-console -- printing the table is this report's whole job

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { RunTally, scoreRun, type RunFacts, type ScoreWeights } from '../src/domain/scoring/score';
+import { RunTally, scoreEndlessRun, scoreRun, type RunFacts, type ScoreWeights } from '../src/domain/scoring/score';
 import type { DomainEvent } from '../src/domain/shared/events';
 import { createRandomStream } from '../src/domain/shared/random';
 
@@ -13,6 +13,7 @@ const WEIGHTS: ScoreWeights = {
   fleetDamagePercent: 2,
   winBonus: 250,
   fleetLeftPercent: 10,
+  jumpHeld: 100,
 };
 
 const QUIET_LOSS: RunFacts = {
@@ -27,6 +28,22 @@ const QUIET_LOSS: RunFacts = {
   fleetLeftPercent: 0,
   mostKilled: null,
 };
+
+describe('the Endless score', () => {
+  it('counts the jumps the fleet made, the kills, and the ejects, and nothing about the fleet or a ship', () => {
+    // Ended in cycle 6: five jumps. 500 + 300 + 80 - 60.
+    const facts: RunFacts = { ...QUIET_LOSS, cycle: 6, raiderKills: 30, heavyKills: 2, ejects: 3, fleetDamagePercent: 900 };
+    expect(scoreEndlessRun(facts, WEIGHTS)).toBe(820);
+    // The Story score for the same run is buried under the fleet damage a long run always takes.
+    expect(scoreRun(facts, WEIGHTS)).toBe(0);
+  });
+
+  it('gives one more jump more than one more kill, and never goes below zero', () => {
+    const base: RunFacts = { ...QUIET_LOSS, cycle: 8, raiderKills: 40 };
+    expect(scoreEndlessRun({ ...base, cycle: 9 }, WEIGHTS)).toBeGreaterThan(scoreEndlessRun({ ...base, raiderKills: 41 }, WEIGHTS));
+    expect(scoreEndlessRun({ ...QUIET_LOSS, cycle: 1, ejects: 5 }, WEIGHTS)).toBe(0);
+  });
+});
 
 describe('the score', () => {
   it('adds kills, ship damage and the kill bonus, and takes off ejects and fleet damage', () => {

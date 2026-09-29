@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { TIER_PROFILES } from '../src/balance/tiers';
+import { rampAt } from '../src/domain/balance/profile';
 import { GameSession } from '../src/application/GameSession';
 import { createGame } from '../src/domain/game';
 import { CONTINUITY_CAP_PER_STACK } from '../src/domain/progression/catalog';
@@ -46,7 +47,7 @@ describe('tier profiles', () => {
     for (let cycle = 1; cycle <= 4; cycle++) {
       drainToCap(fleet, profile.fleetCycleDamageCap);
       expect(fleet.view.integrity).toBeGreaterThan(0);
-      fleet.repairAtJump(profile.fleetRepairOfMissing);
+      fleet.repairAtJump(rampAt(profile.fleetRepairOfMissing, cycle));
     }
     drainToCap(fleet, profile.fleetCycleDamageCap);
     expect(fleet.view.integrity).toBe(0);

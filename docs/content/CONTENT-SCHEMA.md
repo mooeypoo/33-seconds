@@ -14,6 +14,9 @@ src/content/
   scenes/
     recovering.json
   upgrades.flair.json
+  endings.json      (6b)
+  training.json     (6c)
+  challenges.json   (6d)
 ```
 
 One file per speaker keeps each voice consistent and makes pull requests easy to review.
@@ -187,6 +190,7 @@ drawn per run for the outcome.
 {
   "won":  [{ "id": "won-01",  "note": "PLACEHOLDER", "headline": "...", "text": "..." }],
   "lost": [{ "id": "lost-01", "note": "PLACEHOLDER", "headline": "...", "text": "..." }],
+  "held": [{ "id": "held-01", "note": "PLACEHOLDER", "headline": "The fleet held for {jumps} jumps.", "text": "..." }],
   "mostKilled": {
     "text": "Most-killed Raider: #{identity}, {count} times.",
     "reactions": ["Still not over it.", "..."]
@@ -195,6 +199,8 @@ drawn per run for the outcome.
 ```
 
 - `won` is excited, `lost` is a funny kind of sad. At least one of each.
+- `held` is the Endless challenge's ending (PRD 11.1): there is no win, so the fleet falling is
+  something to celebrate. Proud, a little tired. At least one.
 - **Keep ids stable.** A share link names its line by id. A link whose id is gone shows the first
   line of its outcome instead, so renaming is safe but changes old links.
 - Headline up to **40 characters**, text up to **140**. Plain text, no markup or emoji.
@@ -202,7 +208,7 @@ drawn per run for the outcome.
   follows it after a space. At least one reaction, each up to **80 characters**. A share link names
   its reaction by **position**, so reordering or cutting the list changes the joke an older link
   shows (a position past the end shows the first one). Add new ones at the end.
-- Placeholders: `{score}` and `{cycles}` in any line; `{identity}` and `{count}` in `mostKilled` and
+- Placeholders: `{score}`, `{cycles}`, and `{jumps}` (the jumps the fleet made) in any line; `{identity}` and `{count}` in `mostKilled` and
   its reactions.
   `check:content` names any other placeholder, a duplicate id, or an overlong line.
 - Delete `note` when a line is the owner's own.
@@ -266,6 +272,50 @@ lessons, in order, and the debrief. Tyrol teaches and Starbuck heckles, but any 
   names it. Markup, an unknown speaker, a bad trigger, or a placeholder nothing fills drops the
   whole lesson from the game, and `check:content` names that too.
 - Every line in the file is a placeholder until the owner's content pass.
+
+## 6d. Challenges
+
+`src/content/challenges.json` holds the words for the challenges (PRD 11.1). Their numbers live in
+`src/balance/challenges.json` under the same ids.
+
+```json
+{
+  "challenges": {
+    "swarm": {
+      "name": "Swarm",
+      "blurb": "More Raiders, sooner...",
+      "verdicts": [
+        { "atLeast": 0, "lines": [{ "id": "s-low-1", "text": "..." }] },
+        { "atLeast": 800, "lines": [{ "id": "s-mid-1", "text": "..." }] }
+      ]
+    }
+  },
+  "weekly": {
+    "name": "Week {week}",
+    "blurb": "...",
+    "swarms": { "heavies": { "name": "Heavy traffic", "line": "Heavy Raiders from the first cycle..." } },
+    "fleets": { "thin-hulls": { "name": "Thin hulls", "line": "..." } },
+    "verdicts": [{ "atLeast": 0, "lines": [{ "id": "w-low-1", "text": "..." }] }]
+  }
+}
+```
+
+- **Every challenge in the balance file needs an entry here**, and nothing here may name a
+  challenge that does not exist. A challenge without its words is not offered.
+- `name` up to **32 characters**, `blurb` up to **140**. The name sits beside the outcome on the end
+  screen and in the share image's masthead, so short is better.
+- **Verdicts** judge the run in one line, up to **100 characters**. They come in bands: the game
+  takes the band with the highest `atLeast` the score reached and draws one of its lines. The first
+  band starts at 0 and each one is higher than the last. At least one line per band. For Endless
+  the score is mostly jumps held (100 a jump), so its bands read as run length.
+- **Keep verdict ids stable and unique inside a challenge** (up to 24 lowercase letters, digits,
+  dashes). A share link names its verdict by id; a link whose id is gone shows the first line of
+  the band the score reached.
+- Placeholders in verdicts: `{score}` and `{cycles}`. In the weekly `name` only: `{week}`.
+- **The weekly challenge** names every swarm and fleet variant in the balance file's pool: a `name`
+  up to **24 characters** and a `line` up to **90** saying what it does. The first of each list is
+  the tier's own numbers; its line shows only when the week pairs it with a change.
+- `check:content` names every problem in one go.
 
 ## 7. Coverage targets for the MVP
 

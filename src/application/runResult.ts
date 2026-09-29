@@ -1,7 +1,8 @@
 import type { TierId } from '../domain/balance/profile';
 import type { CardId } from '../domain/progression/catalog';
-import { scoreRun, type RunFacts, type ScoreWeights } from '../domain/scoring/score';
+import { scoreEndlessRun, scoreRun, type RunFacts, type ScoreWeights } from '../domain/scoring/score';
 import type { GameView } from '../domain/views';
+import type { ChallengeTag, RunScoring } from './challenges';
 import type { RunOutcome } from './endings';
 
 /**
@@ -26,6 +27,19 @@ export interface RunResult {
   /** Cards held at the end, in the order they were last taken, with their stacks. */
   readonly cards: readonly { readonly id: CardId; readonly stacks: number }[];
   readonly headlineId: string;
+  /** The challenge played and its verdict (PRD 11.1), or null for Story mode. */
+  readonly challenge: ChallengeTag | null;
+}
+
+/** Endless scoring when the run ended; otherwise won or lost. */
+export function outcomeOf(won: boolean, scoring: RunScoring): RunOutcome {
+  if (scoring === 'endless') return 'held';
+  return won ? 'won' : 'lost';
+}
+
+/** The score by the run's own rules (PRD 5.4, 11.1). */
+export function scoreFor(facts: RunFacts, weights: ScoreWeights, scoring: RunScoring): number {
+  return scoring === 'endless' ? scoreEndlessRun(facts, weights) : scoreRun(facts, weights);
 }
 
 /** The result of the run in `view`, which should be the view on the tick it ended. */
@@ -35,6 +49,8 @@ export function buildRunResult(
   weights: ScoreWeights,
   headlineId: string,
   reaction: number,
+  challenge: ChallengeTag | null = null,
+  scoring: RunScoring = 'story',
 ): RunResult {
   const ship = view.resurrectionShip;
   const shipPercent = facts.resurrectionShipDestroyed
@@ -44,9 +60,9 @@ export function buildRunResult(
       : 0;
   const stacksOf = new Map(view.loadout.map((entry) => [entry.id, entry.stacks]));
   return {
-    outcome: facts.won ? 'won' : 'lost',
+    outcome: outcomeOf(facts.won, scoring),
     tier: view.tier,
-    score: scoreRun(facts, weights),
+    score: scoreFor(facts, weights, scoring),
     cycle: facts.cycle,
     raiderKills: facts.raiderKills,
     heavyKills: facts.heavyKills,
@@ -56,5 +72,6 @@ export function buildRunResult(
     mostKilled: facts.mostKilled ? { ...facts.mostKilled, reaction } : null,
     cards: view.upgradeOrder.map((id) => ({ id, stacks: stacksOf.get(id) ?? 1 })),
     headlineId,
+    challenge,
   };
 }

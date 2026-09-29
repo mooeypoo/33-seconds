@@ -97,8 +97,10 @@ export interface GhostView {
 export interface CycleView {
   readonly phase: 'arriving' | 'building' | 'spooling' | 'jumping' | 'recovering';
   readonly cycleIndex: number;
+  /** The cycle's length: 33, or 66 in the Slow FTL challenge (PRD 11.1). */
+  readonly combatSeconds: 33 | 66;
   readonly combatElapsedSeconds: number;
-  /** Whole seconds still on the 33, or 0 once the fleet is jumping or recovering. */
+  /** Whole seconds still on the clock, or 0 once the fleet is jumping or recovering. */
   readonly secondsRemaining: number;
   /** 0..1 of the FTL spool. Zero before spooling, one from the jump onward. */
   readonly spoolProgress: number;
@@ -184,6 +186,11 @@ export interface GameView {
    * wave is finite. Presenters and the HUD use this as the loop-on / loop-off tell (PRD 6).
    */
   readonly resurrectionsActive: boolean;
+  /**
+   * The share of missing Fleet Integrity this cycle's jump will mend, before cards, and whether it
+   * changes from cycle to cycle. Only the Endless challenge's does: Tyrol tires (PRD 11.1).
+   */
+  readonly fleetRepair: { readonly share: number; readonly changes: boolean };
   readonly speechActive: boolean;
   readonly speechReady: boolean;
   readonly speechRemainingSeconds: number;

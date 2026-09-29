@@ -77,7 +77,7 @@ points back. `presentation` does not reach into `infrastructure` directly, and o
 | `npm run test:e2e` | Playwright flows: input over overlays, pause, CSP boot |
 | `npm run check:arch` | dependency-cruiser layer-boundary check |
 | `npm run check:content` | Validates banter, scenes, card flair, and tier data |
-| `npm run sim` | Balance report: every tier against headless bots (ADR-0001 D13) |
+| `npm run sim` | Balance report: every tier and challenge against headless bots, and every weekly pair against the hunter (ADR-0001 D13, ADR-0004). Six to nine minutes at the default 60 runs; `SIM_RUNS`, `SIM_CYCLES`, and `SIM_ENDLESS_CYCLES` (default 40) change it |
 | `npm run check:guardrails` | Breaks the code on purpose and checks that something fails. Run by hand after touching the guardrails. |
 | `npm run render:share` | Renders the link-preview card and favicons into `public/`. Run by hand after changing the share card, the Viper sprite, or the fonts. |
 

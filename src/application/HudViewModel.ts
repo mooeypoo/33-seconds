@@ -1,4 +1,3 @@
-import { CYCLE_COMBAT_SECONDS } from '../domain/cycle/jumpCycle';
 import { cardDefinition, type CardRarity } from '../domain/progression/catalog';
 import type { GameView } from '../domain/views';
 
@@ -59,6 +58,8 @@ export interface HudViewModel {
   readonly lucky: boolean;
   /** True while kills still download: the loop is on (PRD 6). */
   readonly resurrectionsActive: boolean;
+  /** This cycle's jump repair in whole percent, only when it changes by cycle (Endless); else null. */
+  readonly repairPercent: number | null;
   readonly shipStatus: ShipStatus;
   readonly shipHp: number;
   readonly shipHpMax: number;
@@ -108,7 +109,7 @@ export function buildHudViewModel(view: GameView): HudViewModel {
     cycleIndex: view.cycle.cycleIndex,
     secondsRemaining: view.cycle.secondsRemaining,
     spoolProgress: view.cycle.spoolProgress,
-    cycleProgress: inCombat ? Math.min(1, view.cycle.combatElapsedSeconds / CYCLE_COMBAT_SECONDS) : 1,
+    cycleProgress: inCombat ? Math.min(1, view.cycle.combatElapsedSeconds / view.cycle.combatSeconds) : 1,
     fleetIntegrity: Math.round(view.fleet.integrity),
     fleetIntegrityMax: view.fleet.integrityMax,
     missiles: view.missileAmmo,
@@ -125,6 +126,7 @@ export function buildHudViewModel(view: GameView): HudViewModel {
     cylonEye: view.viper.cylonEye,
     lucky: view.viper.lucky,
     resurrectionsActive: view.resurrectionsActive,
+    repairPercent: view.fleetRepair.changes ? Math.round(view.fleetRepair.share * 100) : null,
     shipStatus,
     shipHp: ship === null ? 0 : Math.ceil(ship.hp),
     shipHpMax: ship?.hpMax ?? 0,

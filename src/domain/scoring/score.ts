@@ -21,6 +21,8 @@ export interface ScoreWeights {
   readonly winBonus: number;
   /** Only for a win: per percent of Fleet Integrity still standing at the end. */
   readonly fleetLeftPercent: number;
+  /** Endless only (PRD 11.1): per jump the fleet made before it fell. */
+  readonly jumpHeld: number;
 }
 
 /** What the score is made of. Built by `RunTally` from events and the final view. */
@@ -51,6 +53,25 @@ export function scoreRun(facts: RunFacts, weights: ScoreWeights): number {
     facts.ejects * weights.eject -
     facts.fleetDamagePercent * weights.fleetDamagePercent;
   if (facts.won) points += weights.winBonus + facts.fleetLeftPercent * weights.fleetLeftPercent;
+  return Math.max(0, Math.round(points));
+}
+
+/** Jumps the fleet made: a run that ends in cycle 5 made four. */
+export function jumpsHeld(facts: Pick<RunFacts, 'cycle'>): number {
+  return Math.max(0, facts.cycle - 1);
+}
+
+/**
+ * The Endless score (PRD 11.1): how long the fleet held, plus the kills, less the ejects. The fleet
+ * always ends at zero, so the damage it took over the run is the length of the run said twice, not a
+ * penalty; and there is no ship to score.
+ */
+export function scoreEndlessRun(facts: RunFacts, weights: ScoreWeights): number {
+  const points =
+    jumpsHeld(facts) * weights.jumpHeld +
+    facts.raiderKills * weights.raiderKill +
+    facts.heavyKills * weights.heavyKill -
+    facts.ejects * weights.eject;
   return Math.max(0, Math.round(points));
 }
 

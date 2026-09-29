@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { SCORE_WEIGHTS } from '../../balance/scoring';
 import { endingLines, reactionCount, type RunOutcome } from '../../application/endings';
-import type { RunResult } from '../../application/runResult';
+import { scoreFor, type RunResult } from '../../application/runResult';
+import { challengeLaunch, listChallenges, pickVerdict, weeklyChallenge } from '../../application/challenges';
+import { createRandomStream } from '../../domain/shared/random';
 import { maxStacksFor, STARTER_CARDS } from '../../domain/progression/catalog';
-import { scoreRun, type RunFacts } from '../../domain/scoring/score';
+import type { RunFacts } from '../../domain/scoring/score';
 
 /**
  * DEVELOPMENT ONLY. Opens the end screen with a made-up run, so it can be looked at without
@@ -14,17 +16,27 @@ import { scoreRun, type RunFacts } from '../../domain/scoring/score';
  */
 const emit = defineEmits<{ preview: [result: RunResult] }>();
 
-const nextLine: Record<RunOutcome, number> = { won: 0, lost: 0 };
+const nextLine: Record<RunOutcome, number> = { won: 0, lost: 0, held: 0 };
 let nextReaction = 0;
+let nextChallenge = 0;
 
 function roll(max: number): number {
   return Math.floor(Math.random() * (max + 1));
 }
 
-function simulate(outcome: RunOutcome): void {
+/**
+ * With `challenge`, the result is the next challenge's (this week's first), with a verdict from its
+ * score's band. Endless ends as held, with no ship, scored by its own rules.
+ */
+function simulate(asked: RunOutcome, challenge = false): void {
+  const weekly = weeklyChallenge(new Date());
+  const challenges = [...(weekly ? [weekly] : []), ...listChallenges()];
+  const played = challenge ? challenges[nextChallenge++ % Math.max(1, challenges.length)] : undefined;
+  const scoring = played ? (challengeLaunch(played.key)?.scoring ?? 'story') : 'story';
+  const outcome: RunOutcome = scoring === 'endless' ? 'held' : asked;
   const won = outcome === 'won';
-  const cycle = won ? 5 + roll(4) : 2 + roll(6);
-  const shipPercent = won ? 100 : roll(99);
+  const cycle = outcome === 'held' ? 6 + roll(14) : won ? 5 + roll(4) : 2 + roll(6);
+  const shipPercent = won ? 100 : outcome === 'held' ? 0 : roll(99);
   const facts: RunFacts = {
     won,
     cycle,
@@ -44,10 +56,11 @@ function simulate(outcome: RunOutcome): void {
     id: card.id,
     stacks: 1 + roll(maxStacksFor(card.rarity) - 1),
   }));
+  const score = scoreFor(facts, SCORE_WEIGHTS, scoring);
   emit('preview', {
     outcome,
     tier: Math.random() < 0.7 ? 'viper-pilot' : 'civilian-ship',
-    score: scoreRun(facts, SCORE_WEIGHTS),
+    score,
     cycle,
     raiderKills: facts.raiderKills,
     heavyKills: facts.heavyKills,
@@ -57,6 +70,9 @@ function simulate(outcome: RunOutcome): void {
     mostKilled: facts.mostKilled ? { ...facts.mostKilled, reaction: nextReaction++ % Math.max(1, reactionCount()) } : null,
     cards,
     headlineId: line?.id ?? `${outcome}-01`,
+    challenge: played
+      ? { key: played.key, verdictId: pickVerdict(played.key, score, createRandomStream(roll(1_000_000))) }
+      : null,
   });
 }
 </script>
@@ -66,6 +82,7 @@ function simulate(outcome: RunOutcome): void {
     <span class="tag">dev</span>
     <button data-ui type="button" @click="simulate('won')">Simulate win</button>
     <button data-ui type="button" @click="simulate('lost')">Simulate lose</button>
+    <button data-ui type="button" @click="simulate(Math.random() < 0.5 ? 'won' : 'lost', true)">Simulate challenge</button>
   </div>
 </template>
 

@@ -18,8 +18,9 @@ import type { SeedSource } from './ports/SeedSource';
 import { buildHudViewModel, type HudViewModel } from './HudViewModel';
 import { createRandomStream } from '../domain/shared/random';
 import { RunTally } from '../domain/scoring/score';
+import { challengeLaunch, pickVerdict, type ChallengeLaunch } from './challenges';
 import { pickEnding, pickReaction } from './endings';
-import { buildRunResult, type RunResult } from './runResult';
+import { buildRunResult, outcomeOf, scoreFor, type RunResult } from './runResult';
 import { LessonDirector, type LessonCard } from './training/LessonDirector';
 import { speakBeats, TRAINING_SCRIPT, type SpokenBeat } from './training/trainingScript';
 
@@ -72,6 +73,8 @@ export interface SessionStatus {
   readonly lesson: LessonCard | null;
   /** Set only while a Training Run is won or lost. It replaces the scored end screen. */
   readonly debrief: TrainingDebrief | null;
+  /** The challenge this run is playing (PRD 11.1), or null for Story mode, training, and the title. */
+  readonly challenge: string | null;
 }
 
 export interface FrameResult {
@@ -135,6 +138,8 @@ export class GameSession {
   /** The Training Run drill the swarm is following (balance/training.json). */
   private drill: string | null = null;
   private debrief: TrainingDebrief | null = null;
+  /** The challenge this run is playing, or null for Story mode and training. */
+  private challenge: ChallengeLaunch | null = null;
 
   constructor(input: InputPort, options: SessionOptions = {}) {
     this.input = input;
@@ -161,6 +166,7 @@ export class GameSession {
       drill: this.lessons !== null && this.drill !== null ? (TRAINING_SCRIPT.drillNames[this.drill] ?? null) : null,
       lesson: this.lesson,
       debrief: this.phase === 'won' || this.phase === 'lost' ? this.debrief : null,
+      challenge: this.phase === 'title' ? null : (this.challenge?.key ?? null),
     };
   }
 
@@ -195,6 +201,13 @@ export class GameSession {
     this.launch(tier, playfield, {}, false);
   }
 
+  /** Leaves the title for a challenge (PRD 11.1). An unknown key does nothing: the title stays. */
+  startChallenge(key: string, playfield?: Playfield): void {
+    const challenge = challengeLaunch(key);
+    if (!challenge) return;
+    this.launch(challenge.tier, playfield, challenge.rules, false, challenge);
+  }
+
   /**
    * Leaves the title for a Training Run (PRD 5.5): the tier and ship numbers from `training.json`,
    * and the opening lessons up before the first tick, so the clock is held while Tyrol talks.
@@ -213,10 +226,17 @@ export class GameSession {
     );
   }
 
-  private launch(tier: TierId, playfield: Playfield | undefined, extra: GameOptions, training: boolean): void {
+  private launch(
+    tier: TierId,
+    playfield: Playfield | undefined,
+    extra: GameOptions,
+    training: boolean,
+    challenge: ChallengeLaunch | null = null,
+  ): void {
     if (this.phase !== 'title') return;
     const lane = playfield ?? this.options.playfield ?? PHONE_PLAYFIELD;
-    const profile = profileFor(tier);
+    const profile = challenge?.profile ?? profileFor(tier);
+    this.challenge = challenge;
     this.runSeed = this.options.seed ?? this.options.seedSource?.() ?? DEFAULT_RUN_SEED;
     this.fleetNames = fleetNamesForRun(this.runSeed);
     // A test's own ship numbers win over the preset, so a training test can end in one shot.
@@ -476,8 +496,15 @@ export class GameSession {
   private finishRun(won: boolean): RunResult {
     const view = this.game.view;
     const random = createRandomStream(endingSeed(this.runSeed));
-    const headline = pickEnding(won ? 'won' : 'lost', random);
-    return buildRunResult(view, this.tally.facts(view, won), SCORE_WEIGHTS, headline.id, pickReaction(random));
+    const headline = pickEnding(outcomeOf(won, this.challenge?.scoring ?? 'story'), random);
+    const reaction = pickReaction(random);
+    const facts = this.tally.facts(view, won);
+    // Drawn after the headline and the reaction, so a Story mode run keeps the lines it always had.
+    const scoring = this.challenge?.scoring ?? 'story';
+    const challenge = this.challenge
+      ? { key: this.challenge.key, verdictId: pickVerdict(this.challenge.key, scoreFor(facts, SCORE_WEIGHTS, scoring), random) }
+      : null;
+    return buildRunResult(view, facts, SCORE_WEIGHTS, headline.id, reaction, challenge, scoring);
   }
 
   /** Tyrol's word, a grade from the cosmetic stream, and the lessons that never came up. */

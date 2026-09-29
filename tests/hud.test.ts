@@ -75,3 +75,16 @@ describe('the jump bar', () => {
     expect(recovering.cycleProgress).toBe(1);
   });
 });
+
+describe('the cycle bar', () => {
+  it('fills across the cycle it is in: half at 33 seconds of Slow FTL, full at 33 of a story cycle', () => {
+    const slow = createGame({ cycleSeconds: 66, raidersFire: false });
+    const story = createGame({ raidersFire: false });
+    for (let i = 0; i < CYCLE_COMBAT_SECONDS * TICKS_PER_SECOND - 1; i++) {
+      slow.tick(IDLE_INTENT);
+      story.tick(IDLE_INTENT);
+    }
+    expect(buildHudViewModel(slow.view).cycleProgress).toBeCloseTo(0.5, 1);
+    expect(buildHudViewModel(story.view).cycleProgress).toBeCloseTo(1, 1);
+  });
+});

@@ -1,0 +1,152 @@
+{
+  "_readme": "Challenge names, blurbs, and verdicts (PRD 11.1). Ids match src/balance/challenges.json. Name up to 32 characters, blurb up to 140. A verdict judges the run in one line (up to 100 characters): the game takes the band with the highest `atLeast` that the score reaches, and draws one of its lines on the cosmetic stream. The first band must start at 0. A verdict's id rides in the share link, so keep ids stable and unique inside a challenge: a link whose id is gone shows the band's first line. {score} and {cycles} are filled in. Every line here is a PLACEHOLDER by the engineer, waiting for the owner's content pass.",
+  "challenges": {
+    "swarm": {
+      "name": "Swarm",
+      "blurb": "More Raiders, sooner, and more of them shooting. The fleet is the same size. So are you.",
+      "verdicts": [
+        {
+          "atLeast": 0,
+          "lines": [
+            { "id": "s-low-1", "text": "PLACEHOLDER: The swarm would like to thank you for your participation." },
+            { "id": "s-low-2", "text": "PLACEHOLDER: Dradis ran out of dots. You ran out of fleet." }
+          ]
+        },
+        {
+          "atLeast": 800,
+          "lines": [
+            { "id": "s-mid-1", "text": "PLACEHOLDER: Respectable. The Raiders are filing a complaint." },
+            { "id": "s-mid-2", "text": "PLACEHOLDER: {cycles} cycles in a hornet's nest. Tyrol is impressed. Quietly." }
+          ]
+        },
+        {
+          "atLeast": 1600,
+          "lines": [
+            { "id": "s-high-1", "text": "PLACEHOLDER: {score} points. The swarm is going to need a bigger swarm." },
+            { "id": "s-high-2", "text": "PLACEHOLDER: Somewhere a Cylon is redrawing the attack plan. Again." }
+          ]
+        }
+      ]
+    },
+    "tyrol-overwhelmed": {
+      "name": "Tyrol overwhelmed",
+      "blurb": "The deck crew is three people and a roll of tape. The fleet gets much less repair at each jump.",
+      "verdicts": [
+        {
+          "atLeast": 0,
+          "lines": [
+            { "id": "t-low-1", "text": "PLACEHOLDER: Tyrol has asked you to stop bringing him things to fix." },
+            { "id": "t-low-2", "text": "PLACEHOLDER: The tape ran out on cycle {cycles}. So did the fleet." }
+          ]
+        },
+        {
+          "atLeast": 800,
+          "lines": [
+            { "id": "t-mid-1", "text": "PLACEHOLDER: Held together with tape and optimism. Mostly tape." },
+            { "id": "t-mid-2", "text": "PLACEHOLDER: The deck crew slept four minutes. They thank you for all four." }
+          ]
+        },
+        {
+          "atLeast": 1600,
+          "lines": [
+            { "id": "t-high-1", "text": "PLACEHOLDER: {score} points and barely a scratch. Tyrol suspects witchcraft." },
+            { "id": "t-high-2", "text": "PLACEHOLDER: Nothing to fix. Tyrol doesn't know what to do with his hands." }
+          ]
+        }
+      ]
+    },
+    "endless": {
+      "name": "Endless",
+      "blurb": "No resurrection ship. Every Raider comes back, and Tyrol mends a little less at every jump. How long can the fleet hold?",
+      "verdicts": [
+        {
+          "atLeast": 0,
+          "lines": [
+            { "id": "e-low-1", "text": "PLACEHOLDER: All of this has happened before. Quickly, this time." },
+            { "id": "e-low-2", "text": "PLACEHOLDER: The Raiders barely got warmed up." }
+          ]
+        },
+        {
+          "atLeast": 1500,
+          "lines": [
+            { "id": "e-mid-1", "text": "PLACEHOLDER: A respectable stretch. Tyrol wants a nap about it." },
+            { "id": "e-mid-2", "text": "PLACEHOLDER: The Raiders have started taking this personally." }
+          ]
+        },
+        {
+          "atLeast": 3000,
+          "lines": [
+            { "id": "e-high-1", "text": "PLACEHOLDER: {score} points. The fleet will tell stories about this. Short ones. They are tired." },
+            { "id": "e-high-2", "text": "PLACEHOLDER: At this point the Raiders are the ones asking when it ends." }
+          ]
+        }
+      ]
+    },
+    "slow-ftl": {
+      "name": "Baltar's FTL upgrade",
+      "blurb": "Dr. Baltar improved the jump drive. Twice as reliable, he says. It also takes twice as long: 66 seconds between jumps.",
+      "verdicts": [
+        {
+          "atLeast": 0,
+          "lines": [
+            { "id": "f-low-1", "text": "PLACEHOLDER: Baltar has prepared a statement. It blames the pilot." },
+            { "id": "f-low-2", "text": "PLACEHOLDER: Sixty-six seconds is a long time to be wrong." }
+          ]
+        },
+        {
+          "atLeast": 800,
+          "lines": [
+            { "id": "f-mid-1", "text": "PLACEHOLDER: The upgrade worked. Baltar would like that noted. Loudly." },
+            { "id": "f-mid-2", "text": "PLACEHOLDER: Twice the wait, most of the fleet. Gaeta wants the old drive back." }
+          ]
+        },
+        {
+          "atLeast": 1600,
+          "lines": [
+            { "id": "f-high-1", "text": "PLACEHOLDER: {score} points. Baltar is taking full credit. Of course he is." },
+            { "id": "f-high-2", "text": "PLACEHOLDER: The slowest jumps in the fleet, and the best flying. Coincidence, says Baltar." }
+          ]
+        }
+      ]
+    }
+  },
+  "weekly": {
+    "_readme": "The weekly challenge (PRD 11.1). `name` is short, because it sits beside the outcome on the end screen and the share image; {week} is the week's number. Every swarm and fleet variant in src/balance/challenges.json needs a `name` (up to 24 characters) and a `line` (up to 90) saying what it does. The first of each list is the tier's own numbers: its line shows only when the week pairs it with a change. Verdicts work as for set challenges.",
+    "name": "Week {week}",
+    "blurb": "A new mix every Monday, 00:00 UTC. Everyone flies the same rules this week.",
+    "swarms": {
+      "steady": { "name": "Steady skies", "line": "The usual swarm." },
+      "swarm": { "name": "A bigger swarm", "line": "More Raiders, sooner, and more of them shooting." },
+      "heavies": { "name": "Heavy traffic", "line": "Heavy Raiders from the first cycle, four at a time." },
+      "weavers": { "name": "Weavers", "line": "Most Raiders weave instead of diving straight." }
+    },
+    "fleets": {
+      "standard": { "name": "Tyrol on shift", "line": "The usual repairs." },
+      "short-handed": { "name": "Short-handed deck", "line": "Less fleet repair at each jump." },
+      "thin-hulls": { "name": "Thin hulls", "line": "The fleet can lose more in a single cycle." }
+    },
+    "verdicts": [
+      {
+        "atLeast": 0,
+        "lines": [
+          { "id": "w-low-1", "text": "PLACEHOLDER: This week happened to you. Next week might go the other way." },
+          { "id": "w-low-2", "text": "PLACEHOLDER: The fleet has filed this week under 'lessons'." }
+        ]
+      },
+      {
+        "atLeast": 800,
+        "lines": [
+          { "id": "w-mid-1", "text": "PLACEHOLDER: A solid week. CIC is cautiously optimistic, which is new." },
+          { "id": "w-mid-2", "text": "PLACEHOLDER: {cycles} jumps. The week's paperwork is nearly bearable." }
+        ]
+      },
+      {
+        "atLeast": 1600,
+        "lines": [
+          { "id": "w-high-1", "text": "PLACEHOLDER: {score} points. Put it on the board in the hangar." },
+          { "id": "w-high-2", "text": "PLACEHOLDER: Best week the fleet's had in a while. Don't tell the Cylons." }
+        ]
+      }
+    ]
+  }
+}

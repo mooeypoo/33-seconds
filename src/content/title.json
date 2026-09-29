@@ -16,6 +16,17 @@
   ],
   "sound": "This game has sound. The tab stays quiet until you Launch.",
   "controls": "Drag or WASD to move. Space or the button fires a missile. Esc pauses.",
+  "story": {
+    "kicker": "Story mode"
+  },
+  "challenges": {
+    "button": "Challenges",
+    "note": "Same fleet, different trouble. Share how you did.",
+    "title": "Challenges",
+    "lead": "Story mode, bent out of shape. Every result shares with a verdict, and whoever opens your link can try to beat it.",
+    "launch": "Launch",
+    "thisWeek": "This week"
+  },
   "training": {
     "kicker": "New pilot? Start here",
     "button": "Training Run",
